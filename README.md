@@ -73,7 +73,7 @@ ROMP relies on several packages. One need to install packages listed below
      cd romp-build
      cmake -DCMAKE_INSTALL_PREFIX=`pwd`/../romp-install ..
      make && make install
-
+```
 6. DynInst Client 
   - to build dyninst clinet, start from romp root
   ```
