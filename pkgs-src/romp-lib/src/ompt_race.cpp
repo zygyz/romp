@@ -2479,7 +2479,7 @@ ReportRaceDynFound(int type, uint64_t instn_addr)
         char cur_buf[512];
         cur_file_index = lookupLineInformation(instn_addr, cur_line_no, cur_column_no);
         lookupStringTable(cur_file_index, cur_buf);
-        KN_TRACE(0, STDERR, 0, "Race Found", "instn addr: %p type: %d file:%s at line:%d column:%d race" , 
+        KN_TRACE(0, STDERR, 0, "Race Found(Dynamic Mode)", "-> Current Write(instruction address: %p @ file: %s ; line: %d ; column: %d)\n" , 
              instn_addr, type, cur_buf, cur_line_no, cur_column_no); 
     }
     global_race_found = true;
