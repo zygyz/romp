@@ -3132,7 +3132,7 @@ int ompt_initialize(
   ompt_data_t *tool_data)
 {
   const char* verbose  = getenv("ROMP_VERBOSE");
-  if (strstr(verbose, "on") != NULL) {
+  if (verbose != NULL && strstr(verbose, "on") != NULL) {
         global_verbose_output = true;    
   }
   ompt_set_callback = (ompt_set_callback_t) lookup("ompt_set_callback");
