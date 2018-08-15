@@ -1,0 +1,363 @@
+c_loopA.badSolution
+Compiling and Linking
+Building...
+Linking...
+Analyzing OpenMP constructs...
+Analyzing OpenMP constructs...
+Analyzing OpenMP constructs...
+llvm.memcpy.p0i8.p0i8.i64
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+__kmpc_for_static_init_4
+__kmpc_for_static_fini
+Analyzing Queue...
+Function to analyze: 16
+Function to analyze: 15
+Function to analyze: 14
+Function to analyze: 13
+Function to analyze: 12
+Function to analyze: 11
+Function to analyze: 10
+Function to analyze: 9
+Function to analyze: 8
+Function to analyze: 7
+Function to analyze: 6
+Function to analyze: 5
+Function to analyze: 4
+Function to analyze: 3
+Function to analyze: 2
+Function to analyze: 1
+Generating Parallel Instructions file...
+Generating Sequential Instructions file...
+Generating Parallel Functions file...
+
+c_loopA.solution1
+Compiling and Linking
+Building...
+Linking...
+Analyzing OpenMP constructs...
+Analyzing OpenMP constructs...
+Analyzing OpenMP constructs...
+llvm.memcpy.p0i8.p0i8.i64
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+__kmpc_for_static_init_4
+__kmpc_for_static_fini
+Analyzing OpenMP constructs...
+llvm.memcpy.p0i8.p0i8.i64
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+__kmpc_for_static_init_4
+__kmpc_for_static_fini
+Analyzing Queue...
+Function to analyze: 34
+Function to analyze: 33
+Function to analyze: 32
+Function to analyze: 31
+Function to analyze: 30
+Function to analyze: 29
+Function to analyze: 28
+Function to analyze: 27
+Function to analyze: 26
+Function to analyze: 25
+Function to analyze: 24
+Function to analyze: 23
+Function to analyze: 22
+Function to analyze: 21
+Function to analyze: 20
+Function to analyze: 19
+Function to analyze: 18
+Function to analyze: 17
+Function to analyze: 16
+Function to analyze: 15
+Function to analyze: 14
+Function to analyze: 13
+Function to analyze: 12
+Function to analyze: 11
+Function to analyze: 10
+Function to analyze: 9
+Function to analyze: 8
+Function to analyze: 7
+Function to analyze: 6
+Function to analyze: 5
+Function to analyze: 4
+Function to analyze: 3
+Function to analyze: 2
+Function to analyze: 1
+Generating Parallel Instructions file...
+Generating Sequential Instructions file...
+Generating Parallel Functions file...
+
+c_loopA.solution2
+Compiling and Linking
+Building...
+Linking...
+Analyzing OpenMP constructs...
+Analyzing OpenMP constructs...
+Analyzing OpenMP constructs...
+llvm.memcpy.p0i8.p0i8.i64
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+omp_get_thread_num
+__kmpc_barrier
+__kmpc_barrier
+Analyzing Queue...
+Function to analyze: 16
+Function to analyze: 15
+Function to analyze: 14
+Function to analyze: 13
+Function to analyze: 12
+Function to analyze: 11
+Function to analyze: 10
+Function to analyze: 9
+Function to analyze: 8
+Function to analyze: 7
+Function to analyze: 6
+Function to analyze: 5
+Function to analyze: 4
+Function to analyze: 3
+Function to analyze: 2
+Function to analyze: 1
+Generating Parallel Instructions file...
+Generating Sequential Instructions file...
+Generating Parallel Functions file...
+
+c_loopA.solution3
+
+Compiling and Linking
+Building...
+Linking...
+Analyzing OpenMP constructs...
+Analyzing OpenMP constructs...
+Analyzing OpenMP constructs...
+llvm.memcpy.p0i8.p0i8.i64
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+omp_get_thread_num
+__kmpc_barrier
+printf
+Analyzing Queue...
+Function to analyze: 15
+Function to analyze: 14
+Function to analyze: 13
+Function to analyze: 12
+Function to analyze: 11
+Function to analyze: 10
+Function to analyze: 9
+Function to analyze: 8
+Function to analyze: 7
+Function to analyze: 6
+Function to analyze: 5
+Function to analyze: 4
+Function to analyze: 3
+Function to analyze: 2
+Function to analyze: 1
+Generating Parallel Instructions file...
+Generating Sequential Instructions file...
+Generating Parallel Functions file...
+
+Archer encountered an error when invoking [archer-bl c_loopA.solution3.c 0].
+Exiting...
+c_loopB.badSolution1
+Compiling and Linking
+Building...
+Linking...
+Analyzing OpenMP constructs...
+Analyzing OpenMP constructs...
+Analyzing OpenMP constructs...
+llvm.memcpy.p0i8.p0i8.i64
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+__kmpc_for_static_init_4
+__kmpc_for_static_fini
+Analyzing Queue...
+Function to analyze: 16
+Function to analyze: 15
+Function to analyze: 14
+Function to analyze: 13
+Function to analyze: 12
+Function to analyze: 11
+Function to analyze: 10
+Function to analyze: 9
+Function to analyze: 8
+Function to analyze: 7
+Function to analyze: 6
+Function to analyze: 5
+Function to analyze: 4
+Function to analyze: 3
+Function to analyze: 2
+Function to analyze: 1
+Generating Parallel Instructions file...
+Generating Sequential Instructions file...
+Generating Parallel Functions file...
+
+c_loopB.badSolution2
+Compiling and Linking
+Building...
+Linking...
+Analyzing OpenMP constructs...
+Analyzing OpenMP constructs...
+Analyzing OpenMP constructs...
+llvm.memcpy.p0i8.p0i8.i64
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+__kmpc_dispatch_init_4
+__kmpc_dispatch_next_4
+__kmpc_dispatch_fini_4
+Analyzing Queue...
+Function to analyze: 17
+Function to analyze: 16
+Function to analyze: 15
+Function to analyze: 14
+Function to analyze: 13
+Function to analyze: 12
+Function to analyze: 11
+Function to analyze: 10
+Function to analyze: 9
+Function to analyze: 8
+Function to analyze: 7
+Function to analyze: 6
+Function to analyze: 5
+Function to analyze: 4
+Function to analyze: 3
+Function to analyze: 2
+Function to analyze: 1
+Generating Parallel Instructions file...
+Generating Sequential Instructions file...
+Generating Parallel Functions file...
+
+c_loopB.pipelineSolution
+Compiling and Linking
+Building...
+Linking...
+Analyzing OpenMP constructs...
+Analyzing OpenMP constructs...
+Analyzing OpenMP constructs...
+llvm.memcpy.p0i8.p0i8.i64
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+llvm.dbg.declare
+omp_get_thread_num
+__kmpc_barrier
+__kmpc_barrier
+Analyzing Queue...
+Function to analyze: 16
+Function to analyze: 15
+Function to analyze: 14
+Function to analyze: 13
+Function to analyze: 12
+Function to analyze: 11
+Function to analyze: 10
+Function to analyze: 9
+Function to analyze: 8
+Function to analyze: 7
+Function to analyze: 6
+Function to analyze: 5
+Function to analyze: 4
+Function to analyze: 3
+Function to analyze: 2
+Function to analyze: 1
+Generating Parallel Instructions file...
+Generating Sequential Instructions file...
+Generating Parallel Functions file...
+
+debug_V
+debug_V.c:2:1: error: expected identifier or '('
+{
+^
+1 error generated.
+
+Compiling and Linking
+Building...
+debug_V.c:2:1: error: expected identifier or '('
+{
+^
+1 error generated.
+
+Archer encountered an error when invoking [clang -Qunused-arguments -emit-llvm -O0 -g -c debug_V.c -o ./.archer/debug_V.par-archer.nomp.bc -I/home/yg31/data-race/llvm_archer/llvm/bin/include ../../common/ompscrCommon_c.o ../../common/wtime_c.o -I/home/yg31/data-race/pkgs-src/client-dev/more-test/OmpSCR_v2.0-clang-archer/include].
+Exiting...
