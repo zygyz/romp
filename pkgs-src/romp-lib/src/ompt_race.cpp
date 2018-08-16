@@ -2818,7 +2818,7 @@ ReadShadowDataAndCheck(
         switch(cond_code) {
             // report race
             CASE_REPORT_RACE(HIST_E_CUR_E_RW_PARALLEL, RW,  instn_addr, another_instn_addr, address);
-            CASE_REPORT_RACE(HIST_E_CUR_E_WR_PARALLEL, RW,  instn_addr, another_instn_addr, address);
+            CASE_REPORT_RACE(HIST_E_CUR_E_WR_PARALLEL, WR,  instn_addr, another_instn_addr, address);
             CASE_REPORT_RACE(HIST_E_CUR_E_WW_PARALLEL, WW,  instn_addr, another_instn_addr, address);
             CASE_REPORT_RACE(HIST_NE_CUR_E_RW_PARALLEL, RW, instn_addr, another_instn_addr, address);
             CASE_REPORT_RACE(HIST_NE_CUR_E_WR_PARALLEL, WR, instn_addr, another_instn_addr, address);    
