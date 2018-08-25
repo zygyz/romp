@@ -16,9 +16,11 @@
 #include "BPatch_function.h"
 #include "BPatch_flowGraph.h"
 #include "BPatch_statement.h"
+#include "Visitor.h"
 using namespace std;
 using namespace Dyninst;
 using namespace SymtabAPI;
+using namespace InstructionAPI;
 #define MAX_FILENAME_LEN 128
 #define SKIP_LIB_SRC "/data-race/pkgs-src/"
 #define SKIP_SRC "src/"
@@ -46,6 +48,9 @@ using namespace SymtabAPI;
 #define LINEMAP_SECTION_NAME ".linemap"
 #define STRING_TABLE_NAME ".stringtable"
 BPatch bpatch;
+
+static uint64_t rodata_offset = 0;
+static uint64_t rodata_upper = 0;
 
  // Different ways to perform instrumentation
 typedef enum {
@@ -78,7 +83,6 @@ static char g_skip_modules[NUMBER_SKIPPED][MAX_FILENAME_LEN] =
  };
 
 
-
 #define FORBID_CNT 11
 static char g_forbid_funcs[FORBID_CNT][MAX_FILENAME_LEN] = 
 {  
@@ -91,7 +95,7 @@ static char g_forbid_funcs[FORBID_CNT][MAX_FILENAME_LEN] =
     "__libc_csu_fini",
     "_fini",
     "__cxx_global_var_init",
-    "std::chrono",
+    "chrono",
     "polybench"
     /*
     "frame_dummy",
@@ -105,6 +109,44 @@ static char g_forbid_funcs[FORBID_CNT][MAX_FILENAME_LEN] =
     "__do_global_ctors_aux",
     "deregister_tm_clones",
     */
+};
+
+class IPVisitor : public Visitor {
+    public:
+        IPVisitor() { 
+            hasImm = false;
+            isAdd = false; 
+            isRip = false;
+        };
+
+        ~IPVisitor() {};
+
+        virtual void visit(BinaryFunction* b) {
+            isAdd = b->isAdd();
+        };
+
+        virtual void visit(Immediate* i) {
+            hasImm = true; 
+            imm = i->format(defaultStyle);
+        };
+
+        virtual void visit(RegisterAST* r) {
+            if (r->format(defaultStyle) == "RIP") {
+                isRip = true;
+            }
+        }
+
+        virtual void visit(Dereference* d) {};
+
+        string getImm() { return imm; }   
+
+        bool isRipMemAccess() { return hasImm && isAdd && isRip; }    
+
+    private:
+        string imm;
+        bool hasImm;
+        bool isAdd;
+        bool isRip;
 };
 
 class open_statement {
@@ -142,7 +184,7 @@ public:
 };
 
 
-std::vector<std::string> stringTable;
+vector<string> stringTable;
 
 
 typedef struct MyStatement {
@@ -159,8 +201,8 @@ typedef struct MyStatement {
         highExclusiveAddr = ha;
     }
     void print() {
-        std::cout << "file: " << stringTable[fileIndex] << " lineNo: " << lineNo << " colNo: " << lineOffset 
-            << " low addr: " << lowInclusiveAddr << " high addr: " << highExclusiveAddr << std::endl;
+        cout << "file: " << stringTable[fileIndex] << " lineNo: " << lineNo << " colNo: " << lineOffset 
+            << " low addr: " << lowInclusiveAddr << " high addr: " << highExclusiveAddr << endl;
     }
 } MyStatement;
 
@@ -168,7 +210,7 @@ auto compare = [] (const MyStatement lhs, const MyStatement rhs) {
     return lhs.lowInclusiveAddr > rhs.lowInclusiveAddr;
 };
         
-std::priority_queue<MyStatement, std::vector<MyStatement>, decltype(compare)> lineInformation(compare);
+priority_queue<MyStatement, vector<MyStatement>, decltype(compare)> lineInformation(compare);
 
 
 // Attach, create, or open a file for rewriting
@@ -204,7 +246,7 @@ StartInstrumenting(accessType_t accessType,
  }
 
 void
-MakeFunctionVector(BPatch_addressSpace* app, std::vector<BPatch_function*>& func_vec, const char* romp_path)
+MakeFunctionVector(BPatch_addressSpace* app, vector<BPatch_function*>& func_vec, const char* romp_path)
 {
     if (app == nullptr)  {
         cerr << "BPatch_addressSpace* app is null " << endl;
@@ -234,6 +276,7 @@ MakeFunctionVector(BPatch_addressSpace* app, std::vector<BPatch_function*>& func
         /* I want to skip some modules */
         for (int j = 0; j < NUMBER_SKIPPED; ++j) {
             if (strstr(module_name, g_skip_modules[j]) != NULL) {
+            //if (!strncmp(module_name, g_skip_modules[j], strlen(g_skip_modules[j]))) {
                 skipped = true; 
                 break;  
             }
@@ -245,7 +288,7 @@ MakeFunctionVector(BPatch_addressSpace* app, std::vector<BPatch_function*>& func
 #ifdef DEBUG
             cout << "not skipped: " << module_name << endl;
 #endif
-            std::vector<BPatch_function*>* procedures = modules->at(i)->getProcedures();// also includes uninstrumentable functions
+            vector<BPatch_function*>* procedures = modules->at(i)->getProcedures();// also includes uninstrumentable functions
             for (unsigned int j = 0; j < procedures->size(); ++j) {
                 printf("Procedure: %s\n", procedures->at(j)->getName().c_str());
                 bool func_forbidden = false;
@@ -310,8 +353,8 @@ const void* GetInstBaseAndSize(BPatch_point* point, size_t& size)
 
 bool
 CreateAndInsertSnippet(BPatch_addressSpace* app,
-                       std::vector<BPatch_point*>* points,
-                       std::vector<BPatch_function*>& check_access_funcs)      
+                       vector<BPatch_point*>* points,
+                       vector<BPatch_function*>& check_access_funcs)      
 {
     if (points->size() == 0) {
         cerr << "no point to instrument " << endl;     
@@ -326,51 +369,66 @@ CreateAndInsertSnippet(BPatch_addressSpace* app,
             return false;
         }    
 
+        auto instnAddr = points->at(i)->getAddress();
         auto instrPtr = points->at(i)->getInsnAtPoint();
         int size_mach_instn = 0;
         string instn_raw_str = "";
         bool has_lock_prefix = false;  
-
+        bool only_reads_rodata = true;
+            
         if (instrPtr != NULL) {
-            size_mach_instn = instrPtr->size();
-            cout << "machine instr raw byte: " << endl;
-            for (int i = 0; i < size_mach_instn; ++i) {
-                printf("\\%02hhx", (unsigned char)instrPtr->rawByte(i));
-                instn_raw_str += to_string((unsigned char)instrPtr->rawByte(i));
+            if (instrPtr->readsMemory() && !(instrPtr->writesMemory())) { 
+                // if the instruction reads memory and does not write memory
+                vector<Dyninst::InstructionAPI::Operand> operands; 
+                instrPtr->getOperands(operands);  
+                for (auto operand : operands) {
+                    if (operand.readsMemory()) { // this operand reads memory 
+                        // check if the memory access is performed by [RIP + imm] 
+                        auto expr = operand.getValue(); // get the expression tree  
+                        auto visitor = new IPVisitor();
+                        expr->apply(visitor);     
+                        if (visitor->isRipMemAccess()) { // the operand contains a read into rodata via rip 
+                            auto imm = visitor->getImm();
+                            unsigned long hex_imm_value = strtoul(imm.c_str(), 0, 16);
+                            uint64_t effective_addr = (uint64_t)instnAddr + (uint64_t)hex_imm_value;
+                            if (effective_addr > rodata_upper || effective_addr < rodata_offset) { // not in the .rodata section
+                                only_reads_rodata = false;
+                            }
+                        } else {
+                            only_reads_rodata = false; // cannot statically determine the memory address accessed 
+                        }
+                    }  
+                }      
+            } else { // this instruction writes memory 
+                only_reads_rodata = false;
             } 
-            cout << endl;
-            if (instrPtr->readsMemory()) {
-                cout << "instr " << instrPtr->ptr() << " is read memory ";
-            } 
-            if (instrPtr->writesMemory()) {
-                cout << "instr " << instrPtr->ptr() << " is write memory ";
-            }
             unsigned char first_byte = instrPtr->rawByte(0);
             if (first_byte == 0xf0) {
                 has_lock_prefix = true;
             }
-
+        } else {
+            cerr << "ERROR: cannot get pointer to InstructionAPI::Instruction" << endl;
+            continue;
         }
-        auto instnAddr = points->at(i)->getAddress();
-        cout << "instruction address: " << instnAddr << endl;
+
+        if (only_reads_rodata) {
+            cout << hex << "instruction@" << instnAddr << dec << " only reads rodata " << endl;
+            continue; 
+        }
+
         if (memory_access->isAPrefetch_NP()) { // This point is a prefetch
-            cerr << "prefetch point encountered " << endl;
-            // skip this prefetch.
             continue;
         } 
-        if (has_lock_prefix) {
-            cout << "lock prefix encountered " << endl;
-        }
-
         int flag = 0;
+
         if (memory_access->isALoad()) { // This point is a read.
-            //cout << "memory access: " << memory_access << " is a read " << endl;
             flag |= 1;
         } 
+
         if (memory_access->isAStore()) { // This point is a write.
-           // cout << "memory access: " << memory_access << " is a write " << endl;
             flag |= 2;
         } 
+
         if (flag == 0) {
             cerr << "Unknown memory access type " << points->at(i)->getCalledFunctionName() << endl;
             continue;
@@ -379,8 +437,8 @@ CreateAndInsertSnippet(BPatch_addressSpace* app,
         if (flag == 3) { // regulate the load/store to store
             flag = 2;
         }
-        std::vector<BPatch_statement> lines;  
-        std::vector<BPatch_snippet*> args;      
+        vector<BPatch_statement> lines;  
+        vector<BPatch_snippet*> args;      
         BPatch_snippet* address = new BPatch_effectiveAddressExpr();     
         args.push_back(address);
         BPatch_snippet* bytes = new BPatch_bytesAccessedExpr();
@@ -388,7 +446,7 @@ CreateAndInsertSnippet(BPatch_addressSpace* app,
         BPatch_snippet* type =  new BPatch_constExpr(flag);
         args.push_back(type);
 
-        std::vector<BPatch_register> regs;  
+        vector<BPatch_register> regs;  
         app->getRegisters(regs);
         BPatch_snippet* instn_addr = new BPatch_constExpr(instnAddr);
         args.push_back(instn_addr);
@@ -412,13 +470,13 @@ GetMemInstCount(BPatch_function* func)
     }
     int insns_access_memory = 0;
     BPatch_flowGraph* fg = func->getCFG();             
-    std::set<BPatch_basicBlock*> blocks;
+    set<BPatch_basicBlock*> blocks;
     fg->getAllBasicBlocks(blocks);
     for (auto block_iter = blocks.begin(); 
               block_iter != blocks.end();
               ++block_iter) {
         BPatch_basicBlock* block = *block_iter;
-        std::vector<InstructionAPI::Instruction::Ptr> insns;
+        vector<InstructionAPI::Instruction::Ptr> insns;
         block->getInstructions(insns);
         for (auto insn_iter = insns.begin();
                   insn_iter != insns.end();
@@ -442,7 +500,7 @@ InstrumentMemoryAccesses(BPatch_addressSpace* app, const char* romp_path)
         cerr << "address space nullptr " << endl;    
         return false;
     }
-    std::vector<BPatch_function*> functions;
+    vector<BPatch_function*> functions;
     MakeFunctionVector(app, functions, romp_path);
     if (functions.size() == 0) {
         cerr << "no functions for instrumentation " << endl;
@@ -453,7 +511,7 @@ InstrumentMemoryAccesses(BPatch_addressSpace* app, const char* romp_path)
         return false;
     }
     BPatch_image* app_image = app->getImage();
-    std::vector<BPatch_function*> check_access_funcs;
+    vector<BPatch_function*> check_access_funcs;
     app_image->findFunction("CheckAccess", check_access_funcs);
     if (check_access_funcs.size() == 0) {
         cerr << "could not find CheckAccess " << endl; 
@@ -467,7 +525,7 @@ InstrumentMemoryAccesses(BPatch_addressSpace* app, const char* romp_path)
     axs.insert(BPatch_opStore);
     app->beginInsertionSet(); // Do batch insertion.
     for (auto func : functions) { // For each procedures that we are interested in.
-        std::vector<BPatch_point*>* points = func->findPoint(axs); 
+        vector<BPatch_point*>* points = func->findPoint(axs); 
         char module_name[MAX_FILENAME_LEN]; 
         func->getModuleName(module_name, MAX_FILENAME_LEN);
         if (!points) {
@@ -525,12 +583,12 @@ void* serializeLineInformation(size_t& chunk_size)
     void* chunk = calloc(1, payload_size);
   
     if (chunk == NULL) {
-        std::cerr << "calloc for line map information failed " << std::endl;
+        cerr << "calloc for line map information failed " << endl;
         exit(-1);
     }    
     
     chunk_size = payload_size;
-    std::cout << "chnk size: " << payload_size << std::endl;
+    cout << "line information chunk size: " << payload_size << endl;
 
     memcpy(chunk, (char*)&num_records, sizeof(uint32_t)); // set the total number of line records 
 
@@ -574,12 +632,12 @@ void* serializeStringTable(size_t& chunk_size)  // build the string table binary
    size_t header_size = 2 * (1 + num_files * 2); 
    size_t total_byte_size = payload_size + header_size;
 
-   std::cout << "total byte size for string table: " << total_byte_size << std::endl;        
+   cout << "total byte size for string table: " << total_byte_size << endl;        
    void* chunk = calloc(1, total_byte_size);
    chunk_size = total_byte_size;
 
    if (chunk == NULL) {
-        std::cerr << "calloc for string table failed " << std::endl;
+        cerr << "calloc for string table failed " << endl;
         exit(-1);
    }
 
@@ -589,7 +647,7 @@ void* serializeStringTable(size_t& chunk_size)  // build the string table binary
       uint16_t current_file_size = (uint16_t)files_sizes[i];  
       memcpy((char*)chunk + 2 + i * 4, (char*)&offset, 2);
       memcpy((char*)chunk + 2 + i * 4 + 2, (char*)&current_file_size, 2); 
-      std::cout << "current file size: " << current_file_size << " setting offset to " << offset << std::endl;
+      cout << "current file size: " << current_file_size << " setting offset to " << offset << endl;
       offset += current_file_size + 1;
    }  
    //put the strings into the payload  
@@ -608,9 +666,8 @@ void testLookupStringTable(void* chunk, int k, char* buf)
 {
     uint16_t num_files = 0;
     memcpy(&num_files, chunk, 2);     
-    std::cout << "test -- num files: " << num_files << std::endl;
     if (k >= num_files) {
-        std::cerr << "error query " << k << " out of range" << std::endl;
+        cerr << "error query " << k << " out of range" << endl;
         return;
     } 
     uint16_t offset = 0; 
@@ -618,13 +675,12 @@ void testLookupStringTable(void* chunk, int k, char* buf)
     size_t header_offset = (1 + k * 2) * 2;
     memcpy(&offset, (char*)chunk + header_offset, 2);
     memcpy(&filename_length, (char*)chunk + header_offset + 2, 2);
-    std::cout << "test -- offset : " << offset <<  " length: " << filename_length << std::endl;
     memcpy(buf, (char*)chunk + offset, filename_length + 1);
 }
 
 void ParseDwarfLineMap(const char* filename) 
 {
-    std::cout << "Insert DWARF line map" << std::endl;   
+    cout << "Insert DWARF line map" << endl;   
     int fd = open(filename, O_RDONLY);
     if (fd == -1) {
         printf("FAILURE: unable to open file: %s\n", filename);
@@ -633,14 +689,14 @@ void ParseDwarfLineMap(const char* filename)
     Dwarf* dbg = dwarf_begin(fd, DWARF_C_READ);
 
     if (dbg) {
-        std::cout << "dwarf_begin return success for file " << filename << std::endl;
+        cout << "dwarf_begin return success for file " << filename << endl;
         size_t cu_header_size;
         // lambda function to convert relative to absolute path
         stringTable.push_back("<Unknown file>");
         for (Dwarf_Off cu_off = 0, next_cu_off; 
              dwarf_nextcu(dbg, cu_off, &next_cu_off, &cu_header_size, NULL, NULL, NULL) == 0;
              cu_off = next_cu_off) {
-            std::cout << "compilation unit header size: " << cu_header_size << std::endl;
+            cout << "compilation unit header size: " << cu_header_size << endl;
 
             Dwarf_Off cu_die_off = cu_off + cu_header_size;
             Dwarf_Die cu_die;
@@ -651,7 +707,7 @@ void ParseDwarfLineMap(const char* filename)
             int status = dwarf_getsrclines(&cu_die, &lineBuffer, &lineCount);
 
             if (status != 0) {
-                std::cout << "no line in the line table, file: " << filename << std::endl;
+                cout << "no line in the line table, file: " << filename << endl;
                 continue;
             }
         
@@ -660,19 +716,19 @@ void ParseDwarfLineMap(const char* filename)
             size_t filecount;
             status = dwarf_getsrcfiles(&cu_die, &files, &filecount);
             if (status != 0) {
-                std::cout << "dwarf_getsrcfiles failed " << std::endl;
+                cout << "dwarf_getsrcfiles failed " << endl;
                 continue;
             }
 
             Dwarf_Attribute attr;
             const char * comp_dir = dwarf_formstring( dwarf_attr(&cu_die, DW_AT_comp_dir, &attr) );
-            std::string comp_dir_str( comp_dir ? comp_dir : "" );
+            string comp_dir_str( comp_dir ? comp_dir : "" );
 
 
-            auto convert_to_absolute = [&comp_dir_str](const char * &filename) -> std::string
+            auto convert_to_absolute = [&comp_dir_str](const char * &filename) -> string
             {
                 if(!filename) return "";
-                std::string s_name(filename);
+                string s_name(filename);
                 // change to absolute if it's relative
                 if (filename[0]!='/') {
                     s_name = comp_dir_str + "/" + s_name;
@@ -680,13 +736,11 @@ void ParseDwarfLineMap(const char* filename)
                 return s_name;
             };
         
-            //std::cout << "filecount: " << filecount << std::endl;
             for(size_t i = 1; i < filecount; i++) {
                 auto filename = dwarf_filesrc(files, i, nullptr, nullptr);
                 if(!filename) continue;
                 auto result = convert_to_absolute(filename);
                 filename = result.c_str();
-             //   std::cout << "filename: " << filename << std::endl;
                 stringTable.push_back(filename);
             }
 
@@ -703,7 +757,7 @@ void ParseDwarfLineMap(const char* filename)
         /* Acquire the line number, address, source, and end of sequence flag. */
                 status = dwarf_lineno(line, &current_statement.line_number);
                 if ( status != 0 ) {
-                    std::cout << "dwarf_lineno failed" << std::endl;
+                    cerr << "dwarf_lineno failed" << endl;
                     continue;
                 }
                 status = dwarf_linecol(line, &current_statement.column_number);
@@ -711,7 +765,7 @@ void ParseDwarfLineMap(const char* filename)
                 status = dwarf_lineaddr(line, &current_statement.start_addr);
                 if ( status != 0 )
                 {
-                    cout << "dwarf_lineaddr failed" << endl;
+                    cerr << "dwarf_lineaddr failed" << endl;
                     continue;
                 }
 
@@ -719,12 +773,12 @@ void ParseDwarfLineMap(const char* filename)
 
                 const char * file_name = dwarf_linesrc(line, NULL, NULL);
                 if ( !file_name ) {
-                    cout << "dwarf_linesrc - empty name" << endl;
+                    cerr << "dwarf_linesrc - empty name" << endl;
                     continue;
                 }
 
         // search filename index
-                std::string file_name_str(convert_to_absolute(file_name));
+                string file_name_str(convert_to_absolute(file_name));
                 int index = -1;
                 for(size_t idx = offset; idx < stringTable.size(); ++idx) {
                     if(stringTable[idx] == file_name_str) {  
@@ -733,15 +787,15 @@ void ParseDwarfLineMap(const char* filename)
                     }
                 }
                 if( index == -1 ) {
-                    cout << "dwarf_linesrc didn't find index" << endl;
+                    cerr << "dwarf_linesrc didn't find index" << endl;
                     continue;
                 }
                 current_statement.string_table_index = index;
-                std::cout << "line num: " << current_statement.line_number << " col num: " << current_statement.column_number << std::endl;
+                //cout << "line num: " << current_statement.line_number << " col num: " << current_statement.column_number << endl;
                 bool isEndOfSequence;
                 status = dwarf_lineendsequence(line, &isEndOfSequence);
                 if ( status != 0 ) {
-                    cout << "dwarf_lineendsequence failed" << endl;
+                    cerr << "dwarf_lineendsequence failed" << endl;
                     continue;
                 }
                 if(i == lineCount - 1) {
@@ -750,7 +804,7 @@ void ParseDwarfLineMap(const char* filename)
                 bool isMyStatement;
                 status = dwarf_linebeginstatement(line, &isMyStatement);
                 if(status != 0) {
-                    cout << "dwarf_linebeginstatement failed" << endl;
+                    cerr << "dwarf_linebeginstatement failed" << endl;
                     continue;
                 }
 	            if (current_line.uninitialized()) {
@@ -808,6 +862,43 @@ ShowAppThreadsInfo(accessType_t access_type,
     }
 }
 
+void LookupReadOnlyRegion(
+        const char* arg,
+        BPatch_addressSpace* app)
+{
+
+    BPatch_image* app_image = app->getImage();
+    if (app_image == NULL) {
+        cerr << "getImage failed " << endl;
+        exit(-1);     
+    }    
+    vector<BPatch_object*> objs;
+    app_image->getObjects(objs);  
+    cout << "objs num: " << objs.size() << endl;
+    BPatch_object * main_program_object = nullptr;
+    for (auto obj : objs) {
+        if (strcmp(arg, obj->pathName().c_str()) == 0) {
+            cout << "found main program object: " << obj->pathName() << endl;
+            main_program_object = obj; 
+            break;
+        }
+    }
+    if (main_program_object == nullptr) {
+        cerr << "cannot find the object for main program " << endl;     
+        exit(-1);
+    }
+    SymtabAPI::Symtab* symtab = SymtabAPI::convert(main_program_object);
+    Region* reg = nullptr;
+    if (symtab->findRegion(reg, ".rodata")) {
+        cout << "found .rodata!" << endl;
+    }
+    Offset offset = reg->getMemOffset();
+    unsigned long size = reg->getMemSize();
+    rodata_offset = (uint64_t)offset;
+    rodata_upper = (uint64_t)(offset + size);
+    cout << ".rodata offset: " << hex << "0x" << rodata_offset << ".rodata upper bound: 0x" << rodata_upper << dec << endl;
+} 
+
 void InsertParsedDebugSection(
         const char* arg, 
         void* string_table_chunk, 
@@ -818,26 +909,26 @@ void InsertParsedDebugSection(
 {
     BPatch_image* app_image = app->getImage();
     if (app_image == NULL) {
-        std::cerr << "getImage failed " << std::endl;
+        cerr << "getImage failed " << endl;
         exit(-1);     
     }    
-    std::vector<BPatch_object*> objs;
+    vector<BPatch_object*> objs;
     app_image->getObjects(objs);  
-    std::cout << "objs num: " << objs.size() << std::endl;
+    cout << "objs num: " << objs.size() << endl;
     BPatch_object * obj_to_insert = nullptr;
     for (auto obj : objs) {
         if (strcmp(arg, obj->pathName().c_str()) == 0) {
-            std::cout << "found main program object: " << obj->pathName() << std::endl;
+            cout << "found main program object: " << obj->pathName() << endl;
             obj_to_insert = obj; 
             break;
         }
     }
     if (obj_to_insert == nullptr) {
-        std::cerr << "cannot find the object for main program " << std::endl;     
+        cerr << "cannot find the object for main program " << endl;     
         exit(-1);
     }
     SymtabAPI::Symtab* symtab = SymtabAPI::convert(obj_to_insert);
-    std::cout << "string table size: " << string_table_chunk_size << " line map size: " << line_map_chunk_size << std::endl;
+    cout << "string table size: " << string_table_chunk_size << " line map size: " << line_map_chunk_size << endl;
     symtab->addRegion(0, string_table_chunk, string_table_chunk_size, STRING_TABLE_NAME, Region::RT_DATA, true);      
     symtab->addRegion(0, line_map_chunk, line_map_chunk_size, LINEMAP_SECTION_NAME, Region::RT_DATA, true);
 }
@@ -858,7 +949,7 @@ main(int argc, const char* argv[])
     } else {
         printf("romp_path: %s\n", romp_path);
     }
-    int prog_pid = 42;  // The meaning of life.
+    int prog_pid = 42;  // HG2G: The meaning of life.
     const char* prog_argv[] = {argv[1], argv[2], argv[3], argv[4]}; 
     accessType_t mode = OPEN;
  // Create/attach/open a binary
@@ -868,14 +959,15 @@ main(int argc, const char* argv[])
         fprintf(stderr, "StartInstrumenting failed\n");
         exit(1);
     }
+    LookupReadOnlyRegion(argv[1], app);
     InstrumentMemoryAccesses(app, romp_path);
     ParseDwarfLineMap(argv[1]);
     for (auto file : stringTable) {
-        std::cout << file << std::endl;
+        cout << file << endl;
     }    
     size_t string_table_size = 0;
     void* string_table_chunk = serializeStringTable(string_table_size); // build the string table binary from the stringTable vector 
-    std::cout << "string table chunk size: " << string_table_size << std::endl;
+    cout << "string table chunk size: " << string_table_size << endl;
     char buf[512];
     for (size_t i = 0; i < stringTable.size(); ++i) {
         testLookupStringTable(string_table_chunk, i, buf); 
@@ -883,10 +975,10 @@ main(int argc, const char* argv[])
     }
     size_t line_map_size = 0;   
     void* line_map_chunk = serializeLineInformation(line_map_size);
-    std::cout << "line map chunk size: " << line_map_size << std::endl;
+    cout << "line map chunk size: " << line_map_size << endl;
     
     InsertParsedDebugSection(argv[1], string_table_chunk, string_table_size, line_map_chunk, line_map_size, app);
-
+    
     const char* prog_name_rewritten = "instrumented_app";
     cout << "Instrumentation time: " << float(clock() - begin_time)/ CLOCKS_PER_SEC << " sec" << endl;
  //   const clock_t prg_begin_time = clock();
