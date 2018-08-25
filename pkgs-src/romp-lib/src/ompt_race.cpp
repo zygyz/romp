@@ -25,14 +25,17 @@
 #include "pfq-rwlock.h"
 #include "whereami.h"
 #define THREAD_TASK_NUM  16
+//#define DEBUG_HB
+//#define DEBUG_REDUCE
+//#define DEBUG
 #define FAST_MODE
-//#define PERFORMANCE_INSPECT
 
 using namespace std;
 
 static bool global_race_found = false;
-
 static bool global_verbose_output = false;
+static bool global_show_label = false;
+static bool global_perf_inspect = false;
 //#define DEBUG_WORKSHARE_LOOP
 #ifdef DEBUG_WORKSHARE_LOOP
 atomic<int> workshare_cnt;
@@ -244,10 +247,8 @@ static ompt_get_proc_id_t ompt_get_proc_id;
 static ompt_enumerate_states_t ompt_enumerate_states;
 static ompt_enumerate_mutex_impls_t ompt_enumerate_mutex_impls;
 
-#ifdef PERFORMANCE_INSPECT
 static unordered_map<uint64_t, uint64_t> gHist;
 static mcs_lock_t gHistLock; // this is for protecting the dependency hashing 
-#endif
 
 /*
 static unordered_map<uint64_t, pair<uint16_t, pair<uint16_t, uint16_t> > > gDebugInfoHash;
@@ -377,12 +378,12 @@ enum ENCODE
     HIST_E_CUR_E_RR_SAME = 0x03, 
     HIST_E_CUR_E_RR_CUR_HB_HIST = 0x01,
 
-    HIST_E_CUR_E_RW_HIST_HB_CUR = 0x04,   
-    HIST_E_CUR_E_RW_PARALLEL = 0x06,
+    HIST_E_CUR_E_RW_HIST_HB_CUR = 0x04, // 0b0100  
+    HIST_E_CUR_E_RW_PARALLEL = 0x06,   
     HIST_E_CUR_E_RW_SAME = 0x07,
     HIST_E_CUR_E_RW_CUR_HB_HIST = 0x05,
 
-    HIST_E_CUR_E_WR_HIST_HB_CUR = 0x08,   
+    HIST_E_CUR_E_WR_HIST_HB_CUR = 0x08, // 0b1000
     HIST_E_CUR_E_WR_PARALLEL = 0x0a,
     HIST_E_CUR_E_WR_SAME = 0x0b,
     HIST_E_CUR_E_WR_CUR_HB_HIST = 0x09,
@@ -397,12 +398,12 @@ enum ENCODE
     HIST_NE_CUR_E_RR_SAME = 0x43,
     HIST_NE_CUR_E_RR_CUR_HB_HIST = 0x41,
 
-    HIST_NE_CUR_E_RW_HIST_HB_CUR = 0x44,
+    HIST_NE_CUR_E_RW_HIST_HB_CUR = 0x44, // 0b01000100
     HIST_NE_CUR_E_RW_PARALLEL = 0x46,
     HIST_NE_CUR_E_RW_SAME = 0x47,
     HIST_NE_CUR_E_RW_CUR_HB_HIST = 0x45,
 
-    HIST_NE_CUR_E_WR_HIST_HB_CUR = 0x48,
+    HIST_NE_CUR_E_WR_HIST_HB_CUR = 0x48, // 0b01001000
     HIST_NE_CUR_E_WR_PARALLEL = 0x4a,
     HIST_NE_CUR_E_WR_SAME = 0x4b,
     HIST_NE_CUR_E_WR_CUR_HB_HIST = 0x49,
@@ -417,7 +418,7 @@ enum ENCODE
     HIST_E_CUR_NE_RR_SAME = 0x23,
     HIST_E_CUR_NE_RR_CUR_HB_HIST = 0x21,
 
-    HIST_E_CUR_NE_RW_HIST_HB_CUR = 0x24,
+    HIST_E_CUR_NE_RW_HIST_HB_CUR = 0x24, // 0b00100100
     HIST_E_CUR_NE_RW_PARALLEL = 0x26,
     HIST_E_CUR_NE_RW_SAME = 0x27,
     HIST_E_CUR_NE_RW_CUR_HB_HIST = 0x25,
@@ -2479,8 +2480,8 @@ ReportRaceDynFound(int type, uint64_t instn_addr)
         char cur_buf[512];
         cur_file_index = lookupLineInformation(instn_addr, cur_line_no, cur_column_no);
         lookupStringTable(cur_file_index, cur_buf);
-        KN_TRACE(0, STDERR, 0, "Race Found(Dynamic Mode)", "-> Current Write(instruction address: %p @ file: %s ; line: %d ; column: %d)\n" , 
-             instn_addr, type, cur_buf, cur_line_no, cur_column_no); 
+        KN_TRACE(0, STDERR, 0, "Race Found (Dynamic Mode)", "data race -> Current Write(instruction address: %p @ file: %s ; line: %d ; column: %d)\n" , 
+             instn_addr, cur_buf, cur_line_no, cur_column_no); 
     }
     global_race_found = true;
 }
@@ -2688,10 +2689,7 @@ ReadShadowDataAndCheck(
 #endif
        , uint64_t instn_addr 
        , bool cur_instn_hw_lock
-#ifdef PERFORMANCE_INSPECT
-       , int i 
-#endif
-        ) {     
+       ) {     
     assert(from_me->access_records != nullptr); 
     auto current_state = from_me->mem_state;
 #ifdef FAST_MODE
@@ -2727,13 +2725,9 @@ ReadShadowDataAndCheck(
     void* prev = (void*)head;
     bool remove_hist = false;  
     bool race_found = false;
-#ifdef PERFORMANCE_INSPECT 
     int access_record_count = 0;
-#endif
     while (cursor) { // for a specific address
-#ifdef PERFORMANCE_INSPECT
         access_record_count += 1;
-#endif
         remove_hist = false;
         auto prefix_ptr = (Prefix*)cursor;
         auto hist_label = prefix_ptr->label;
@@ -2744,32 +2738,12 @@ ReadShadowDataAndCheck(
         if (GetAccessRecordType(prefix_ptr->access_type)) { // byte48
             auto ar48_ptr = static_cast<AR48*>(cursor);
             hist_lockset = ar48_ptr->lockset;
-            /*
-#ifdef PERFORMANCE_INSPECT
-        KA_TRACE(0, STDOUT, 0, "PT", "accessing addr: %p slot: %d id: %d ar: %s", address, i, access_record_count, ar48_ptr->ToString().c_str());
-#endif
-*/
         }
-            /*
-        else {
-#ifdef PERFORMANCE_INSPECT
-        KA_TRACE(0, STDOUT, 0, "PT", "accessing addr: %p slot: %d id: %d ar: %s", address, i, access_record_count, (static_cast<AR32*>(cursor))->ToString().c_str());
-#endif
-        }    
-        */
         auto hist_access_type = GetMemoryAccessType(prefix_ptr->access_type);
         auto cur_in_reduction = cur_task_ptr->in_reduction;
         auto hist_in_reduction = InReduction(prefix_ptr->access_type);
         auto hist_instn_hw_lock = HasLockPrefix(prefix_ptr->access_type); 
 
-        //auto hist_is_explicit_thread_private = IsExpTaskThreadPrivate(prefix_ptr->access_type);
-        //auto hist_is_explicit_task_completed = static_cast<TaskData*>(prefix_ptr->task_ptr)->is_completed; 
-        //auto hist_is_explicit_task_suspended = static_cast<TaskData*>(prefix_ptr->task_ptr)->suspended;
-        /*
-        KA_TRACE(1000, STDERR, 0, "ReadShadowDataAndCheck", "addr: %p hist is explicit thread private: %s hist task explicit completed or suspended(%p): %s ", address, hist_is_explicit_thread_private? "true" : "false", 
-                 prefix_ptr->task_ptr, (hist_is_explicit_task_completed) ? "true" : "false" );
-                 */
-        //bool logical_mapped_to_same_task = false;
         void* from_seg = nullptr;
         void* to_seg = nullptr;
         auto direction = (char)HappensBefore(hist_label, label, hist_task_ptr, cur_task_ptr,// logical_mapped_to_same_task, 
@@ -2833,11 +2807,9 @@ ReadShadowDataAndCheck(
                cond_code &= 0x7f; // erase the highest bit, reduction is orthogonal feature, don't confuse with lockset 
                break; 
         }
-        /*
-        if (race_found) {
+        if (global_show_label && race_found) {
             KA_TRACE(0, STDERR, 0, "ReadShadowDataAndCheck", "hist label: %s cur label: %s",  hist_label->ToString().c_str(), label->ToString().c_str());
         }
-        */
         if (!race_found) { // race not found, then consider the following conditions
         switch(cond_code) {
             // discard hist 
@@ -2901,13 +2873,14 @@ ReadShadowDataAndCheck(
             cursor = ((Prefix*)cursor)->next;
         }
     } 
-#ifdef PERFORMANCE_INSPECT
-    mcs_node_t me;
-    mcs_lock(&gHistLock, &me);
-    gHist[(uint64_t)access_record_count]++;
-    //KA_TRACE(0, STDOUT, 0, "PERF STAT", "addr: %p access record count: %d\n", address, access_record_count);
-    mcs_unlock(&gHistLock, &me);
-#endif
+    /*
+    if (global_perf_inspect) {
+        mcs_node_t me;
+        mcs_lock(&gHistLock, &me);
+        gHist[(uint64_t)access_record_count]++;
+        mcs_unlock(&gHistLock, &me);
+    }
+    */
     return !skip_current_eligible;
 }
 
@@ -2946,9 +2919,6 @@ ExecuteCheckProtocol(AccessHistory * from_me,
                     ,uint64_t instn_addr 
                     ,int data_unit_accessed
                     ,bool hw_lock 
-#ifdef PERFORMANCE_INSPECT 
-                    ,int i
-#endif
        )
 {         
     /* About setting the data_unit_accessed in mem_state: if a memory address is associated with a stack access, and it private to a single task, 
@@ -3013,9 +2983,6 @@ ExecuteCheckProtocol(AccessHistory * from_me,
 #endif
                 , instn_addr 
                 , hw_lock
-#ifdef PERFORMANCE_INSPECT
-                ,i
-#endif
                 ); 
      //   pfq_rwlock_write_unlock(lock_ptr, &me); 
     }  
@@ -3132,8 +3099,16 @@ int ompt_initialize(
   ompt_data_t *tool_data)
 {
   const char* verbose  = getenv("ROMP_VERBOSE");
+  const char* show_label = getenv("ROMP_LABEL");
+  const char* perf_inspect = getenv("PERF_INSPECT");
   if (verbose != NULL && strstr(verbose, "on") != NULL) {
         global_verbose_output = true;    
+  }
+  if (show_label != NULL && strstr(show_label, "on") != NULL) {
+        global_show_label = true;
+  }
+  if (perf_inspect != NULL && strstr(perf_inspect, "on") != NULL) {
+        global_perf_inspect = true; 
   }
   ompt_set_callback = (ompt_set_callback_t) lookup("ompt_set_callback");
   ompt_get_callback = (ompt_get_callback_t) lookup("ompt_get_callback");
@@ -3194,11 +3169,11 @@ void ompt_finalize(ompt_data_t *tool_data)
     KA_TRACE(0, STDERR, 0, "ompt finalizer", "reduction: %d", reduction_cnt.load());   
 #endif
 
-#ifdef PERFORMANCE_INSPECT
-    for (auto rec : gHist) {
-        printf("access record length: %lu-- %lu times\n", rec.first, rec.second);
+    if (global_perf_inspect) {
+        for (auto rec : gHist) {
+            printf("access record length: %lu-- %lu times\n", rec.first, rec.second);
+        }
     }
-#endif
 }
 
 ompt_start_tool_result_t* ompt_start_tool(
@@ -3226,7 +3201,6 @@ ompt_start_tool_result_t* ompt_start_tool(
         KA_TRACE(0, STDERR, 0, "process elf", "get .linemap data pionter failed", 0);
         //exit(-1);                
     }   
-    //KA_TRACE(0, STDOUT, 0, "process elf", ".stringtable size: %d .linemap size: %d", gStringTableSizeInByte, gLineMapSizeInByte);
     static ompt_start_tool_result_t ompt_start_tool_result = {&ompt_initialize,&ompt_finalize, 0};
     return &ompt_start_tool_result;
 }
@@ -3252,7 +3226,7 @@ CheckAccess(void* address,
     if (bytes_accessed < 4)  // skip checking memroy access smaller than word granularity
         return;
 #endif
-    
+       
     int task_type;    
     ompt_data_t task_data;
     ompt_data_t* task_data_t = &task_data;
@@ -3361,9 +3335,6 @@ CheckAccess(void* address,
                     , instn_addr 
                     , bytes_accessed 
                     , hw_lock
-#ifdef PERFORMANCE_INSPECT
-                    , i
-#endif
                     );
         }
     } else {          
@@ -3376,9 +3347,6 @@ CheckAccess(void* address,
                     , instn_addr 
                     , bytes_accessed
                     , hw_lock
-#ifdef PERFORMANCE_INSPECT
-                    , i
-#endif
                     );
         }
         access_history = GetOrCreateShadowBaseAddress<AccessHistory>((char*)address + bytes_accessed);
@@ -3391,9 +3359,6 @@ CheckAccess(void* address,
                     , instn_addr 
                     , bytes_accessed
                     , hw_lock 
-#ifdef PERFORMANCE_INSPECT
-                    , i
-#endif
                     );
         }
     }
@@ -3415,9 +3380,6 @@ CheckAccess(void* address,
                     , instn_addr 
                     , words_accessed
                     , hw_lock 
-#ifdef PERFORMANCE_INSPECT
-                    , i
-#endif
           );
         }
     } else {
@@ -3430,9 +3392,6 @@ CheckAccess(void* address,
                     , instn_addr 
                     , words_accessed
                     , hw_lock 
-#ifdef PERFORMANCE_INSPECT
-                    ,i
-#endif
                   );
         }
         // get the next shadow page 
@@ -3446,9 +3405,6 @@ CheckAccess(void* address,
                     , instn_addr 
                     , words_accessed 
                     , hw_lock 
-#ifdef PERFORMANCE_INSPECT
-                    ,i
-#endif
                    );
         }
     }
