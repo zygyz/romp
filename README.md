@@ -24,7 +24,8 @@ ROMP relies on several packages. One need to install packages listed below
    - [Clang](https://github.com/llvm-mirror/clang) could be downloaded from [https://github.com/llvm-mirror/clang](https://github.com/llvm-mirror/clang)
 
 2. DynInst (required)
-   - DynInst relies on elfutils-0.173
+   - DynInst relies on elfutils-0.173 and boost library 
+
    - to build and install elfutils-0.173, start from romp root directory: 
     
    ```
@@ -34,9 +35,13 @@ ROMP relies on several packages. One need to install packages listed below
        ../configure --prefix=`pwd`/../elfutils-install 
        make && make install
    ```
-  - to build and install dyninst, start from romp root directory 
+   - to build and install boost:
+    
+   - to build and install dyninst, start from romp root directory 
     
    ```
+       export CPATH=`pwd`/pkgs-src/elfutils-0.173/elfutils-install/include:$CPATH
+       export LD_LIBRARY_PATH=`pwd`/pkgs-src/elfutils-0.173/elfutils-install/lib:$LD_LIBRARY_PATH
        cd pkgs-src/dyninst
        mkdir dyninst-build dyninst-install
        cd dyninst-build
