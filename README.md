@@ -35,17 +35,24 @@ ROMP relies on several packages. One need to install packages listed below
        ../configure --prefix=`pwd`/../elfutils-install 
        make && make install
    ```
-   - to build and install boost:
-    
+   - to build and install boost, start from romp root directory
+   ```    
+       cd pkgs-src
+       tar xvf boost_1_67_0.tar.bz2
+       cd boost_1_67_0
+       ./bootstrap.sh
+       ./b2  
+   ```
    - to build and install dyninst, start from romp root directory 
     
    ```
-       export CPATH=`pwd`/pkgs-src/elfutils-0.173/elfutils-install/include:$CPATH
+       export CPATH=`pwd`/pkgs-src/elfutils-0.173/elfutils-install/include:`pwd`/pkgs-src/boost_1_67_0:$CPATH
        export LD_LIBRARY_PATH=`pwd`/pkgs-src/elfutils-0.173/elfutils-install/lib:$LD_LIBRARY_PATH
+       export LD_LIBRARY_PATH=`pwd`/pkgs-src/boost_1_67_0/stage/lib:$LD_LIBRARY_PATH
        cd pkgs-src/dyninst
        mkdir dyninst-build dyninst-install
        cd dyninst-build
-       cmake -DCMAKE_INSTALL_PREFIX=`pwd`/../dyninst-install ..
+       cmake -DCMAKE_INSTALL_PREFIX=`pwd`/../dyninst-install -DBOOST_ROOT=`pwd`/../../boost_1_67_0 ..
        make && make install
    ```  
 
@@ -87,6 +94,15 @@ ROMP relies on several packages. One need to install packages listed below
   ```
   - after compilation, one should get a binary called omp_race_client
 
+### Trouble shooting for installation
+   - When installing dyninst, one may encounter the following error:
+   ```
+     .../dyninst-build/elfutils/src/LibElf/backends/ppc_init_reg.c:69:1: error: stack usage might be unbounded
+   ```
+   To solve this problem, add the following line in ppc_initreg.c: 
+   ```
+        #pragma GCC diagnostic ignored "-Wstack-usage="
+   ```
 ## Running the tests
 
 ### Running benchmarks
