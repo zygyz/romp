@@ -62,7 +62,7 @@ ARCHER_COMPILE_FLAGS="-larcher"
 INSPECTOR=${INSPECTOR:-"inspxe-cl"}
 ICC_COMPILE_FLAGS="-O0 -fopenmp -std=c99 -qopenmp-offload=host"
 
-ROMP_COMPILE_FLAGS="-g -O2 -L/home/yg31/data-race/pkgs/ompt-race-dev/lib -L/home/yg31/data-race/pkgs/tcmalloc/lib -fopenmp -fpermissive -ltcmalloc"
+ROMP_COMPILE_FLAGS="-g -O2 -L`pwd`/../../pkgs-src/romp-lib/lib -L`pwd`/../../pkgs-src/gperftools/gperftools-install/lib -L`pwd`/../../pkgs-src/llvm-openmp/openmp/llvm-openmp-install/lib -fopenmp -fpermissive -ltcmalloc"
 
 POLYFLAG="micro-benchmarks/utilities/polybench.c -I micro-benchmarks -I micro-benchmarks/utilities -DPOLYBENCH_NO_FLUSH_CACHE -DPOLYBENCH_TIME -D_POSIX_C_SOURCE=200112L"
 

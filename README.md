@@ -136,6 +136,7 @@ ROMP relies on several packages. One need to install packages listed below
       export ROMP_PATH=`pwd`/pkgs-src/llvm-openmp/openmp/llvm-openmp-install/lib/libomptrace.so
       export LD_LIBRARY_PATH=`pwd`/pkgs-src/llvm-openmp/openmp/llvm-openmp-install/lib:$LD_LIBRARY_PATH
       export LD_LIBRARY_PATH=`pwd`/pkgs-src/gperftools/gperftools-install/lib:$LD_LIBRARY_PATH
+      export LD_LIBRARY_PATH=`pwd`/pkgs-src/dyninst/dyninst-install/lib:$LD_LIBRARY_PATH
       cd tests/dataracebench
       ./check-data-races.sh --romp
    ```
