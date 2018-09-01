@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(omptrace)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O2 -std=c++11 -fpermissive -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free -L../../gperftools/gperftool-install/lib -L../../llvm-openmp/openmp/llvm-openmp-install/lib  -lpthread -ltcmalloc -lelf")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O2 -std=c++11 -fpermissive -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free -L../../gperftools/gperftools-install/lib -L../../llvm-openmp/openmp/llvm-openmp-install/lib  -lpthread -ltcmalloc -lelf")
 message(STATUS "cmake_cxx_flags = ${CMAKE_CXX_FLAGS}")
 set(CMAKE_INSTALL_INCLUDEDIR ${CMAKE_INSTALL_PREFIX}/include)
 set(CMAKE_INSTALL_LIBDIR ${CMAKE_INSTALL_PREFIX}/lib)
