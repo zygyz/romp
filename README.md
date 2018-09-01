@@ -103,7 +103,7 @@ ROMP relies on several packages. One need to install packages listed below
        make && make install
   ``` 
 
-  - to build dyninst clinet, start from romp root
+  - to build dyninst client, start from romp root
   ```
      export CPATH=`pwd`/pkgs-src/libdwarf/libdwarf-install/include:$CPATH
      export CPATH=`pwd`/pkgs-src/elfutils-0.173/elfutils-install/include:$CPATH
@@ -130,6 +130,8 @@ ROMP relies on several packages. One need to install packages listed below
    - to run DataRaceBench, first make sure ROMP has been intalled as described above
    - start from romp root
    ```
+      export DYNINST_ROOT=/path/to/dyninst/dyninst-install
+      export DYNINSTAPI_RT_LIB=$DYNINST_ROOT/lib/libdyninstAPI_RT.so
       export DYNINST_CLIENT=/path/to/dyninst/client/omp_race_client
       export ROMP_PATH=/path/to/libomptrace.so
       cd tests/dataracebench
