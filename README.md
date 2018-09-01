@@ -72,8 +72,9 @@ ROMP relies on several packages. One need to install packages listed below
   - to build and install TCMalloc, start from romp root 
   ```
      cd pkgs-src/gperftools
-     mkdir gperftool-build gperftool-install    
-     cmake -DCMAKE_INSTALL_PREFIX=`pwd`/../gperftool-install ..
+     mkdir gperftools-build gperftools-install    
+     cd gperftools-build
+     cmake -DCMAKE_INSTALL_PREFIX=`pwd`/../gperftools-install ..
      make && make install
   ``` 
 
