@@ -130,10 +130,10 @@ ROMP relies on several packages. One need to install packages listed below
    - to run DataRaceBench, first make sure ROMP has been intalled as described above
    - start from romp root
    ```
-      export DYNINST_ROOT=/path/to/dyninst/dyninst-install
+      export DYNINST_ROOT=`pwd`/pkgs-src/dyninst/dyninst-install
       export DYNINSTAPI_RT_LIB=$DYNINST_ROOT/lib/libdyninstAPI_RT.so
-      export DYNINST_CLIENT=/path/to/dyninst/client/omp_race_client
-      export ROMP_PATH=/path/to/libomptrace.so
+      export DYNINST_CLIENT=`pwd`/pkgs-src/dyninst-client/omp_race_client
+      export ROMP_PATH=`pwd`/pkgs-src/llvm-openmp/openmp/llvm-openmp-install/lib/libomptrace.so
       cd tests/dataracebench
       ./check-data-races.sh --romp
    ```
