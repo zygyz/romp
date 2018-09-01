@@ -92,6 +92,14 @@ ROMP relies on several packages. One need to install packages listed below
      make && make install
   ```
 6. DynInst Client 
+  - DynInst relies on libdwarf, to build libdwarf, start from romp root
+  ```
+       cd pkgs-src
+       tar xvf libdwarf.tgz
+       cd libdwarf
+
+  ``` 
+
   - to build dyninst clinet, start from romp root
   ```
      cd pkgs-src/dyninst-client
