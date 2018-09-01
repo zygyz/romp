@@ -73,14 +73,17 @@ ROMP relies on several packages. One need to install packages listed below
   ```
      cd pkgs-src/gperftools
      mkdir gperftools-build gperftools-install    
+     ./autogen.sh
      cd gperftools-build
-     cmake -DCMAKE_INSTALL_PREFIX=`pwd`/../gperftools-install ..
+     ../configure --prefix=`pwd`/../gperftools-install 
      make && make install
   ``` 
 
 5. ROMP 
   - to build and install ROMP, start from romp root
   ```
+     export CPATH=`pwd`/pkgs-src/llvm-openmp/openmp/llvm-openmp-install/include:$CPATH
+     export LD_LIBRARY_PATH=`pwd`/pkgs-src/llvm-openmp/openmp/llvm-openmp-install/lib:$LD_LIBRARY_PATH
      cd pkgs-src/romp-lib
      mkdir romp-build romp-install
      cd romp-build
