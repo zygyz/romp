@@ -84,6 +84,7 @@ ROMP relies on several packages. One need to install packages listed below
   ```
      export CPATH=`pwd`/pkgs-src/llvm-openmp/openmp/llvm-openmp-install/include:$CPATH
      export LD_LIBRARY_PATH=`pwd`/pkgs-src/llvm-openmp/openmp/llvm-openmp-install/lib:$LD_LIBRARY_PATH
+     export LD_LIBRARY_PATH=`pwd`/pkgs-src/gperftools/gperftools-install/lib:$LD_LIBRARY_PATH
      cd pkgs-src/romp-lib
      mkdir romp-build romp-install
      cd romp-build
