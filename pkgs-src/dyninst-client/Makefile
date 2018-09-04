@@ -4,7 +4,7 @@ EXECNAME=omp_race_client
 DYNINST_ROOT=../dyninst/dyninst-install
 
 $(EXECNAME): $(EXECNAME).o
-	$(CC) $(EXECNAME).o -L../elfutils-0.173/elfutils-install/lib -L$(DYNINST_ROOT)/lib  -ldw -ldyninstAPI -lsymtabAPI -lcommon -ldl -linstructionAPI -std=c++11 -o $(EXECNAME)
+	$(CC) $(EXECNAME).o -L../elfutils-0.173/elfutils-install/lib -L$(DYNINST_ROOT)/lib  -ldw -ldyninstAPI -lsymtabAPI -lcommon -ldl -linstructionAPI -lparseAPI -std=c++11 -o $(EXECNAME)
 
 $(EXECNAME).o: ./$(EXECNAME).cc
 	$(CC) -g -c $(CFLAGS) -std=c++11 -I$(DYNINST_ROOT)/include $(EXECNAME).cc
