@@ -60,11 +60,7 @@ def result_type(row):
     return result
 
 datasets = {
-    'archer': ['results/archer-4.0.1-polyhedral.csv', 'results/archer-4.0.1-Quartz.csv']
-  , 'helgrind': ['results/helgrind-polyhedral-Quartz.csv', 'results/helgrind-Quartz.csv']
-  , 'inspector': ['results/inspector-polyhedral.csv', 'results/inspector-ti3-Quartz.csv']
-  , 'tsan': ['results/tsan-4.0.1-Quartz.csv', 'results/tsan-4.0.1-polyhedral.csv']
-  , 'romp': ['results/romp.csv']
+   'romp': ['results/romp.csv']
   }
 
 summary = pd.DataFrame(index=datasets.keys())
@@ -97,7 +93,7 @@ for tool, dfs in datasets.items():
     with open(outfile_local, "w") as f:
         output.to_csv(f, index=False)
 
-    outfile = '../publications/sc17/{}-finished.csv'.format(tool)
+    outfile = 'results/{}-finished.csv'.format(tool)
     with open(outfile, "w") as f:
         output.to_csv(f, index=False)
 
