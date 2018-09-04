@@ -186,6 +186,7 @@ ROMP relies on several packages. One need to install packages listed below
 
 ### Caveats
     - For DRB047 in dataracebench, please use the byte level granularity checking otherwise the word level granularity checking causes false positives 
+    - To siwtch from word level checking to byte level checking, disable the macro definition #define WORD_LEVEL and enable the macro definition #define BYTE_LEVEL and recompile romp library
 
 ## Authors
 
