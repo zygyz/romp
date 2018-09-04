@@ -147,8 +147,14 @@ ROMP relies on several packages. One need to install packages listed below
 2. OmpSCR   
     - start from romp root 
     ```
-      export DYNINST_CLIENT=/path/to/dyninst/client/omp_race_client
-      export ROMP_PATH=/path/to/libomptrace.so
+      export DYNINST_ROOT=`pwd`/pkgs-src/dyninst/dyninst-install
+      export DYNINSTAPI_RT_LIB=$DYNINST_ROOT/lib/libdyninstAPI_RT.so
+      export DYNINST_CLIENT=`pwd`/pkgs-src/dyninst-client/omp_race_client
+      export ROMP_PATH=`pwd`/pkgs-src/romp-lib/romp-install/lib/libomptrace.so
+      export C_PATH=`pwd`/pkgs-src/llvm-openmp/openmp/llvm-openmp-install/include:$CPATH
+      export LD_LIBRARY_PATH=`pwd`/pkgs-src/llvm-openmp/openmp/llvm-openmp-install/lib:$LD_LIBRARY_PATH
+      export LD_LIBRARY_PATH=`pwd`/pkgs-src/gperftools/gperftools-install/lib:$LD_LIBRARY_PATH
+      export LD_LIBRARY_PATH=`pwd`/pkgs-src/dyninst/dyninst-install/lib:$LD_LIBRARY_PATH
       cd tests/OmpSCR_v2.0 
       gmake bashconfig
     ```
