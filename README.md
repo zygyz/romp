@@ -107,6 +107,8 @@ ROMP relies on several packages. One need to install packages listed below
   ```
      export CPATH=`pwd`/pkgs-src/libdwarf/libdwarf-install/include:$CPATH
      export CPATH=`pwd`/pkgs-src/elfutils-0.173/elfutils-install/include:$CPATH
+     export CPATH=`pwd`/pkgs-src/dyninst/dyninst-install/include:$CPATH
+     export LD_LIBRARY_PATH=`pwd`/pkgs-src/dyninst/dyninst-install/lib:$LD_LIBRARY_PATH
      export LD_LIBRARY_PATH=`pwd`/pkgs-src/libdwarf/libdwarf-install/lib:$LD_LIBRARY_PATH
      export LD_LIBRARY_PATH=`pwd`/pkgs-src/elfutils-0.173/elfutils-install/lib:$LD_LIBRARY_PATH
      cd pkgs-src/dyninst-client
