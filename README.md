@@ -184,6 +184,8 @@ ROMP relies on several packages. One need to install packages listed below
     - to turn off verboes race report:
        export ROMP_VERBOSE=off 
 
+### Caveats
+    - For DRB047 in dataracebench, please use the byte level granularity checking otherwise the word level granularity checking causes false positives 
 
 ## Authors
 
