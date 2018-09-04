@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fcntl.h>
 #include <queue>
+#include <stack>
 #include <stdio.h>
 #include <string.h>
 #include <elfutils/libdw.h>
@@ -16,11 +17,16 @@
 #include "BPatch_function.h"
 #include "BPatch_flowGraph.h"
 #include "BPatch_statement.h"
+#include "Instruction.h"
+#include "InstructionDecoder.h"
+#include "slicing.h"
 #include "Visitor.h"
 using namespace std;
 using namespace Dyninst;
 using namespace SymtabAPI;
 using namespace InstructionAPI;
+using namespace ParseAPI;
+using namespace DataflowAPI;
 #define MAX_FILENAME_LEN 128
 #define SKIP_LIB_SRC "/data-race/pkgs-src/"
 #define SKIP_SRC "src/"
@@ -109,6 +115,46 @@ static char g_forbid_funcs[FORBID_CNT][MAX_FILENAME_LEN] =
     "__do_global_ctors_aux",
     "deregister_tm_clones",
     */
+};
+
+class PrintVisitor : public Visitor {
+   public:
+       PrintVisitor(uint64_t rv) { rip_value = rv; };
+       ~PrintVisitor() {}; 
+       virtual void visit(BinaryFunction* b) {
+          cout << " pv: a binary function ";
+          if (b->isAdd()) {
+              cout << " is + "; 
+          } else if (b->isMultiply()) {
+              cout << " is mul ";
+          } else if (b->isLeftShift()) {
+              cout << " is left shift ";
+          } else if (b->isRightArithmeticShift()) {
+              cout << " is right arithmetic shift ";
+          } else if (b->isAndResult()) {
+              cout << " is and result ";
+          } else if (b->isOrResult()) {
+              cout << " is or result ";
+          } else if (b->isRightLogicalShift()) {
+              cout << " is right logical shift ";
+          } else if (b->isRightRotate()) {
+              cout << " is right locate ";
+          }
+       } 
+       virtual void visit(Immediate* i) {
+           cout << " pv: immediate: " << i->format(defaultStyle);
+       }
+       
+       virtual void visit(RegisterAST* r) {
+           cout << " pv: register : " << r->format(defaultStyle);
+            
+        }
+
+        virtual void visit(Dereference* d) {
+            cout << " pv: dereference  ";
+        }
+   private:
+        uint64_t rip_value;
 };
 
 class IPVisitor : public Visitor {
@@ -351,10 +397,52 @@ const void* GetInstBaseAndSize(BPatch_point* point, size_t& size)
 }
 #endif
 
+class ConstantPred : public Slicer::Predicates {
+    public:
+       virtual bool endAtPoint(Assignment::Ptr ap) {
+           return ap->insn()->writesMemory();
+       } 
+
+       virtual bool addPredecessor(AbsRegion reg) {
+            if (reg.absloc().type() == Absloc::Register) {
+                MachRegister r = reg.absloc().reg();
+                return !r.isPC();
+            }
+            return true;
+       }
+};
+
+void
+AnalyzeMemAccess(void* instnaddr, vector<Assignment::Ptr>& assignments, vector<uint64_t>& memAddrs) 
+{
+   Assignment::Ptr memAssign;
+   cout << "\n\n" << hex << instnaddr << dec << " num assignments: " << assignments.size() << endl;
+   int assn = 0;
+   for (auto ait = assignments.begin(); ait != assignments.end(); ++ait) {
+      auto inputs = (*ait)->inputs();
+      cout << assn++ << " num input " << inputs.size() << endl;
+      for (auto input : inputs) {
+          switch(input.absloc().type()) {
+            case Absloc::Register:
+                break;
+            case Absloc::Stack:
+                break;
+            case Absloc::Heap:
+                cout << "input is heap, addr: " << hex << input.absloc().addr() << dec << endl;
+                memAddrs.push_back((uint64_t)input.absloc().addr());
+                break;
+            case Absloc::Unknown:
+                break;
+          }
+      }
+   }
+}
+
 bool
 CreateAndInsertSnippet(BPatch_addressSpace* app,
                        vector<BPatch_point*>* points,
-                       vector<BPatch_function*>& check_access_funcs)      
+                       vector<BPatch_function*>& check_access_funcs, 
+                       BPatch_function* cur_func)      
 {
     if (points->size() == 0) {
         cerr << "no point to instrument " << endl;     
@@ -371,24 +459,61 @@ CreateAndInsertSnippet(BPatch_addressSpace* app,
 
         auto instnAddr = points->at(i)->getAddress();
         auto instrPtr = points->at(i)->getInsnAtPoint();
+       // auto funcAtInstr = points->at(i)->getCalledFunction();
+        auto parseAPIfunc = ParseAPI::convert(cur_func);
+        BPatch_flowGraph* fg = cur_func->getCFG();             
+        BPatch_basicBlock* bb = fg->findBlockByAddr((unsigned long)instnAddr);   
+        auto parseAPIblock = ParseAPI::convert(bb);
+        if (bb == NULL) {
+            cerr << "cannot find basic block associated with the instn addr " << hex << instnAddr << dec << endl;
+            return false;
+        }
+       
         int size_mach_instn = 0;
         string instn_raw_str = "";
         bool has_lock_prefix = false;  
-        bool only_reads_rodata = true;
+        bool only_reads_rodata = false;
             
         if (instrPtr != NULL) {
             if (instrPtr->readsMemory() && !(instrPtr->writesMemory())) { 
                 // if the instruction reads memory and does not write memory
+                AssignmentConverter ac(true, false);
+                vector<Assignment::Ptr> assignments;
+                //cout << "convert assignment " << endl;
+                ac.convert(instrPtr, (unsigned long)instnAddr, parseAPIfunc, parseAPIblock, assignments);
+                vector<uint64_t> heapMemAddrs;
+                AnalyzeMemAccess(instnAddr, assignments, heapMemAddrs);            
+                if (heapMemAddrs.size() > 0) {
+                    bool out_of_range = false; 
+                    for (auto addr : heapMemAddrs) {
+                        if (addr > rodata_upper || addr < rodata_offset) {
+                            out_of_range = true;
+                            break;
+                        }
+                    }   
+                    if (!out_of_range) 
+                        only_reads_rodata = true;
+                }
+                /*
                 vector<Dyninst::InstructionAPI::Operand> operands; 
                 instrPtr->getOperands(operands);  
                 for (auto operand : operands) {
                     if (operand.readsMemory()) { // this operand reads memory 
                         // check if the memory access is performed by [RIP + imm] 
+                        std::set<Expression::Ptr> memAccessors;    
+                        operand.addEffectiveReadAddresses(memAccessors);
+                       // cout << "\nmem accessors count: " <<  memAccessors.size() << endl;
+                       // for (auto m : memAccessors) {
+                        //    PrintVisitor pv((uint64_t)instnAddr);
+                         //   m->apply(&pv);
+                       // }
+                        PrintVisitor pv((uint64_t)instnAddr);
                         auto expr = operand.getValue(); // get the expression tree  
-                        auto visitor = new IPVisitor();
-                        expr->apply(visitor);     
-                        if (visitor->isRipMemAccess()) { // the operand contains a read into rodata via rip 
-                            auto imm = visitor->getImm();
+                        expr->apply(&pv);
+                        IPVisitor visitor;
+                        expr->apply(&visitor);     
+                        if (visitor.isRipMemAccess()) { // the operand contains a read into rodata via rip 
+                            auto imm = visitor.getImm();
                             unsigned long hex_imm_value = strtoul(imm.c_str(), 0, 16);
                             uint64_t effective_addr = (uint64_t)instnAddr + (uint64_t)hex_imm_value;
                             if (effective_addr > rodata_upper || effective_addr < rodata_offset) { // not in the .rodata section
@@ -399,8 +524,7 @@ CreateAndInsertSnippet(BPatch_addressSpace* app,
                         }
                     }  
                 }      
-            } else { // this instruction writes memory 
-                only_reads_rodata = false;
+                */
             } 
             unsigned char first_byte = instrPtr->rawByte(0);
             if (first_byte == 0xf0) {
@@ -412,8 +536,10 @@ CreateAndInsertSnippet(BPatch_addressSpace* app,
         }
 
         if (only_reads_rodata) {
-            cout << hex << "instruction@" << instnAddr << dec << " only reads rodata " << endl;
+            cout << hex << "\ninstruction@" << instnAddr << dec << " only reads rodata " << endl;
             continue; 
+        } else {
+            cout << "reads data outside of rodata " << endl;
         }
 
         if (memory_access->isAPrefetch_NP()) { // This point is a prefetch
@@ -437,7 +563,6 @@ CreateAndInsertSnippet(BPatch_addressSpace* app,
         if (flag == 3) { // regulate the load/store to store
             flag = 2;
         }
-        vector<BPatch_statement> lines;  
         vector<BPatch_snippet*> args;      
         BPatch_snippet* address = new BPatch_effectiveAddressExpr();     
         args.push_back(address);
@@ -538,7 +663,7 @@ InstrumentMemoryAccesses(BPatch_addressSpace* app, const char* romp_path)
 #ifdef DEBUG
         cout << "Func name: " << func->getName() << endl;    
 #endif
-        if (!CreateAndInsertSnippet(app, points, check_access_funcs)) {
+        if (!CreateAndInsertSnippet(app, points, check_access_funcs, func)) {
             cerr << "Error in CreateAndInsertSnippet() " << endl;
             return false;
         } 
