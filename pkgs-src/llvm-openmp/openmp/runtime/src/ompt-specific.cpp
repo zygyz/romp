@@ -428,6 +428,31 @@ int __ompt_get_task_info_internal(int ancestor_level, int *type,
   return 0;
 }
 
+int __ompt_get_task_memory_internal(void** addr, 
+                                    size_t *size,
+                                    int block
+                                   ) {
+  if (__kmp_get_gtid() < 0)
+    return 0;
+  kmp_info_t *thr = ompt_get_thread();
+  if (thr) {
+    kmp_taskdata_t *taskdata = thr->th.th_current_task;
+    if (taskdata == NULL) {
+        *addr = NULL;  
+        *size = 0;
+        return 0;
+    }
+    // taskdata is not null
+    *addr = taskdata;
+    *size = taskdata->td_size_alloc; 
+    return 0;
+  } else {
+    *addr = NULL;
+    *size = 0;
+  }
+  return 0;
+}
+
 //----------------------------------------------------------
 // team support
 //----------------------------------------------------------

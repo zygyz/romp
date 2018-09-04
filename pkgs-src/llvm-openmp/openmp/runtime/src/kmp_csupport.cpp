@@ -3453,7 +3453,7 @@ void __kmpc_end_reduce_nowait(ident_t *loc, kmp_int32 global_tid,
 
   packed_reduction_method = __KMP_GET_REDUCTION_METHOD(global_tid);
 
-#ifdef OMP_40_ENABLED // romp: for data race detection
+#ifdef OMP_40_ENABLED
     kmp_team_t *team;
     kmp_info_t *th;
     th = __kmp_thread_from_gtid(global_tid);

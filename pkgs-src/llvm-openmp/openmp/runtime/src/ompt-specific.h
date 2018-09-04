@@ -19,11 +19,6 @@
 /*****************************************************************************
  * types
  ****************************************************************************/
-typedef struct ompt_task_data_struct_range_internal_s { // romp: for data race detection
-    void* start_of_struct;
-    kmp_int32 size_of_struct;
-} ompt_task_data_struct_range_internal_t;
-
 typedef kmp_info_t ompt_thread_t;
 
 /*****************************************************************************
@@ -53,6 +48,8 @@ int __ompt_get_task_info_internal(int ancestor_level, int *type,
                                   ompt_data_t **task_data,
                                   omp_frame_t **task_frame,
                                   ompt_data_t **parallel_data, int *thread_num);
+
+int __ompt_get_task_memory_internal(void** addr, size_t *size, int block);
 
 ompt_data_t *__ompt_get_thread_data_internal();
 

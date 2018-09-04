@@ -480,16 +480,12 @@ kmp_int32 __kmpc_omp_task_with_deps(ident_t *loc_ref, kmp_int32 gtid,
           OMPT_GET_FRAME_ADDRESS(1);
     if (ompt_enabled.ompt_callback_task_create) {
       ompt_data_t task_data = ompt_data_none;
-      ompt_task_data_struct_range_internal_t range; // romp for data race detection
-      range.start_of_struct = (void*)new_taskdata; 
-      range.size_of_struct = new_taskdata->td_size_alloc;
       ompt_callbacks.ompt_callback(ompt_callback_task_create)(
           current_task ? &(current_task->ompt_task_info.task_data) : &task_data,
           current_task ? &(current_task->ompt_task_info.frame) : NULL,
           &(new_taskdata->ompt_task_info.task_data),
           ompt_task_explicit | TASK_TYPE_DETAILS_FORMAT(new_taskdata), 1,
-          &range); // romp for data race detection
-//          OMPT_LOAD_RETURN_ADDRESS(gtid)); 
+          OMPT_LOAD_RETURN_ADDRESS(gtid)); 
     }
 
     new_taskdata->ompt_task_info.frame.enter_frame = OMPT_GET_FRAME_ADDRESS(0);

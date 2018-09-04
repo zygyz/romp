@@ -1464,17 +1464,13 @@ kmp_int32 __kmpc_omp_task_parts(ident_t *loc_ref, kmp_int32 gtid,
   kmp_taskdata_t *parent;
   if (UNLIKELY(ompt_enabled.enabled)) {
     parent = new_taskdata->td_parent;
-    ompt_task_data_struct_range_internal_t range;
-    range.start_of_struct = (void*)new_taskdata;
-    range.size_of_struct = new_taskdata->td_size_alloc;
     if (ompt_enabled.ompt_callback_task_create) {
       ompt_data_t task_data = ompt_data_none;
       ompt_callbacks.ompt_callback(ompt_callback_task_create)(
           parent ? &(parent->ompt_task_info.task_data) : &task_data,
           parent ? &(parent->ompt_task_info.frame) : NULL,
           &(new_taskdata->ompt_task_info.task_data), ompt_task_explicit, 0,
-          &range); // romp: for data race detection
-          //OMPT_GET_RETURN_ADDRESS(0));
+          OMPT_GET_RETURN_ADDRESS(0));
     }
   }
 #endif
@@ -1572,16 +1568,12 @@ kmp_int32 __kmpc_omp_task(ident_t *loc_ref, kmp_int32 gtid,
       }
       if (ompt_enabled.ompt_callback_task_create) {
         ompt_data_t task_data = ompt_data_none;
-        ompt_task_data_struct_range_internal_t range; 
-        range.start_of_struct = (void*)new_taskdata;
-        range.size_of_struct = new_taskdata->td_size_alloc;
         ompt_callbacks.ompt_callback(ompt_callback_task_create)(
             parent ? &(parent->ompt_task_info.task_data) : &task_data,
             parent ? &(parent->ompt_task_info.frame) : NULL,
             &(new_taskdata->ompt_task_info.task_data),
             ompt_task_explicit | TASK_TYPE_DETAILS_FORMAT(new_taskdata), 0,
-            &range); 
-   //         OMPT_LOAD_RETURN_ADDRESS(gtid)); // romp for data race detection
+            OMPT_LOAD_RETURN_ADDRESS(gtid)); 
       }
     } else {
       // We are scheduling the continuation of an UNTIED task.

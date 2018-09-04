@@ -34,6 +34,7 @@ using namespace std;
 
 static bool global_race_found = false;
 static bool global_verbose_output = false;
+static bool global_summary_output = false;
 static bool global_show_label = false;
 static bool global_perf_inspect = false;
 //#define DEBUG_WORKSHARE_LOOP
@@ -56,11 +57,6 @@ typedef int (*ompt_callback_set_t)(
     ompt_callbacks_t which,
     ompt_callback_t callback
 );    
-
-typedef struct ompt_task_data_struct_range_s {
-    void* start_of_struct;
-    uint32_t size_of_struct;
-} ompt_task_data_struct_range_t;
 
 typedef struct task_dep_record_s {
     struct task_dep_record_s * next;
@@ -149,10 +145,6 @@ typedef struct TaskData {
 
     bool is_explicit;
     
-    void* start_of_td;
-
-    uint64_t size_of_td; // NOTE: only contains private data part
-
     bool suspended;
 
     bool has_dep;
@@ -166,8 +158,6 @@ typedef struct TaskData {
         is_explicit = false;
         has_dep = false;
         par_region_data_ptr = nullptr; // record the pointer to the parallel region data
-        start_of_td = nullptr;
-        size_of_td = 0;
         suspended = false;
         is_completed = false;  
     }
@@ -235,6 +225,7 @@ static ompt_set_callback_t ompt_set_callback;
 static ompt_get_callback_t ompt_get_callback;
 static ompt_get_state_t ompt_get_state;
 static ompt_get_task_info_t ompt_get_task_info;
+static ompt_get_task_memory_t ompt_get_task_memory;
 static ompt_get_thread_data_t ompt_get_thread_data;
 static ompt_get_parallel_info_t ompt_get_parallel_info;
 static ompt_get_unique_id_t ompt_get_unique_id;
@@ -249,6 +240,35 @@ static ompt_enumerate_mutex_impls_t ompt_enumerate_mutex_impls;
 
 static unordered_map<uint64_t, uint64_t> gHist;
 static mcs_lock_t gHistLock; // this is for protecting the dependency hashing 
+
+typedef struct StaticRaceInfo {
+    StaticRaceInfo(int t, uint64_t i, uint64_t ai, void* addr) {
+        type = t;
+        instn_addr = i;
+        another_instn_addr = ai;
+        address = addr;
+    }
+    int type;
+    uint64_t instn_addr;
+    uint64_t another_instn_addr;
+    void* address;
+} StaticRaceInfo;
+
+typedef struct DynamicRaceInfo {
+    DynamicRaceInfo(int t, uint64_t i, void* addr) {
+        type = t;
+        instn_addr = i;
+        address = addr;
+    }
+    int type;
+    uint64_t instn_addr;
+    void* address;
+} DynamicRaceInfo;
+
+static vector<StaticRaceInfo> gRIs;
+static vector<DynamicRaceInfo> gRId;
+static mcs_lock_t gRILock;
+
 
 /*
 static unordered_map<uint64_t, pair<uint16_t, pair<uint16_t, uint16_t> > > gDebugInfoHash;
@@ -643,7 +663,7 @@ GetNumDataUnitForAccessHistory(AccessHistory * from_me)
     //pfq_rwlock_node_t me;
     mcs_node_t me;
     mcs_lock(lock_ptr, &me);
-//    pfq_rwlock_read_lock(lock_ptr);
+//  pfq_rwlock_read_lock(lock_ptr);
     int num_data_unit = 0;
     GET_NUM_DATA_UNIT_ACCESSED(from_me->mem_state, num_data_unit);
     mcs_unlock(lock_ptr, &me);
@@ -661,45 +681,40 @@ MarkDataUnitUnAllocated(AccessHistory * from_me)
    // pfq_rwlock_write_lock(lock_ptr, &me);
     SET_DATA_UNIT_DEALLOC(from_me->mem_state);     
   //  pfq_rwlock_write_unlock(lock_ptr, &me);
-   mcs_unlock(lock_ptr, &me);
+    mcs_unlock(lock_ptr, &me);
 }
 
 static void
 RangeMarkDeallocation(void* lower_bound, void* upper_bound) 
 {
-    for (void* address = (void*)lower_bound; (uint64_t)address <= (uint64_t)upper_bound;  address = (void*)((uint64_t)address + 4)) {
-        AccessHistory* access_history_base = GetAllocatedShadowBaseAddress<AccessHistory>(address);
+//    KN_TRACE(0, STDOUT, 0, "RangeMarkDealloation","lower bound: %p upper bound: %p\n", lower_bound, upper_bound);
+    uint64_t step = 0;
+    uint64_t bound = 0;
+#ifdef WORD_LEVEL
+    step = 4;
+    bound = 3;
+#endif
+#ifdef BYTE_LEVEL
+    step = 1;
+    bound = 0;
+#endif
+    uint64_t old_two_level_page_index = 0;
+    uint64_t cur_two_level_page_index = 0;  
+    AccessHistory * access_history_base = NULL;    
+    /* sweep through the access histories associated with address in [lower_bound, upper_bound] */
+    for (uint64_t address = (uint64_t)lower_bound; address <= (uint64_t)upper_bound + bound;  address += step) {
+        cur_two_level_page_index = TWO_LEVEL_PAGE_ADDRESS(address);
+        if (cur_two_level_page_index != old_two_level_page_index) {
+            old_two_level_page_index = cur_two_level_page_index;
+            access_history_base = GetAllocatedShadowBaseAddress<AccessHistory>((void*)address); // get the new shadow page 
+        }
         if (access_history_base == nullptr) {
-            //KN_TRACE(0, STDERR, 0, "RangeMarkDeallocation","shadow page for address %p is not allocated", address);
             continue;
         }
-        long first_slot_index = (long)(PAGE_OFFSET((uint64_t)address));
+        long first_slot_index = (long)(PAGE_OFFSET(address));
         AccessHistory* access_history = (AccessHistory*)access_history_base + first_slot_index;
-        int num_data_unit = GetNumDataUnitForAccessHistory(&access_history[0]);
-        if (num_data_unit == 0) {
-             MarkDataUnitUnAllocated(&access_history[0]);
-        } else {
-            long last_slot_index = (long)(first_slot_index  + num_data_unit - 1);
-            long overflow = last_slot_index - (long)NUM_ENTRY_SHADOW_PAGE + 1;
-            if (overflow <= 0) {
-                for (uint8_t i = 0; i < num_data_unit; ++i) {
-                    MarkDataUnitUnAllocated(&access_history[i]);
-                } 
-            } else {
-                for (uint8_t i = 0; i < num_data_unit - overflow; ++i) {
-                    MarkDataUnitUnAllocated(&access_history[i]); 
-                }
-                access_history = GetAllocatedShadowBaseAddress<AccessHistory>((char*)address + num_data_unit);
-                if (access_history == nullptr) {
-                    KN_TRACE(0, STDERR, 0, "RangeMarkDeallocation","shadow page for address %p is not allocated", (void*)((char*)address + num_data_unit));
-                } else {
-                    for (uint8_t i = 0; i < overflow; ++i) {
-                        MarkDataUnitUnAllocated(&access_history[i]);
-                    } 
-                }
-            }
-        }
-    }   
+        MarkDataUnitUnAllocated(&access_history[0]);  
+    }
 }
 
 void 
@@ -752,11 +767,14 @@ on_ompt_callback_task_schedule(
                 */
         // should walk through the access history to mark address range in [lower_bound, upper_bound] as deallocated
         RangeMarkDeallocation(lower_bound, upper_bound);
-        void* start_of_td = first_task_data_ptr->start_of_td;
-        uint64_t size_of_td = first_task_data_ptr->size_of_td;      
-        auto heap_upper_bound = (void*)((uint64_t)start_of_td + size_of_td); // mark unallocated for stack explicit task related memory 
-        auto heap_lower_bound = start_of_td; 
+        void** td_start_addr = (void**)(malloc(sizeof(void*))); 
+        size_t* td_size = (size_t*)(malloc(sizeof(size_t)));
+        ompt_get_task_memory(td_start_addr, td_size, 0);
+        auto heap_upper_bound = (void*)((uint64_t)(*td_start_addr) + (uint64_t)(*td_size) - 1);    
+        auto heap_lower_bound = (void*)(*td_start_addr);
         RangeMarkDeallocation(heap_lower_bound, heap_upper_bound); // mark unallocated for heap explicit task related memory 
+        delete td_start_addr;
+        delete td_size;
     } 
       
     int task_type;    
@@ -1083,10 +1101,7 @@ on_ompt_callback_task_create(
         parent_task_data_ptr->label = std::move(ModifyParentLabelExplicitTaskFork(parent_label));
         parent_task_data_ptr->children_explicit_task_data.push_back((void*)new_task_data_ptr);// remember the child explicit task pointer 
 
-        const ompt_task_data_struct_range_t* range_t = (ompt_task_data_struct_range_t*)(codeptr_ra);  // record the range of private access
-        new_task_data_ptr->start_of_td  = range_t->start_of_struct;
-        new_task_data_ptr->size_of_td = (uint64_t)(range_t->size_of_struct);
-
+        //KA_TRACE(0, STDERR, 0, "on_ompt_callback_task_create","start of td: %p size of td: %p", range_t->start_of_struct, range_t->size_of_struct);
         if (has_dependences) { // only store the parallel region task data pointer if current task has dependences
             int team_size;
             ompt_data_t parallel_data;
@@ -2472,51 +2487,76 @@ inline uint16_t lookupLineInformation(uint64_t instr_addr, uint16_t& line_no, ui
  * type 2: WR
  * type 3: RW
  */
+static inline void
+GenerateReportDynamic(int type, uint64_t instn_addr, void* address)
+{
+    uint16_t cur_line_no, cur_column_no, cur_file_index;
+    char cur_buf[512];
+    cur_file_index = lookupLineInformation(instn_addr, cur_line_no, cur_column_no);
+    lookupStringTable(cur_file_index, cur_buf);
+    KN_TRACE(0, STDERR, 0, "Race Found (Dynamic Mode)", "data race &memory address: %p -> Current Write(instruction address: %p @ file: %s ; line: %d ; column: %d)\n" , 
+         address, instn_addr, cur_buf, cur_line_no, cur_column_no); 
+}
+
 static void
-ReportRaceDynFound(int type, uint64_t instn_addr)
+ReportRaceDynFound(int type, uint64_t instn_addr, void* address)
 {
     if (global_verbose_output)  {
-        uint16_t cur_line_no, cur_column_no, cur_file_index;
-        char cur_buf[512];
-        cur_file_index = lookupLineInformation(instn_addr, cur_line_no, cur_column_no);
-        lookupStringTable(cur_file_index, cur_buf);
-        KN_TRACE(0, STDERR, 0, "Race Found (Dynamic Mode)", "data race -> Current Write(instruction address: %p @ file: %s ; line: %d ; column: %d)\n" , 
-             instn_addr, cur_buf, cur_line_no, cur_column_no); 
+        GenerateReportDynamic(type, instn_addr, address);
+    }
+    if (global_summary_output) {
+        DynamicRaceInfo info(type, instn_addr, address);
+        mcs_node_t me;
+        mcs_lock(&gRILock, &me);
+        gRId.push_back(info);
+        mcs_unlock(&gRILock, &me);
     }
     global_race_found = true;
 }
 
-
+static inline void
+GenerateReportStatic(int type, uint64_t instn_addr, uint64_t another_instn_addr, void* address)
+{
+    uint16_t cur_line_no, cur_column_no, cur_file_index;
+    uint16_t other_line_no, other_column_no, other_file_index;
+    char cur_buf[512];
+    char other_buf[512];
+    cur_file_index = lookupLineInformation(instn_addr, cur_line_no, cur_column_no);
+    other_file_index = lookupLineInformation(another_instn_addr, other_line_no, other_column_no);
+    lookupStringTable(cur_file_index, cur_buf);
+    lookupStringTable(other_file_index, other_buf);
+    switch (type) {
+        case RW:
+            KN_TRACE(0, STDERR, 0, "Race Found(RW)", "data race @memory address: %p -> {Previous Read(instruction address: %p @ file: %s ; line: %d ; column: %d) -  Current Write(instruction address: %p @ file: %s ; line: %d ; column: %d)}\n",
+                address, another_instn_addr, other_buf, other_line_no, other_column_no, instn_addr, cur_buf, cur_line_no, cur_column_no);
+            break;
+        case WR:
+            KN_TRACE(0, STDERR, 0, "Race Found(WR)", "data race @memory address: %p -> {Previous Write(instruction address: %p @ file: %s ; line: %d ; column: %d) -  Current Read(instruction address: %p @ file: %s ; line: %d ; column: %d)}\n",
+                address, another_instn_addr, other_buf, other_line_no, other_column_no, instn_addr, cur_buf, cur_line_no, cur_column_no);
+            break;
+        case WW:
+            KN_TRACE(0, STDERR, 0, "Race Found(WW)", "data race @memory address: %p -> {Previous Write(instruction address: %p @ file: %s ; line: %d ; column: %d) -  Current Write(instruction address: %p @ file: %s ; line: %d ; column: %d)}\n",
+                address, another_instn_addr, other_buf, other_line_no, other_column_no, instn_addr, cur_buf, cur_line_no, cur_column_no);
+            break;
+        default:
+            break;
+    }
+}
 
 static void
 ReportRace(int type, uint64_t instn_addr, 
          uint64_t  another_instn_addr, void* address) 
 {
     if (global_verbose_output) {
-        uint16_t cur_line_no, cur_column_no, cur_file_index;
-        uint16_t other_line_no, other_column_no, other_file_index;
-        char cur_buf[512];
-        char other_buf[512];
-        cur_file_index = lookupLineInformation(instn_addr, cur_line_no, cur_column_no);
-        other_file_index = lookupLineInformation(another_instn_addr, other_line_no, other_column_no);
-        lookupStringTable(cur_file_index, cur_buf);
-        lookupStringTable(other_file_index, other_buf);
-        switch (type) {
-            case RW:
-                KN_TRACE(0, STDERR, 0, "Race Found(RW)", "data race @memory address: %p -> {Previous Read(instruction address: %p @ file: %s ; line: %d ; column: %d) -  Current Write(instruction address: %p @ file: %s ; line: %d ; column: %d)}\n",
-                    address, another_instn_addr, other_buf, other_line_no, other_column_no, instn_addr, cur_buf, cur_line_no, cur_column_no);
-                break;
-            case WR:
-                KN_TRACE(0, STDERR, 0, "Race Found(WR)", "data race @memory address: %p -> {Previous Write(instruction address: %p @ file: %s ; line: %d ; column: %d) -  Current Read(instruction address: %p @ file: %s ; line: %d ; column: %d)}\n",
-                    address, another_instn_addr, other_buf, other_line_no, other_column_no, instn_addr, cur_buf, cur_line_no, cur_column_no);
-                break;
-            case WW:
-                KN_TRACE(0, STDERR, 0, "Race Found(WW)", "data race @memory address: %p -> {Previous Write(instruction address: %p @ file: %s ; line: %d ; column: %d) -  Current Write(instruction address: %p @ file: %s ; line: %d ; column: %d)}\n",
-                    address, another_instn_addr, other_buf, other_line_no, other_column_no, instn_addr, cur_buf, cur_line_no, cur_column_no);
-                break;
-            default:
-                break;
-        }
+        GenerateReportStatic(type, instn_addr, another_instn_addr, address);
+    }
+    if (global_summary_output) {
+        StaticRaceInfo info(type, instn_addr, another_instn_addr, address);
+        mcs_node_t me;
+        mcs_lock(&gRILock, &me);
+        gRIs.push_back(info);
+        mcs_unlock(&gRILock, &me);
+
     }
     global_race_found = true;
 }
@@ -2701,9 +2741,10 @@ ReadShadowDataAndCheck(
     bool current_slot_deallocated = false;
     GET_DATA_UNIT_DEALLOC(current_state, current_slot_deallocated); 
     if (current_slot_deallocated) { // 
-        next_state = (char)0;
+        next_state = (char)0; // reset the next state of this slot
         delete from_me->access_records; // clear the access records on this data unit (if race condition, should have been found by now)
         from_me->access_records = new RecordsListImp(); // create a new RecordsListImp
+        //KN_TRACE(0, STDOUT, 0, "slot deallocated deleting", "finished", 0);
         return true; // we should add current to the access history
     }
 
@@ -2885,9 +2926,11 @@ ReadShadowDataAndCheck(
 }
 
 static inline void
-WriteShadowMemory(AccessHistory* update_me, void* new_record_node, char next_state, RecordsListImp* access_records, int data_unit_accessed) // vector<void*>& to_delete) 
+WriteShadowMemory(AccessHistory* update_me, void* new_record_node, char next_state, RecordsListImp* access_records, int data_unit_accessed) 
 {
-    SET_NUM_DATA_UNIT_ACCESSED(update_me->mem_state, data_unit_accessed); // set the number of 
+
+//    KA_TRACE(0, STDOUT, 0, "write shadow memory ", "num data unit accessed: %d \n", data_unit_accessed);
+    //SET_NUM_DATA_UNIT_ACCESSED(update_me->mem_state, data_unit_accessed); // set the number of 
     if (update_me->access_records == nullptr && access_records != nullptr) {
         update_me->access_records = access_records;
     }
@@ -2895,12 +2938,6 @@ WriteShadowMemory(AccessHistory* update_me, void* new_record_node, char next_sta
     update_me->mem_state = next_state; //first update the state               
     if (new_record_node != nullptr) {
         update_me->access_records->pushFront(new_record_node);
-//#define DEBUG_SHADOW
-#ifdef DEBUG_SHADOW
-        if (((Prefix*)new_record_node)->label->GetCnt() == 3) {
-            KA_TRACE(0, STDOUT, 0, "ADDED RECORD: ", "%p %s %d\n", update_me, ((Prefix*)new_record_node)->label->ToString().c_str(), update_me->access_records->getNumRecord());
-        }
-#endif
     }
 }
 
@@ -2930,10 +2967,9 @@ ExecuteCheckProtocol(AccessHistory * from_me,
     //pfq_rwlock_node_t me;
      
     bool lock_acquired = false;
-    //if (flag == READ) return;
     if (!mcs_trylock(lock_ptr, &me)) {
-        if (flag == WRITE) {
-           ReportRaceDynFound(DYNAMIC_FOUND, instn_addr);
+        if (flag == WRITE && !hw_lock) {
+           ReportRaceDynFound(DYNAMIC_FOUND, instn_addr, address);
           // somehow should setup the mem_state here   
 #ifdef FAST_MODE
            from_me->mem_state |= 0x80; // no worry about race condition, everybody is setting the same one   
@@ -2956,12 +2992,6 @@ ExecuteCheckProtocol(AccessHistory * from_me,
       
     bool add_to_shadow = true;
     
-    /*
-    pfq_rwlock_write_lock(lock_ptr, &me);
-    SET_NUM_DATA_UNIT_ACCESSED(from_me->mem_state, data_unit_accessed); // set the number of 
-    pfq_rwlock_write_unlock(lock_ptr, &me); 
-    */
-
     RecordsListImp* access_records = nullptr;
     bool access_records_is_null = false;
 
@@ -3101,6 +3131,7 @@ int ompt_initialize(
   const char* verbose  = getenv("ROMP_VERBOSE");
   const char* show_label = getenv("ROMP_LABEL");
   const char* perf_inspect = getenv("PERF_INSPECT");
+  const char* summary = getenv("ROMP_SUMMARY");
   if (verbose != NULL && strstr(verbose, "on") != NULL) {
         global_verbose_output = true;    
   }
@@ -3110,10 +3141,16 @@ int ompt_initialize(
   if (perf_inspect != NULL && strstr(perf_inspect, "on") != NULL) {
         global_perf_inspect = true; 
   }
+  if (summary != NULL && strstr(summary, "on") != NULL) {
+        global_summary_output = true;   
+  }
+
+  
   ompt_set_callback = (ompt_set_callback_t) lookup("ompt_set_callback");
   ompt_get_callback = (ompt_get_callback_t) lookup("ompt_get_callback");
   ompt_get_state = (ompt_get_state_t) lookup("ompt_get_state");
-  ompt_get_task_info = (ompt_get_task_info_t) lookup("ompt_get_task_info");
+  ompt_get_task_info = (ompt_get_task_info_t) lookup("ompt_get_task_info");     
+  ompt_get_task_memory = (ompt_get_task_memory_t) lookup("ompt_get_task_memory");
   ompt_get_thread_data = (ompt_get_thread_data_t) lookup("ompt_get_thread_data");
   ompt_get_parallel_info = (ompt_get_parallel_info_t) lookup("ompt_get_parallel_info");
   ompt_get_unique_id = (ompt_get_unique_id_t) lookup("ompt_get_unique_id");
@@ -3174,6 +3211,14 @@ void ompt_finalize(ompt_data_t *tool_data)
             printf("access record length: %lu-- %lu times\n", rec.first, rec.second);
         }
     }
+    if (global_summary_output) {
+        for (auto rec : gRIs) {
+           GenerateReportStatic(rec.type, rec.instn_addr, rec.another_instn_addr, rec.address);
+        }
+        for (auto rec : gRId) {
+           GenerateReportDynamic(rec.type, rec.instn_addr, rec.address);
+        }
+    }
 }
 
 ompt_start_tool_result_t* ompt_start_tool(
@@ -3222,11 +3267,6 @@ CheckAccess(void* address,
     if (!ompt_initialized) {
         return; 
     }   
-#ifdef WORD_LEVEL 
-    if (bytes_accessed < 4)  // skip checking memroy access smaller than word granularity
-        return;
-#endif
-       
     int task_type;    
     ompt_data_t task_data;
     ompt_data_t* task_data_t = &task_data;
@@ -3239,7 +3279,6 @@ CheckAccess(void* address,
     if (!ompt_get_task_info(0, &task_type, task_data_tt, frame_tt, NULL, NULL)) { 
         return; 
     }
- 
     TaskData* task_data_ptr = nullptr;
     task_data_ptr = static_cast<TaskData*>(task_data_t->ptr);     
 
@@ -3315,7 +3354,7 @@ CheckAccess(void* address,
 #endif
             data_sharing = THREAD_PRIVATE_ABOVE_EXIT;
         }
-        thread_data_ptr->SetLowestAddr(address); // update the lowest address touched on current stack by current task
+        thread_data_ptr->SetLowestAddr((void*)((uint64_t)address + (uint64_t)bytes_accessed - 1)); // update the lowest byte address touched on current stack by current task
     }
     //further check for explicit task. 
     /* -------- END DATA SHARING PROPERTY CHECKING ------------------------------------*/
@@ -3364,51 +3403,62 @@ CheckAccess(void* address,
     }
 #endif
 #ifdef WORD_LEVEL   
-    uint32_t words_accessed = bytes_accessed >> 2; // divided by 4
-    AccessHistory* access_history_base = GetOrCreateShadowBaseAddress<AccessHistory>(address);
-    long first_slot_index = (long)PAGE_OFFSET((uint64_t)address);
-    long last_slot_index = (long)(first_slot_index + (long)words_accessed - 1); 
-    long overflow = last_slot_index - (long) (NUM_ENTRY_SHADOW_PAGE) + 1;
-    AccessHistory* access_history = (AccessHistory*)access_history_base + first_slot_index;
-    if (overflow <= 0) {
-        for (uint8_t i = 0; i < words_accessed; ++i) {
+    //uint32_t words_accessed = bytes_accessed >> 2; // divided by 4
+    uint64_t last_address_of_byte_accessed = (uint64_t)address + (uint64_t)bytes_accessed - 1;
+    bool overflow = false; 
+    if (TWO_LEVEL_PAGE_ADDRESS((uint64_t)address) != TWO_LEVEL_PAGE_ADDRESS(last_address_of_byte_accessed)) {//in the same shadow page
+        overflow = true; 
+    } 
+    if (!overflow) { // not overflowing the first shadow page 
+        AccessHistory* access_history_base = GetOrCreateShadowBaseAddress<AccessHistory>(address);
+        uint64_t first_slot_index = (uint64_t)PAGE_OFFSET((uint64_t)address);    
+        uint64_t last_slot_index = (uint64_t)PAGE_OFFSET((uint64_t)last_address_of_byte_accessed);
+        AccessHistory* access_history = (AccessHistory*)access_history_base + first_slot_index;
+        uint64_t num_slots = last_slot_index - first_slot_index + 1;
+#ifdef DEBUG_SHADOW_MEMORY
+        KN_TRACE(0, STDERR, 0, "checkaccess", "non-overflow address: %p ba: %d first slot: %lu last slot: %lu fah: %p \n", address, bytes_accessed, first_slot_index, last_slot_index, access_history) 
+#endif
+        for (uint64_t i = 0; i < num_slots; ++i) {
             ExecuteCheckProtocol(&access_history[i], task_data_ptr, current_label, current_lockset, flag, data_sharing, 
                     address
 #ifdef DEBUG_EXPLICIT_TASK
                     , task_type
 #endif
                     , instn_addr 
-                    , words_accessed
+                    , bytes_accessed 
                     , hw_lock 
-          );
-        }
-    } else {
-        for (uint8_t i = 0; i < words_accessed - overflow; i++) {
+                    );
+        } 
+    } else { // the first shadow page is overflowed
+        uint64_t overflowed_slot_index = (uint64_t)PAGE_OFFSET((uint64_t)last_address_of_byte_accessed);
+        AccessHistory* access_history_base = GetOrCreateShadowBaseAddress<AccessHistory>(address); // the base of the first shadow page
+        uint64_t first_slot_index = (uint64_t)PAGE_OFFSET((uint64_t)address);  // the first slot in the first shadow page  
+        AccessHistory* access_history = (AccessHistory*)access_history_base + first_slot_index;
+        uint64_t num_slots_in_first_page = NUM_ENTRY_SHADOW_PAGE - first_slot_index;
+        for (uint64_t i = 0; i < num_slots_in_first_page; ++i) {
             ExecuteCheckProtocol(&access_history[i], task_data_ptr, current_label, current_lockset, flag, data_sharing, 
                     address
 #ifdef DEBUG_EXPLICIT_TASK
                     , task_type
 #endif
                     , instn_addr 
-                    , words_accessed
+                    , bytes_accessed 
                     , hw_lock 
-                  );
+                    );
         }
-        // get the next shadow page 
-        access_history = GetOrCreateShadowBaseAddress<AccessHistory>((char*)address + bytes_accessed); // it is not possible to overflow again
-        for (uint8_t i = 0; i < overflow; ++i) {
+        access_history = GetOrCreateShadowBaseAddress<AccessHistory>((void*)last_address_of_byte_accessed); // it is not possible to overflow again 
+        for (uint64_t i = 0; i <= overflowed_slot_index; ++i) {
             ExecuteCheckProtocol(&access_history[i], task_data_ptr, current_label, current_lockset, flag, data_sharing, 
                     address
 #ifdef DEBUG_EXPLICIT_TASK
                     , task_type
 #endif
                     , instn_addr 
-                    , words_accessed 
+                    , bytes_accessed 
                     , hw_lock 
                    );
-        }
+        } 
     }
 #endif
-
 }
 }
