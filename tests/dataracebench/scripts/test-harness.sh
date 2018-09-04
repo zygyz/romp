@@ -45,13 +45,14 @@
 # THE POSSIBILITY OF SUCH DAMAGE.
 
 CSV_HEADER="tool,filename,haverace,threads,dataset,races,elapsed-time(seconds)"
-TESTS=($(grep -l main micro-benchmarks/*.c))
+TESTS=($(grep -l main micro-benchmarks/*.c micro-benchmarks/*.cpp))
 OUTPUT_DIR="results"
 LOG_DIR="results/log"
 LOGFILE="$LOG_DIR/dataracecheck.log"
 
 VALGRIND=${VALGRIND:-"valgrind"}
-VALGRIND_COMPILE_FLAGS="-g -std=c99 -fopenmp"
+VALGRIND_COMPILE_C_FLAGS="-g -std=c99 -fopenmp"
+VALGRIND_COMPILE_CPP_FLAGS="-g -fopenmp"
 
 CLANG=${CLANG:-"clang"}
 TSAN_COMPILE_FLAGS="-fopenmp -fsanitize=thread -g"
@@ -61,6 +62,7 @@ ARCHER_COMPILE_FLAGS="-larcher"
 
 INSPECTOR=${INSPECTOR:-"inspxe-cl"}
 ICC_COMPILE_FLAGS="-O0 -fopenmp -std=c99 -qopenmp-offload=host"
+ICPC_COMPILE_FLAGS="-O0 -fopenmp -qopenmp-offload=host"
 
 ROMP_COMPILE_FLAGS="-g -O0 -L`pwd`/../../pkgs-src/romp-lib/lib -L`pwd`/../../pkgs-src/gperftools/gperftools-install/lib -L`pwd`/../../pkgs-src/llvm-openmp/openmp/llvm-openmp-install/lib -fopenmp -fpermissive -ltcmalloc"
 
@@ -68,6 +70,7 @@ POLYFLAG="micro-benchmarks/utilities/polybench.c -I micro-benchmarks -I micro-be
 
 VARLEN_PATTERN='[[:alnum:]]+-var-[[:alnum:]]+\.c'
 RACES_PATTERN='[[:alnum:]]+-[[:alnum:]]+-yes\.c'
+CPP_PATTERN='[[:alnum:]]+\.cpp'
 
 usage () {
   echo
@@ -142,10 +145,6 @@ fi
 if [[ ! ${#THREADLIST[@]} -gt 0 ]]; then
   echo "Default thread counts will be used: 3, 36, 45, 72, 90, 180, 256."
   THREADLIST=('3' '36' '45' '72' '90' '180' '256')
-  #echo "Default thread counts will be used: 3, 36, 45, 72,90"
-  #THREADLIST=('3' '36' '45' '72' '90')
-  #echo "Default thread counts will be used: 3, 36, 45, 48"
-  #THREADLIST=('3' '36' '45' '48')
 else
   echo "Thread counts: ${THREADLIST[*]}";
 fi
@@ -235,17 +234,30 @@ for tool in "${TOOLS[@]}"; do
     logname="$(basename "$test").$tool.log"
     if [[ -e "$LOG_DIR/$logname" ]]; then rm "$LOG_DIR/$logname"; fi
     if grep -q 'PolyBench' "$test"; then additional_compile_flags+=" $POLYFLAG"; fi
-
-    case "$tool" in 
-      helgrind)   gcc $VALGRIND_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm ;;
-      archer)     clang-archer $ARCHER_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm ;;
-      tsan)       clang $TSAN_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm ;;
-      inspector)  icc $ICC_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm ;;
-      romp) clang $ROMP_COMPILE_FLAGS $additional_compile_flags $test -o $rompcompile -lm; 
-                  $DYNINST_CLIENT $rompcompile;
-                  mv instrumented_app $exname;;
-    esac
     
+    if [[ "test" =~ $CPP_PATTERN ]]; then
+        echo "testing C++ code: $test"
+        case "$tool" in 
+            helgrind)   g++ $VALGRIND_COMPILE_CPP_FLAGS $additional_compile_flags $test -o $exname -lm ;;
+            archer)     clang-archer++ $ARCHER_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm ;;
+            tsan)       clang++ $TSAN_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm ;;
+            inspector)  icpc $ICPC_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm ;;
+            romp)       clang++ $ROMP_COMPILE_FLAGS $additional_compile_flags $test -o $rompcompile -lm; 
+                        $DYNINST_CLIENT $rompcompile;
+                        mv instrumented_app $exname;;
+        esac
+    else
+        case "$tool" in
+            helgrind)   gcc $VALGRIND_COMPILE_C_FLAGS $additional_compile_flags $test -o $exname -lm ;;
+            archer)     clang-archer $ARCHER_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm ;;
+            tsan)       clang $TSAN_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm ;;
+            inspector)  icpc $ICC_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm ;;
+            romp)       clang $ROMP_COMPILE_FLAGS $additional_compile_flags $test -o $rompcompile -lm; 
+                        $DYNINST_CLIENT $rompcompile;
+                        mv instrumented_app $exname;;
+
+       esac
+   fi
     
     THREAD_INDEX=0
     for thread in "${THREADLIST[@]}"; do
