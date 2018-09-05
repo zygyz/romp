@@ -6,6 +6,11 @@ ROMP is a dynamic data race detector for OpenMP programs.
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. 
 
+### System Requirements
+1. Operating Systems:  Linux
+
+2. Architecture:  x86_64
+
 ### Prerequisites
 
 1. [Clang](https://github.com/llvm-mirror/clang) (version 8.0.0 or later versions)
