@@ -58,5 +58,6 @@ make && make install
 #build dyninst client
 export CPATH=`pwd`/pkgs-src/libdwarf/libdwarf-install/include:`pwd`/pkgs-src/dyninst/dyninst-install/include:$CPATH
 export LD_LIBRARY_PATH=`pwd`/pkgs-src/dyninst/dyninst-install/lib:`pwd`/pkgs-src/libdwarf/libdwarf-install/lib:$LD_LIBRARY_PATH
+cd $root
 cd pkgs-src/dyninst-client
 make 
