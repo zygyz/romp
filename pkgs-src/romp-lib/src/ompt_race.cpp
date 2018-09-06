@@ -201,16 +201,6 @@ typedef struct ThreadData {
 
 using ThreadDataPtr = std::shared_ptr<ThreadData>;
 
-/*
-ompt_interface_fn_t get_task_info_fn;
-ompt_interface_fn_t get_thread_data_fn;
-ompt_interface_fn_t get_parallel_info_fn;
-
-static ompt_get_task_info_t ompt_get_task_info = NULL;
-static ompt_get_thread_data_t ompt_get_thread_data = NULL;
-static ompt_get_parallel_info_t ompt_get_parallel_info = NULL;
-*/
-
 static TaskDataPtr g_init_task_ptr = NULL; // the shared_ptr is only used to manage initial task. Only be destructed after whole program exits;
 static bool ompt_initialized = false;
 static FILE* gTraceFile;
@@ -229,7 +219,7 @@ static ompt_get_task_memory_t ompt_get_task_memory;
 static ompt_get_thread_data_t ompt_get_thread_data;
 static ompt_get_parallel_info_t ompt_get_parallel_info;
 static ompt_get_unique_id_t ompt_get_unique_id;
-//static ompt_get_num_procs_t ompt_get_num_procs;
+
 static ompt_get_num_places_t ompt_get_num_places;
 static ompt_get_place_proc_ids_t ompt_get_place_proc_ids;
 static ompt_get_place_num_t ompt_get_place_num;
@@ -268,13 +258,6 @@ typedef struct DynamicRaceInfo {
 static vector<StaticRaceInfo> gRIs;
 static vector<DynamicRaceInfo> gRId;
 static mcs_lock_t gRILock;
-
-
-/*
-static unordered_map<uint64_t, pair<uint16_t, pair<uint16_t, uint16_t> > > gDebugInfoHash;
-static pfq_rwlock_t  gHashLock;
-*/
-
 
 enum Direction
 {
@@ -758,13 +741,6 @@ on_ompt_callback_task_schedule(
         // iterate over the shdow memory and mark the access records by the completed task as un allocated             
         auto upper_bound = thread_data_ptr->active_task_exit_frame;
         auto lower_bound = thread_data_ptr->lowest_accessed_addr;          
-        /*
-        KA_TRACE(0, STDERR, 0, "on_ompt_callback_task_schedule","prior task completed / suspended stack access upper bound: %p stack access lower bound: %p", 
-                    thread_data_ptr->active_task_exit_frame, thread_data_ptr->lowest_accessed_addr);
-        KA_TRACE(1000, STDOUT, 0, "on_ompt_callback_task_schedule","prior task type: %s cur task type: %s", 
-                first_task_data_ptr->is_explicit? "exp" : "imp", 
-                second_task_data_ptr->is_explicit? "exp" : "imp");
-                */
         // should walk through the access history to mark address range in [lower_bound, upper_bound] as deallocated
         RangeMarkDeallocation(lower_bound, upper_bound);
         void** td_start_addr = (void**)(malloc(sizeof(void*))); 
@@ -1178,16 +1154,6 @@ on_ompt_callback_implicit_task(
             //new_task_data_ptr->parent_label = task_data_ptr->label; //just store a pointer to the parent label will be much easier for looking up. 
 //#define DEBUG_LABEL_CREATE
             task_data->ptr = static_cast<void*>(new_task_data_ptr);
-            /*
-            assert(parallel_data->ptr);
-            auto par_reg_ptr = static_cast<ParRegionData*>(parallel_data->ptr);
-            auto lock_ptr = &(par_reg_ptr->par_lock);
-            mcs_node_t me;
-            mcs_lock(lock_ptr, &me); 
-            par_reg_ptr->implicit_tasks.push_back(new_task_data_ptr);
-            KA_TRACE(1000, STDOUT, 0, "DEBUG","implicit task callback test, push back task pointer %p %d", parallel_data->ptr, ((ParRegionData*)(parallel_data->ptr))->implicit_tasks.size());
-            mcs_unlock(lock_ptr, &me);
-            */
         } else {
             assert(false);
         }
@@ -1309,17 +1275,6 @@ CompareTaskGroupLabel(TaskGroupPtr& s_shorter, TaskGroupPtr& s_longer)
     } else {
         return LONGER_TO_SHORTER;
     }
-    /*
-    while (s_shorter->label[iter_shorter] == s_longer->label[iter_longer]) {
-        iter_shorter++; 
-        iter_longer++; 
-    } 
-    if (s_shorter->label[iter_shorter] < s_longer->label[iter_longer]) {
-        return SHORTER_TO_LONGER;
-    } else {
-        return LONGER_TO_SHORTER;
-    }
-    */
 }
 
 static inline bool
@@ -1640,119 +1595,14 @@ CheckTaskWait(LabelSegmentByte16* from_seg, LabelSegmentByte16* to_seg)
         KA_TRACE(0, STDERR, 0, "CheckTaskWait", "unexpected case 0-0", 0);  
         assert(false);
     }
-    //if (from_next_ptr == nullptr) { // case 3
-    //    KA_TRACE(0, STDERR, 0, "CheckTaskWait", "case 3 ", 0);  
-        /*
-        if (to_next_ptr == nullptr) {
-            KA_TRACE(0, STDERR, 0, "CheckTaskWait", "unexpected case 0-1", 0);  
-            assert(false);
-        }
-        */
-        /*
-        auto to_next_task_type = GetLabelType(to_next_ptr->v);
-        if (to_next_task_type != EXPLICIT) {
-            KA_TRACE(0, STDERR, 0, "CheckTaskWait", "unexpected case 0-2", 0);  
-            assert(false);
-        }
-        */
-    /*
-        if (from_taskwait_cnt < to_taskwait_cnt) {
-            KA_TRACE(0, STDERR, 0, "CheckTaskWait", "unexpected case 0-3", 0);  
-            assert(false);
-        }   
-        */
-        // check the taskwait chain, because now we know the explicit task is first created and there exists at least one taskwait clause 
-     //   tw_seg = SEG_CAST_16(to_next_ptr);
-   // }  
     tw_seg = SEG_CAST_16(l_sw->next);
-    /*
-    auto from_next_task_type = GetLabelType(from_next_ptr->v);
-    auto to_next_task_type = GetLabelType(to_next_ptr->v);  
-    if (from_next_task_type == EXPLICIT && to_next_task_type == EXPLICIT) { // case 1
-        KA_TRACE(0, STDERR, 0, "CheckTaskWait", "case 1 ", 0);  
-        tw_seg = SEG_CAST_16(l_sw->next); // check the taskwait chain for the one with smaller taskwait count 
-    } else if (from_next_task_type == IMPLICIT && to_next_task_type == EXPLICIT) { // case 2
-        KA_TRACE(0, STDERR, 0, "CheckTaskWait", "case 2 ", 0);  
-        if (l_sw != to_seg) { // the smaller taskwait should be related with the explicit task 
-            KA_TRACE(0, STDERR, 0, "CheckTaskWait", "unexpected case 1-0", 0);  
-            assert(false);
-        } 
-        tw_seg = SEG_CAST_16(l_sw->next); 
-    } else if (from_next_task_type == LOGICAL && to_next_task_type == EXPLICIT) { // case 4
-        KA_TRACE(0, STDERR, 0, "CheckTaskWait", "case 4 ", 0);  
-        if (l_sw != to_seg) {
-            KA_TRACE(0, STDERR, 0, "CheckTaskWait", "unexpected case 1-1", 0);  
-            assert(false);
-        } 
-        tw_seg = SEG_CAST_16(l_sw->next);
-    } else {
-        KA_TRACE(0, STDERR, 0, "CheckTaskWait", "unexpected case 2-0", 0);  
-        assert(false);
-    }
-    */
     if (CheckTaskWaitChain(tw_seg)) {
         if (!lw_from)  // the larger taskait is to 
             return LEFT_TO_RIGHT;
         return RIGHT_TO_LEFT;
     } 
     return PARALLEL;  
-    //auto from_next_task_type = GetLabelType(from_next_ptr->v);
-    //auto to_next_task_type = GetLabelType(to_next_ptr->v);       
-    // if the label with smaller taskwait is last segment
-    /*
-    if (l_sw->next == nullptr) { // 
-        KA_TRACE(0, STDERR, 0, "CheckTaskWait", "unexpected case 0", 0);  
-        assert(false); 
-    }
-    auto l_sw_next_ptr = static_cast<LabelSegmentByte16*>(l_sw->next);            
-    auto l_sw_next_task_type = GetLabelType(l_sw_next_ptr->v);         
-    LabelSegmentByte16* tw_seg = nullptr;                  
-    if (l_sw_next_task_type == IMPLICIT) {//in this case, a parallel region is created and finished before the taskwait clause
-        if (lw_from) { // label with larger is from 
-            return RIGHT_TO_LEFT;
-        } else {
-            return LEFT_TO_RIGHT;
-        }
-    } else if (l_sw_next_task_type == EXPLICIT) {
-        tw_seg = SEG_CAST_16(l_sw->next);
-    } else if (l_sw_next_task_type == LOGICAL) { // next one is logical
-        if (l_sw_next_ptr->next == nullptr ||
-            GetLabelType(SEG_CAST_16(l_sw_next_ptr->next)) == IMPLICIT) {
-            // next of next one is implicit or nullptr, that ok
-            if (!lw_from) return LEFT_TO_RIGHT;
-            return RIGHT_TO_LEFT; 
-        } 
-        // then next of next is explicit , do more check
-        tw_seg = SEG_CAST_16(l_sw_next_ptr->next);         
-    }
-    if (CheckTaskWaitChain(tw_seg)) {
-        if (!lw_from) return LEFT_TO_RIGHT;    
-        return RIGHT_TO_LEFT;
-    }
-    */
 }
-
-/*
-static inline Direction
-CheckTaskGroup(LabelSegmentByte16* from_seg, LabelSegmentByte16* to_seg)
-{
-    //regarding the same taskgroup test, it is done on the common parent task   
-    auto from_tg = GetTaskGroupPtr(from_seg);
-    auto to_tg = GetTaskGroupPtr(to_seg);       
-    if (from_tg == nullptr && to_tg == nullptr) {
-        // no taskgroup construct recorded        
-        return CheckTaskWait(from_seg, to_seg); 
-    }
-    if (SameTaskGroup(from_tg, to_tg)) { // both not null 
-        return CheckTaskWait(from_seg, to_seg);
-    } else if (from_tg != nullptr && to_tg != nullptr) { // not in the same taskgroup , both not null 
-        return TaskGroupOrder(from_tg, to_tg);                              
-    } else if (from_tg == nullptr) { // to_tg is not null, this implies that from -> to,otherwise the from_tg should be null 
-        KA_TRACE(0, STDERR, 0, "CheckTaskGroup", "from_tg is null and to_tg is not null", 0);  
-        
-    }
-}  
-*/
 
 // This is the checking routine for both next segments being explicit task type
 static inline Direction
@@ -1897,44 +1747,11 @@ static inline Direction
 Check06(LabelSegmentByte16* from_seg, LabelSegmentByte16* to_seg)
 {
     // This is the case for from_seg->next being nullptr and to_seg->next being logical task 
-/*   
-    int from_offset, to_offset;
-    int from_span, to_span;
-    GetOffsetSpan(from_seg->v, from_offset, from_span);
-    GetOffsetSpan(to_seg->v, to_offset, to_span);    
-    if (from_offset < to_offset) { // we know that the from_seg and to_seg has at least one parallel region in between
-        return LEFT_TO_RIGHT;
-    }
-    */
-//    KN_TRACE(0, STDERR, 0, "Check06", "called", 0); 
     auto from_loop_cnt = GetLoopCnt(from_seg->v);        
     auto to_loop_cnt = GetLoopCnt(to_seg->v);
-//    KN_TRACE(0, STDERR, 0, "check06", "from lc %d to lc %d", from_loop_cnt, to_loop_cnt);
     if (from_loop_cnt <= to_loop_cnt) { // the workshare loop in to_seg is after the from_seg
         return LEFT_TO_RIGHT;
     }   // otherwise, it implies that nowait clause is on the first workshare loop and it forms race condition even if logical iteration is mapped on same thread  
- //   KN_TRACE(0, STDERR, 0, "check06", "from lc %d to lc %d parallel!",from_loop_cnt, to_loop_cnt );
-   // now that from_offset == to_offset and from_loop_cnt > to_loop_cnt            
-   // this means that the workshare loop in to_seg is created before the from_seg
-    /*
-    auto to_next_ptr = SEG_CAST_16(to_seg->next);
-    auto to_next_next_ptr = SEG_CAST_16(to_next_ptr->next);
-    if (to_next_next_ptr == nullptr || 
-        GetLabelType(to_next_next_ptr->v) == IMPLICIT) {  
-        // if the next segment of to_seg->next (which is a logical segment) is nullptr or implicit task label segment
-        //return RIGHT_TO_LEFT;   
-        return PARALLEL;   
-    }        
-    // then check the    
-    auto to_seg_tg_ptr = GetTaskGroupPtr((void*)to_seg);
-    if (to_seg_tg_ptr != nullptr && !IsVoidTaskGroupLabel(to_seg_tg_ptr)) {
-        return RIGHT_TO_LEFT ; //taskgroup will guarantee finish
-    } 
-    // if no taskgroup info, check the taskwait chain
-    if (CheckTaskWaitChain(to_next_ptr)) { // check the taskwait chain staring from the next of next
-        return RIGHT_TO_LEFT;  
-    }        
-    */
     return PARALLEL;
 }
 
@@ -1957,7 +1774,6 @@ EnterRank(int phase)
 static inline bool
 InFinish(void* seg)
 {
-//    KN_TRACE(1000, STDERR, 0, "in finish", "0", 0);
     //This routine checks if the remaining segments are in a finish closure   
     auto seg_16_ptr = SEG_CAST_16(seg);    
     if (seg_16_ptr->next == nullptr ||
@@ -2000,12 +1816,6 @@ CheckOrderedSection(void* from_seg_next, void* to_seg_next)
     }  
     auto s_left_phase = GetPhase(SEG_CAST_16(s_left)->v);
     auto s_right_phase = GetPhase(SEG_CAST_16(s_right)->v);                
-    /*
-    if (from_iter == 0 && to_iter == 0 && s_left_phase == 0 && s_right_phase == 0) { //quick rule out the no ordered section case
-        return PARALLEL;
-    }
-    */
-    //KA_TRACE(0, STDERR, 0, "CheckOrderedSection", "from_iter: %d to_iter: %d s_left_phase: %d s_right_phase: %d", from_iter, to_iter, s_left_phase, s_right_phase);  
     if (ExitRank(s_left_phase) < EnterRank(s_right_phase)) {
         if (InFinish(s_left) && InFinish(s_right)) {
             return left_is_from? LEFT_TO_RIGHT: RIGHT_TO_LEFT; 
@@ -2022,96 +1832,14 @@ Check07(LabelSegmentByte16* from_seg, LabelSegmentByte16* to_seg)
     auto from_loop_cnt = GetLoopCnt(from_seg->v);
     auto to_loop_cnt = GetLoopCnt(to_seg->v);      
     assert(from_loop_cnt != to_loop_cnt); 
-    /*
-    if (from_loop_cnt == to_loop_cnt) {
-        return CheckOrderedSection(from_seg->next, to_seg->next);        
-    } 
-    */
     return PARALLEL;
-    /*
-    else if (from_loop_cnt > to_loop_cnt) { // the two logical tasks are not in the same workshare loop
-        l_s = (void*)to_seg; 
-        l_l = (void*)from_seg;  
-    } else {
-        l_s = (void*)from_seg;
-        l_l = (void*)to_seg;   
-        loop_cnt_smaller_is_from_seg = true;    
-    } 
-    if (InFinish(SEG_CAST_16(l_s)->next)) { // the pointer passed is the logical label segment 
-        return loop_cnt_smaller_is_from_seg? LEFT_TO_RIGHT : RIGHT_TO_LEFT;   
-    }
-    // if that logical label segment is not in finish structure  
-    // finally we want to check the taskgroup structure  
-    auto l_s_tg = GetTaskGroupPtr(l_s);
-    auto l_l_tg = GetTaskGroupPtr(l_l);    
-    if (l_s_tg == nullptr || IsVoidTaskGroupLabel(l_s_tg)) {
-        return PARALLEL;
-    } 
-    if (l_l_tg != nullptr) {
-        if (SameTaskGroup(l_s_tg, l_l_tg)) {
-            return PARALLEL;
-        } else if (IsVoidTaskGroupLabel(l_l_tg)) {
-            return loop_cnt_smaller_is_from_seg ? LEFT_TO_RIGHT : RIGHT_TO_LEFT;
-        } else {
-            return TaskGroupOrder(l_s_tg, l_l_tg);
-        }
-    } else { // l_l_tg == nullptr
-        return loop_cnt_smaller_is_from_seg ? LEFT_TO_RIGHT : RIGHT_TO_LEFT;
-    }
-    */
-/*   
-    if (l_s_tg == nullptr) 
-        return PARALLEL;
-    if (l_l_tg != nullptr)  {
-        if (SameTaskGroup(l_s_tg, l_l_tg)) { // if two logical segment are in the same taskgroup level, taskgroup sync does not work with them
-            return PARALLEL; 
-        } else if (IsVoidTaskGroupLabel(l_s_tg) == true) {// if l_s_tg is void 
-            return PARALLEL;
-        } else if (IsVoidTaskGroupLabel(l_l_tg) == true) {// l_l_tg is void, l_s_tg is not void
-            return loop_cnt_smaller_is_from_seg ? LEFT_TO_RIGHT : RIGHT_TO_LEFT;
-        } else {
-            return TaskGroupOrder(l_s_tg, l_l_tg);
-        }
-    } else { //l_s_tg != nullptr && l_l_tg == nullptr
-    // in this case , the taskgroup construct containing the l_s segment would make the synchronization
-        if (IsVoidTaskGroupLabel(l_s_tg) == true) {
-            return PARALLEL;
-        }  
-        return loop_cnt_smaller_is_from_seg ? LEFT_TO_RIGHT : RIGHT_TO_LEFT;
-    }
-    */
 }
 
 static inline Direction
 Check08(LabelSegmentByte16* from_seg, LabelSegmentByte16* to_seg)
 {
     //This is the case when from_seg->next is logical label segment, to_seg->next is implicit label segment
-//    KN_TRACE(0, STDERR, 0, "Check08", "called", 0); 
-    /*
-    int from_offset, from_span;
-    int to_offset, to_span;
-    GetOffsetSpan(from_seg->v, from_offset, from_span);
-    GetOffsetSpan(to_seg->v, to_offset, to_span);
-    if (to_offset < from_offset) { // it means that the parallel region containing implicit task TaskOf(to_seg->next) is before the logical task 
-        return RIGHT_TO_LEFT;
-    }
-    */
     return PARALLEL;
-    // otherwise , we need to check the tsakwait chain and taskgroup info
-   /*
-    if (InFinish(from_seg->next)) { 
-        return LEFT_TO_RIGHT;    
-    } else { // the from_seg->next is not in the finish strucutre then we last check if from->next contains taskgroup 
-        auto from_tg = GetTaskGroupPtr((void*)from_seg);
-        if (from_tg != nullptr && !IsVoidTaskGroupLabel(from_tg)) {
-            return LEFT_TO_RIGHT;
-        } else {
-            return PARALLEL;
-        }
-    }
-    assert(false);
-    return ERROR; // should ever reach here
-    */
 }
 
 static inline Direction
@@ -2119,45 +1847,7 @@ Check09(LabelSegmentByte16* from_seg, LabelSegmentByte16* to_seg)
 {
    // This is the case when from_seg->next is logical task and to_seg->next is explicit task
    // First check the taskcreate count
-//    KN_TRACE(0, STDERR, 0, "Check09", "called", 0); 
-    //auto from_task_create = GetTaskCreate(from_seg->v);        
-   // auto to_task_create = GetTaskCreate(to_seg->v); 
-   // if (from_task_create <= to_task_create) { // This means that the explicit task segment is created after the logical segment being created      
-        return PARALLEL;  
-        // then first check if from_seg->next (logical task label segment) is in a finish structure
-         /*
-        if (InFinish(from_seg->next)) {
-            return LEFT_TO_RIGHT;   
-        } else { // from_seg->next is not in the finish structure
-            // check from_seg if it has taskgroup structure 
-            auto from_tg_ptr = GetTaskGroupPtr(from_seg);
-            if (from_tg_ptr != nullptr && !IsVoidTaskGroupLabel(from_tg_ptr)) {
-                return LEFT_TO_RIGHT; // in this case, the taskgroup structure at from_seg does the sync 
-            } else {
-                return PARALLEL; 
-            }      
-        }
-        */
-        /*
-    } else { // this means that explicit task is created before the logical task, then invoke checktaskgroup function
-       //return CheckTaskGroup(from_seg, to_seg); 
-        auto from_tg = GetTaskGroupPtr(from_seg);
-        auto to_tg = GetTaskGroupPtr(to_seg);
-        if (from_seg == nullptr && to_seg == nullptr) {
-            return CheckTaskWait(from_seg, to_seg);
-        } else if (SameTaskGroup(from_tg, to_tg)) {
-            return CheckTaskWait(from_seg, to_seg);
-        } else if (from_tg != nullptr && to_tg != nullptr) {
-            return RIGHT_TO_LEFT; 
-        } else if (to_tg == nullptr) {
-            return CheckTaskWait(from_seg, to_seg);
-        } else {
-            assert(false);
-        }
-    }
-    assert(false); // should never reach here
-    return ERROR;
-    */
+   return PARALLEL;  
 }
 
 static inline Direction
@@ -2166,7 +1856,6 @@ Check10(LabelSegmentByte16* from_seg, LabelSegmentByte16* to_seg)
     //This is the case when both from_seg and to_seg are implicit task label segments, and they are not the same implicit task   
     //First thing to be clear is that these two implicit tasks could not be in differnet parallel regions becuase otherwiese the previous sergments already should have differed.  
     //Then what we need to do is to check if next segment of these two implicit task label segments are logical segments. If they are both logical segments, we further check if they are in the same workshare loop, if they are in the same workshare loop, check if ordered section relation exists. Otherwise, there must be nowait clause worksahre loop    
-//    KN_TRACE(0, STDERR, 0, "Check10", "called", 0); 
     auto from_next_ptr = SEG_CAST_16(from_seg->next);
     auto to_next_ptr = SEG_CAST_16(to_seg->next);      
 
@@ -2177,7 +1866,6 @@ Check10(LabelSegmentByte16* from_seg, LabelSegmentByte16* to_seg)
     if (GetLabelType(from_next_ptr->v) == LOGICAL && GetLabelType(to_next_ptr->v) == LOGICAL) { 
         // if next label segments are both logical and they have the same loop cnt, we further check the ordered section 
         // becuase if a workshare has *no* nowait, implicit barrier is implied, then the offset,span v      
-//        KN_TRACE(0, STDERR, 0, "Check10", "both logical " ,0); 
         auto from_loop_cnt = GetLoopCnt(from_seg->v);
         auto to_loop_cnt = GetLoopCnt(to_seg->v);   
         if (from_loop_cnt == to_loop_cnt) {
@@ -2223,56 +1911,6 @@ CompileProtocolCase(LabelSegmentByte16* from_next_seg_ptr, LabelSegmentByte16* t
     }
     return ret;
 }
-
-static bool
-SameReductionRegion(void*& from, void*& to)
-{
-    //check the two task labels to determine if they are in the same reduction region  
-    //The criteria for being in the same reduction region is that they are in the same inner most parallel region       
-    // from and to are the two label segments that are first different. This is fetched from happens-before. 
-    auto from_seg16_ptr = SEG_CAST_16(from);          
-    auto to_seg16_ptr = SEG_CAST_16(to);
-    auto from_next_ptr = from_seg16_ptr->next;
-    auto to_next_ptr = to_seg16_ptr->next;    
-    auto from_task_type = GetLabelType(from_seg16_ptr->v);                     
-    auto to_task_type = GetLabelType(to_seg16_ptr->v);
-    if (from_task_type == IMPLICIT && to_task_type == IMPLICIT) {
-        int to_offset, to_span;
-        int from_offset, from_span;
-        GetOffsetSpan(from_seg16_ptr->v, from_offset, from_span);
-        GetOffsetSpan(to_seg16_ptr->v, to_offset, to_span);
-        if (from_offset % from_span != to_offset % to_span) {
-            if (from_next_ptr == nullptr && to_next_ptr == nullptr) {
-                return true; // at the inner most implicit task parallel region 
-            } else if (from_next_ptr != nullptr && to_next_ptr != nullptr) { // both next are not nullptr 
-                auto from_next_tsk_type = GetLabelType(SEG_CAST_16(from_next_ptr)->v); 
-                auto to_next_tsk_type = GetLabelType(SEG_CAST_16(to_next_ptr)->v);
-                if (from_next_tsk_type == LOGICAL && to_next_tsk_type == LOGICAL && 
-                    SEG_CAST_16(from_next_ptr)->next == nullptr && SEG_CAST_16(to_next_ptr)->next == nullptr &&
-                    GetLoopCnt(SEG_CAST_16(from_next_ptr)->v) == GetLoopCnt(SEG_CAST_16(to_next_ptr)->v)) {
-                    return true;
-                } 
-            } else if (from_next_ptr == nullptr && to_next_ptr != nullptr) {
-                auto to_next_tsk_type = GetLabelType(SEG_CAST_16(to_next_ptr)->v);   
-                if (to_next_tsk_type == LOGICAL && SEG_CAST_16(to_next_ptr)->next == nullptr && 
-                    HasIterHolder(SEG_CAST_16(to_next_ptr)->v)) { // the logical segment place holder does not mean it is in the iteration yet, it is just for convenicence of label management
-                    return true; 
-                }
-            } else if (from_next_ptr != nullptr && to_next_ptr == nullptr) {
-                auto from_next_tsk_type = GetLabelType(SEG_CAST_16(from_next_ptr)->v);   
-                if (from_next_tsk_type == LOGICAL && SEG_CAST_16(from_next_ptr)->next == nullptr && 
-                    HasIterHolder(SEG_CAST_16(from_next_ptr)->v)) {
-                    return true; 
-                }
-            }
-        }
-    } else if (from_task_type == LOGICAL && to_task_type == LOGICAL && from_next_ptr == nullptr && to_next_ptr == nullptr
-            && GetLoopCnt(from_seg16_ptr->v) == GetLoopCnt(to_seg16_ptr->v)) {
-        return true;
-    } 
-    return false;
-}
-
 
 // This is the complete happens before relation judging procedure (can be reduced to reachability solver)
 static int 
@@ -2706,9 +2344,7 @@ CompileConditions(char& direction,  LockSetPtr& hist_lockset, LockSetPtr& cur_lo
         !(lockset_code == HIST_CUR_HAS_COMMON || lockset_code == HIST_INCLUDES_CUR || lockset_code == CUR_INCLUDES_HIST)) {
         //KN_TRACE(0, STDERR, 0, "CompileConditions", "global has reduction %s cur in reduction %s ", global_has_reduction?"yes":"no", cur_in_reduction?"yes":"no");
         if (global_has_reduction && cur_in_reduction) { // we only further check reduction if there is reduction in the program
-            //if (SameReductionRegion(from_seg, to_seg)) {
-                ret |= 0x80;   // mask the data race report  
-            //} 
+            ret |= 0x80;   // mask the data race report  
         } else if (hist_instn_hw_lock && cur_instn_hw_lock) {
             ret |= 0x80;
         }
@@ -2976,14 +2612,9 @@ ExecuteCheckProtocol(AccessHistory * from_me,
 #endif
            return; 
         }  
-        //KA_TRACE(0, STDOUT, 0, "ExecuteCheckProtocol", "lock contention: instn addr: %p address:%p type: %s\n",(void*)instn_addr, address, (flag == READ)? "read" : "write");
     } else {
         lock_acquired = true;
     }  
-   // GET_NUM_DATA_UNIT_ACCESSED(from_me->mem_state, num_data_unit);
-    //GET_NUM_DATA_UNIT_ACCESSED(from_me->mem_state, num_data_unit);
-    //KA_TRACE(0, STDOUT, 0, "CheckAccess: ", "num_data_unit set to: %d expected: %d", num_data_unit, data_unit_accessed);
-
     int current_access_type = flag;  // 1 is read, 2 is write
     char next_state;       
     void* new_record_node = nullptr;
@@ -2995,17 +2626,14 @@ ExecuteCheckProtocol(AccessHistory * from_me,
     RecordsListImp* access_records = nullptr;
     bool access_records_is_null = false;
 
-   // pfq_rwlock_read_lock(lock_ptr);
     if (from_me->access_records == nullptr) {
         access_records_is_null = true;
     }
-   // pfq_rwlock_read_unlock(lock_ptr);
 
     if (access_records_is_null) {
         access_records = new RecordsListImp();
         next_state = (((char)data_sharing) >> 1) & 0x1;  // if is 0x1, shared , if 0x0 private
     } else {
-    //    pfq_rwlock_write_lock(lock_ptr, &me);
         add_to_shadow = ReadShadowDataAndCheck(from_me, current_label, current_lockset,
                 current_access_type, data_sharing, next_state,  address, cur_task_data
 #ifdef DEBUG_EXPLICIT_TASK
@@ -3014,7 +2642,6 @@ ExecuteCheckProtocol(AccessHistory * from_me,
                 , instn_addr 
                 , hw_lock
                 ); 
-     //   pfq_rwlock_write_unlock(lock_ptr, &me); 
     }  
     new_record_node = nullptr;
     assert(current_label != nullptr);
@@ -3027,12 +2654,6 @@ ExecuteCheckProtocol(AccessHistory * from_me,
             if (hw_lock) {
                 SetHasLockPrefixBit(ar->access_type);
             }
-            /*
-            if (data_sharing == EXPLICIT_TASK_THREAD_PRIVATE || data_sharing == EXPLICIT_TASK_PRIVATE) {
-                KA_TRACE(0, STDERR, 0, "CheckAccess: ", "setting exp task thread %p %d", address, data_sharing);
-                SetExpTskThreadPrivateBit(ar->access_type);
-            }
-            */
             new_record_node = static_cast<void*>(ar);
         } else {
             auto ar = new AR48((char)current_access_type, current_label, current_lockset, (void*)cur_task_data, instn_addr); 
@@ -3042,18 +2663,10 @@ ExecuteCheckProtocol(AccessHistory * from_me,
             if (hw_lock) {
                 SetHasLockPrefixBit(ar->access_type);
             }
-            /*
-            if (data_sharing == EXPLICIT_TASK_THREAD_PRIVATE || data_sharing == EXPLICIT_TASK_PRIVATE) {
-                SetExpTskThreadPrivateBit(ar->access_type);
-            }
-            */
             new_record_node = static_cast<void*>(ar);
         }
     } 
-    //pfq_rwlock_write_lock(lock_ptr, &me);
-
     WriteShadowMemory(from_me, new_record_node, next_state, access_records, data_unit_accessed);
-   // pfq_rwlock_write_unlock(lock_ptr, &me); 
     mcs_unlock(lock_ptr, &me);
     return;
 }

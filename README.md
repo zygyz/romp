@@ -141,7 +141,7 @@ ROMP relies on several packages. One need to install packages listed below
       export DYNINSTAPI_RT_LIB=$DYNINST_ROOT/lib/libdyninstAPI_RT.so
       export DYNINST_CLIENT=`pwd`/pkgs-src/dyninst-client/omp_race_client
       export ROMP_PATH=`pwd`/pkgs-src/romp-lib/romp-install/lib/libomptrace.so
-      export C_PATH=`pwd`/pkgs-src/llvm-openmp/openmp/llvm-openmp-install/include:$CPATH
+      export CPATH=`pwd`/pkgs-src/llvm-openmp/openmp/llvm-openmp-install/include:$CPATH
       export LD_LIBRARY_PATH=`pwd`/pkgs-src/llvm-openmp/openmp/llvm-openmp-install/lib:$LD_LIBRARY_PATH
       export LD_LIBRARY_PATH=`pwd`/pkgs-src/gperftools/gperftools-install/lib:$LD_LIBRARY_PATH
       export LD_LIBRARY_PATH=`pwd`/pkgs-src/dyninst/dyninst-install/lib:$LD_LIBRARY_PATH
