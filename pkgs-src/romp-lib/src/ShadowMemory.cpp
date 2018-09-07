@@ -26,6 +26,9 @@
 
 #define NUM_ENTRY_SHADOW_PAGE (1 << PAGE_OFFSET_BITS) // number of entries in one page.
 
+#define TWO_LEVEL_PAGE_ADDRESS(addr) ( addr >> 16LL)
+
+
 // 2 level page table
 #define PTR_SIZE (sizeof(void*))
 #define LAST_LEVEL_BITS (16LL)
