@@ -191,7 +191,7 @@ ROMP relies on several packages. One need to install packages listed below
 
 ### Caveats
     - For DRB047 in dataracebench, please use the byte level granularity checking otherwise the word level granularity checking causes false positives 
-    - To siwtch from word level checking to byte level checking, disable the macro definition #define WORD_LEVEL and enable the macro definition #define BYTE_LEVEL and recompile romp library
+    - To switch from word level checking to byte level checking, disable the macro definition #define WORD_LEVEL and enable the macro definition #define BYTE_LEVEL and recompile romp library
     - For DRB114 in dataracebench, whether data race occurs is dependent on the control flow, i.e., the value of rand()%2 
     - DRB094,DRB095,DRB096,DRB112 require an OpenMP 4.5 compiler, currently romp does not test these programs
     - DRB116 tests use of target + teams constructs. The support for these two constructs is out of the scope of our SC18 paper. Adding support for targe and teams constructs is subject to ongoing work.
