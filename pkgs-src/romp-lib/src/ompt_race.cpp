@@ -1212,15 +1212,12 @@ HappensBeforeImplicitOnly(LabelPtr& from, LabelPtr& to)
     }
     if (from_ptr == nullptr && to_ptr != nullptr) {
         return LEFT_TO_RIGHT;
-        //return (char)0;
     } 
     if (to_ptr == nullptr && from_ptr != nullptr) {
         return RIGHT_TO_LEFT;
-        //return (char)3;
     }
     if (from_ptr == nullptr && to_ptr == nullptr) { 
         return SAME;
-        //return (char)2;     
     }
     // both from_ptr and to_ptr are not void 
     auto from_seg16_ptr = SEG_CAST_16(from_ptr);
@@ -1230,27 +1227,16 @@ HappensBeforeImplicitOnly(LabelPtr& from, LabelPtr& to)
     GetOffsetSpan(from_seg16_ptr->v, from_offset, from_span);
     GetOffsetSpan(to_seg16_ptr->v, to_offset, to_span);
     assert(from_span == to_span);
-    /*
-    if (from_span != to_span) {
-        KA_TRACE(1000, STDOUT, 0, "HappensBeforeImplicitOnly", "from: %s to: %s", from->ToString().c_str(), to->ToString().c_str());  
-    }
-    */
     auto span = from_span;
     if ((from_offset % span) == (to_offset % span)) {
         if (from_offset < to_offset) {
-           // return (char)0;
             return LEFT_TO_RIGHT;
         } else if (from_offset > to_offset) {
-
- //           return (char)3;
             return RIGHT_TO_LEFT;
         } else {
-           // return (char)4;             
            return ERROR;
         }
     }
-#ifdef DEBUG_HB
-#endif
     return PARALLEL;
 }
 
@@ -1921,7 +1907,6 @@ HappensBefore(LabelPtr& from, LabelPtr& to, TaskData* hist_task_ptr, TaskData* c
 #endif
         ) 
 {
-    //KN_TRACE(0, STDERR, 0, "Happensbefore", "from%s to%s" , from->ToString().c_str(), to->ToString().c_str()); 
     //logical_mapped_to_same_task = false;
     // first compare the labels until finding the different ones  
     auto from_head = from->GetHead();
