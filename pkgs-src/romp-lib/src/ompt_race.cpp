@@ -1326,7 +1326,7 @@ TaskGroupOrder(TaskGroupPtr& from_tg, TaskGroupPtr& to_tg)
 
 //helper function for check00
 static inline Direction
-Check00Helper(LabelSegmentByte16* from, LabelSegmentByte16* to)
+CheckCurrentSegmentsBothLastHelper(LabelSegmentByte16* from, LabelSegmentByte16* to)
 {
     auto from_taskwait = GetTaskWait(from->v);     
     auto to_taskwait = GetTaskWait(to->v);
@@ -1350,9 +1350,9 @@ Check00Helper(LabelSegmentByte16* from, LabelSegmentByte16* to)
     return ERROR;
 }
 
-// Check00 checks when both labels are the same implicit task.
+// CheckCurrentSegmentsBothLast checks when both labels are the same implicit task.
 static inline Direction
-Check00(void* from_seg, void* to_seg, int from_offset, int to_offset)
+CheckCurrentSegmentsBothLast(void* from_seg, void* to_seg, int from_offset, int to_offset)
 {
     auto from_seg16_ptr = SEG_CAST_16(from_seg);         
     auto to_seg16_ptr = SEG_CAST_16(to_seg);
@@ -1370,7 +1370,7 @@ Check00(void* from_seg, void* to_seg, int from_offset, int to_offset)
             // this means that no taskgroup is actually involved, should be the most common case
             // just use the taskwait, taskcreate and loop cnt to do the judgemnt 
             // keep in mind that from_seg and to_seg field are not totally the same.
-            return Check00Helper(from_seg16_ptr, to_seg16_ptr);            
+            return CheckCurrentSegmentsBothLastHelper(from_seg16_ptr, to_seg16_ptr);            
         }  else if (SameTaskGroup(from_tg, to_tg)) {
             // this means both tasks are in the taskgroup area and are in the same taskgroup level  
             // only the label is the same. the age count might be differnt 
@@ -1378,7 +1378,7 @@ Check00(void* from_seg, void* to_seg, int from_offset, int to_offset)
             auto from_age = from_tg->age_count;   
             auto to_age = to_tg->age_count; 
             if (from_age == to_age) {
-                return Check00Helper(from_seg16_ptr, to_seg16_ptr);            
+                return CheckCurrentSegmentsBothLastHelper(from_seg16_ptr, to_seg16_ptr);            
             }      
             if (from_age < to_age) {
                 return LEFT_TO_RIGHT;
@@ -1398,7 +1398,7 @@ Check00(void* from_seg, void* to_seg, int from_offset, int to_offset)
                 auto from_age = from_tg->age_count;   
                 auto to_age = to_tg->age_count; 
                 if (from_age == to_age) {
-                    return Check00Helper(from_seg16_ptr, to_seg16_ptr);            
+                    return CheckCurrentSegmentsBothLastHelper(from_seg16_ptr, to_seg16_ptr);            
                 }      
                 if (from_age < to_age) {
                     return LEFT_TO_RIGHT;
@@ -1416,10 +1416,10 @@ Check00(void* from_seg, void* to_seg, int from_offset, int to_offset)
 }
 
 static inline Direction
-Check01(LabelSegmentByte16* from_seg, LabelSegmentByte16* to_seg)
+CheckNextSegmentsBothImplicit(LabelSegmentByte16* from_seg, LabelSegmentByte16* to_seg)
 {   
     // the from_seg and to_seg are the two segments that first differ 
-//    KN_TRACE(0, STDERR, 0, "Check01", "called", 0); 
+//    KN_TRACE(0, STDERR, 0, "CheckNextSegmentsBothImplicit", "called", 0); 
     int from_offset, to_offset;
     int from_span, to_span;
 
@@ -1592,10 +1592,10 @@ CheckTaskWait(LabelSegmentByte16* from_seg, LabelSegmentByte16* to_seg)
 
 // This is the checking routine for both next segments being explicit task type
 static inline Direction
-Check02(LabelSegmentByte16* from_seg, LabelSegmentByte16* to_seg)
+CheckNextSegmentsBothExplicit(LabelSegmentByte16* from_seg, LabelSegmentByte16* to_seg)
 {
     // because they have same parent task, and they are two explicit tasks, taskgroup/taskwait is the sync. rel. that needs to be checked.
-    //KN_TRACE(0, STDERR, 0, "Check02", "called", 0); 
+    //KN_TRACE(0, STDERR, 0, "CheckNextSegmentsBothExplicit", "called", 0); 
     auto from_tg = GetTaskGroupPtr(from_seg);
     auto to_tg = GetTaskGroupPtr(to_seg);
     if (from_tg == nullptr && to_tg == nullptr) {
@@ -1652,11 +1652,11 @@ Check02(LabelSegmentByte16* from_seg, LabelSegmentByte16* to_seg)
 }
 
 static inline Direction
-Check03(LabelSegmentByte16* from_seg, LabelSegmentByte16* to_seg)
+CheckNextSegmentsImplicitExplicit(LabelSegmentByte16* from_seg, LabelSegmentByte16* to_seg)
 {
  // This is the case for from_seg->next being implicit task label segment 
  // and to_seg->next being explicit task label segment
-//    KN_TRACE(0, STDERR, 0, "Check03", "called", 0); 
+//    KN_TRACE(0, STDERR, 0, "CheckNextSegmentsImplicitExplicit", "called", 0); 
     int to_offset, to_span;   
     int from_offset, from_span;
     GetOffsetSpan(from_seg->v, from_offset, from_span);
@@ -1684,11 +1684,11 @@ Check03(LabelSegmentByte16* from_seg, LabelSegmentByte16* to_seg)
 }
 
 static inline Direction
-Check04(LabelSegmentByte16* from_seg, LabelSegmentByte16* to_seg)
+CheckNextSegmentsNullExplicit(LabelSegmentByte16* from_seg, LabelSegmentByte16* to_seg)
 {
     // This is the case for from_seg->next being nullptr and to_seg->next being explicit task
     // The idea is to check the taskcreate counter reading      
-//    KN_TRACE(0, STDERR, 0, "Check04", "called", 0); 
+//    KN_TRACE(0, STDERR, 0, "CheckNextSegmentsNullExplicit", "called", 0); 
     auto from_task_create = GetTaskCreate(from_seg->v);    
     auto to_task_create = GetTaskCreate(to_seg->v);                   
     if (from_task_create <= to_task_create) { // the explicit task is created after the TaskOf(from_seg) 
@@ -1714,10 +1714,10 @@ Check04(LabelSegmentByte16* from_seg, LabelSegmentByte16* to_seg)
 }
 
 static inline Direction
-Check05(LabelSegmentByte16* from_seg, LabelSegmentByte16* to_seg)
+CheckNextSegmentsNullImplicit(LabelSegmentByte16* from_seg, LabelSegmentByte16* to_seg)
 {
     // This is the case for from_seg->next being nullptr and to_seg->next being implicit task
-//    KN_TRACE(0, STDERR, 0, "Check05", "called", 0); 
+//    KN_TRACE(0, STDERR, 0, "CheckNextSegmentsNullImplicit", "called", 0); 
     int from_offset, to_offset;
     int from_span, to_span;
     GetOffsetSpan(from_seg->v, from_offset, from_span);
@@ -1730,7 +1730,7 @@ Check05(LabelSegmentByte16* from_seg, LabelSegmentByte16* to_seg)
 }
 
 static inline Direction
-Check06(LabelSegmentByte16* from_seg, LabelSegmentByte16* to_seg)
+CheckNextSegmentsNullLogical(LabelSegmentByte16* from_seg, LabelSegmentByte16* to_seg)
 {
     // This is the case for from_seg->next being nullptr and to_seg->next being logical task 
     auto from_loop_cnt = GetLoopCnt(from_seg->v);        
@@ -1811,9 +1811,9 @@ CheckOrderedSection(void* from_seg_next, void* to_seg_next)
 }
     
 static inline Direction
-Check07(LabelSegmentByte16* from_seg, LabelSegmentByte16* to_seg)
+CheckNextSegmentsBothLogical(LabelSegmentByte16* from_seg, LabelSegmentByte16* to_seg)
 {
-//    KN_TRACE(0, STDERR, 0, "Check07", "called", 0); 
+//    KN_TRACE(0, STDERR, 0, "CheckNextSegmentsBothLogical", "called", 0); 
     //This is the case for from_seg->next and to_seg->next being both logical task 
     auto from_loop_cnt = GetLoopCnt(from_seg->v);
     auto to_loop_cnt = GetLoopCnt(to_seg->v);      
@@ -1822,14 +1822,14 @@ Check07(LabelSegmentByte16* from_seg, LabelSegmentByte16* to_seg)
 }
 
 static inline Direction
-Check08(LabelSegmentByte16* from_seg, LabelSegmentByte16* to_seg)
+CheckNextSegmentsLogicalImplicit(LabelSegmentByte16* from_seg, LabelSegmentByte16* to_seg)
 {
     //This is the case when from_seg->next is logical label segment, to_seg->next is implicit label segment
     return PARALLEL;
 }
 
 static inline Direction
-Check09(LabelSegmentByte16* from_seg, LabelSegmentByte16* to_seg)
+CheckNextSegmentsLogicalExplicit(LabelSegmentByte16* from_seg, LabelSegmentByte16* to_seg)
 {
    // This is the case when from_seg->next is logical task and to_seg->next is explicit task
    // First check the taskcreate count
@@ -1837,7 +1837,7 @@ Check09(LabelSegmentByte16* from_seg, LabelSegmentByte16* to_seg)
 }
 
 static inline Direction
-Check10(LabelSegmentByte16* from_seg, LabelSegmentByte16* to_seg)
+CheckCurrentSegmentsBothImplicit(LabelSegmentByte16* from_seg, LabelSegmentByte16* to_seg)
 {
     //This is the case when both from_seg and to_seg are implicit task label segments, and they are not the same implicit task   
     //First thing to be clear is that these two implicit tasks could not be in differnet parallel regions becuase otherwiese the previous sergments already should have differed.  
@@ -1865,9 +1865,9 @@ Check10(LabelSegmentByte16* from_seg, LabelSegmentByte16* to_seg)
 }
    
 static inline Direction
-Check11(LabelSegmentByte16* from_seg, LabelSegmentByte16* to_seg)
+CheckCurrentSegmentsBothLogical(LabelSegmentByte16* from_seg, LabelSegmentByte16* to_seg)
 {
-//    KN_TRACE(0, STDERR, 0, "Check11", "called", 0); 
+//    KN_TRACE(0, STDERR, 0, "CheckCurrentSegmentsBothLogical", "called", 0); 
    //both from_seg and to_seg are logical label segment   
     auto from_loop_cnt = GetLoopCnt(from_seg->v);
     auto to_loop_cnt = GetLoopCnt(to_seg->v);    
@@ -1947,29 +1947,28 @@ HappensBefore(LabelPtr& from, LabelPtr& to, TaskData* hist_task_ptr, TaskData* c
             auto from_iter = GetIterValue(from_seg16_ptr);
             auto to_iter = GetIterValue(to_seg16_ptr); 
             if (from_iter != to_iter) { // if not the same logical task, assert that they are in the same work-sharing loop
-                result = Check11(from_seg16_ptr, to_seg16_ptr);
+                result = CheckCurrentSegmentsBothLogical(from_seg16_ptr, to_seg16_ptr);
             } 
         }   
         if (result == VOID) {  
             auto from_next_ptr = from_seg16_ptr->next;
             auto to_next_ptr = to_seg16_ptr->next;  
             if (from_next_ptr == nullptr && to_next_ptr == nullptr) { // The from and to seg are the last 
-                result = Check00(from_ptr, to_ptr, from_offset, to_offset); // check rest of the fields in this segment and consecutive segments if necessary
+                result = CheckCurrentSegmentsBothLast(from_ptr, to_ptr, from_offset, to_offset); // check rest of the fields in this segment and consecutive segments if necessary
             } else if (from_next_ptr != nullptr && to_next_ptr != nullptr) { //both segments has next segment
                 // both segment has successors 
                 auto from_next_seg16_ptr = SEG_CAST_16(from_next_ptr);                      
                 auto to_next_seg16_ptr = SEG_CAST_16(to_next_ptr);
                 auto cond_code = CompileProtocolCase(from_next_seg16_ptr, to_next_seg16_ptr);
                 switch(cond_code) {
-                    PROTOCOL_CASE(IMP_IMP, Check01, from_seg16_ptr, to_seg16_ptr);   
-                    PROTOCOL_CASE(IMP_EXP, Check03, from_seg16_ptr, to_seg16_ptr);      
-                    PROTOCOL_CASE_REVERSE(IMP_LOG, Check08, from_seg16_ptr, to_seg16_ptr);
-                    PROTOCOL_CASE_REVERSE(EXP_IMP, Check03, from_seg16_ptr, to_seg16_ptr);
-                    PROTOCOL_CASE(EXP_EXP, Check02, from_seg16_ptr, to_seg16_ptr); 
-                    PROTOCOL_CASE_REVERSE(EXP_LOG, Check09, from_seg16_ptr, to_seg16_ptr);
-                    PROTOCOL_CASE(LOG_IMP, Check08, from_seg16_ptr, to_seg16_ptr);
-                    PROTOCOL_CASE(LOG_EXP, Check09, from_seg16_ptr, to_seg16_ptr);                                          
-                    PROTOCOL_CASE(LOG_LOG, Check07, from_seg16_ptr, to_seg16_ptr); 
+                    PROTOCOL_CASE(IMP_IMP, CheckNextSegmentsBothImplicit, from_seg16_ptr, to_seg16_ptr);   
+                    PROTOCOL_CASE(IMP_EXP, CheckNextSegmentsImplicitExplicit, from_seg16_ptr, to_seg16_ptr);      
+                    PROTOCOL_CASE_REVERSE(IMP_LOG, CheckNextSegmentsLogicalImplicit, from_seg16_ptr, to_seg16_ptr);
+                    PROTOCOL_CASE_REVERSE(EXP_IMP, CheckNextSegmentsImplicitExplicit, from_seg16_ptr, to_seg16_ptr);
+                    PROTOCOL_CASE(EXP_EXP, CheckNextSegmentsBothExplicit, from_seg16_ptr, to_seg16_ptr); 
+                    PROTOCOL_CASE_REVERSE(EXP_LOG, CheckNextSegmentsLogicalExplicit, from_seg16_ptr, to_seg16_ptr);
+                    PROTOCOL_CASE(LOG_IMP, CheckNextSegmentsLogicalImplicit, from_seg16_ptr, to_seg16_ptr);
+                    PROTOCOL_CASE(LOG_EXP, CheckNextSegmentsLogicalExplicit, from_seg16_ptr, to_seg16_ptr);                                           PROTOCOL_CASE(LOG_LOG, CheckNextSegmentsBothLogical, from_seg16_ptr, to_seg16_ptr); 
                     default:
                         KA_TRACE(0, STDERR, 0, "HappensBefore", "unexpected case 0", 0);  
                         assert(false);
@@ -1978,9 +1977,9 @@ HappensBefore(LabelPtr& from, LabelPtr& to, TaskData* hist_task_ptr, TaskData* c
                 auto from_next_seg16_ptr = SEG_CAST_16(from_next_ptr);    
                 auto cond_code = CompileProtocolCase(from_next_seg16_ptr, nullptr);
                 switch(cond_code) {
-                    PROTOCOL_CASE_REVERSE(EXP_NULL, Check04, from_seg16_ptr, to_seg16_ptr);
-                    PROTOCOL_CASE_REVERSE(IMP_NULL, Check05, from_seg16_ptr, to_seg16_ptr);
-                    PROTOCOL_CASE_REVERSE(LOG_NULL, Check06, from_seg16_ptr, to_seg16_ptr);
+                    PROTOCOL_CASE_REVERSE(EXP_NULL, CheckNextSegmentsNullExplicit, from_seg16_ptr, to_seg16_ptr);
+                    PROTOCOL_CASE_REVERSE(IMP_NULL, CheckNextSegmentsNullImplicit, from_seg16_ptr, to_seg16_ptr);
+                    PROTOCOL_CASE_REVERSE(LOG_NULL, CheckNextSegmentsNullLogical, from_seg16_ptr, to_seg16_ptr);
                     default:
                         KA_TRACE(0, STDERR, 0, "HappensBefore", "unexpected case 1", 0);  
                         assert(false);
@@ -1989,9 +1988,9 @@ HappensBefore(LabelPtr& from, LabelPtr& to, TaskData* hist_task_ptr, TaskData* c
                 auto to_next_seg16_ptr = SEG_CAST_16(to_next_ptr);           
                 auto cond_code = CompileProtocolCase(nullptr, to_next_seg16_ptr); 
                 switch(cond_code) {
-                    PROTOCOL_CASE(NULL_EXP, Check04, from_seg16_ptr, to_seg16_ptr); 
-                    PROTOCOL_CASE(NULL_IMP, Check05, from_seg16_ptr, to_seg16_ptr);
-                    PROTOCOL_CASE(NULL_LOG, Check06, from_seg16_ptr, to_seg16_ptr);
+                    PROTOCOL_CASE(NULL_EXP, CheckNextSegmentsNullExplicit, from_seg16_ptr, to_seg16_ptr); 
+                    PROTOCOL_CASE(NULL_IMP, CheckNextSegmentsNullImplicit, from_seg16_ptr, to_seg16_ptr);
+                    PROTOCOL_CASE(NULL_LOG, CheckNextSegmentsNullLogical, from_seg16_ptr, to_seg16_ptr);
                     default:
                         KA_TRACE(0, STDERR, 0, "HappensBefore", "unexpected case 2", 0);  
                         assert(false);
@@ -1999,7 +1998,7 @@ HappensBefore(LabelPtr& from, LabelPtr& to, TaskData* hist_task_ptr, TaskData* c
             } 
         }
     } else { // the implicit tasks are not the same task , 
-        result = Check10(from_seg16_ptr, to_seg16_ptr);
+        result = CheckCurrentSegmentsBothImplicit(from_seg16_ptr, to_seg16_ptr);
             //KA_TRACE(0, STDERR, 0, "check10 result", "%s %d", result == PARALLEL?"IS PAR":"NO PAR", result);  
     }
     if (result == PARALLEL && cur_task_ptr->is_explicit && hist_task_ptr->is_explicit &&
