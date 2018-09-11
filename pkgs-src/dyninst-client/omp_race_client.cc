@@ -1093,22 +1093,15 @@ main(int argc, const char* argv[])
     size_t string_table_size = 0;
     void* string_table_chunk = serializeStringTable(string_table_size); // build the string table binary from the stringTable vector 
     cout << "string table chunk size: " << string_table_size << endl;
-    char buf[512];
-    for (size_t i = 0; i < stringTable.size(); ++i) {
-        testLookupStringTable(string_table_chunk, i, buf); 
-        printf("result[%lu]: %s\n", i, buf);
-    }
     size_t line_map_size = 0;   
     void* line_map_chunk = serializeLineInformation(line_map_size);
     cout << "line map chunk size: " << line_map_size << endl;
-    
+
     InsertParsedDebugSection(argv[1], string_table_chunk, string_table_size, line_map_chunk, line_map_size, app);
     
     const char* prog_name_rewritten = "instrumented_app";
     cout << "Instrumentation time: " << float(clock() - begin_time)/ CLOCKS_PER_SEC << " sec" << endl;
- //   const clock_t prg_begin_time = clock();
     FinishInstrumenting(app, prog_name_rewritten);
     free(string_table_chunk); //free the string table chunk after rewritting
     free(line_map_chunk);     //free the linemap chunk after rewriting 
-//    cout << "Instrumented program run time: " << float(clock() - prg_begin_time) / CLOCKS_PER_SEC << " sec " << endl;
 }

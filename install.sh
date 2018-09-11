@@ -71,5 +71,3 @@ export LD_LIBRARY_PATH=`pwd`/pkgs-src/dyninst/dyninst-install/lib:`pwd`/pkgs-src
 cd $root
 cd pkgs-src/dyninst-client
 make 
-
-

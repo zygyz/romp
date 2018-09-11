@@ -1246,8 +1246,6 @@ CompareTaskGroupLabel(TaskGroupPtr& s_shorter, TaskGroupPtr& s_longer)
 {
     auto len_shorter = s_shorter->label[0];
     auto len_longer = s_longer->label[0];
-//    int iter_shorter = 1;
-//    int iter_longer = 1;  
     int i = 1;
     while (i <= len_shorter && s_shorter->label[i] == s_longer->label[i]) {
         i++;
