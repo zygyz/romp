@@ -368,17 +368,13 @@ PrintBytes(const void* object, size_t size)
 void
 PrintPointInfo(BPatch_point* point)
 {
-    auto inst_ptr = point->getInsnAtPoint();  
-    if (inst_ptr == nullptr) {
-        fprintf(stderr, "getInsnAtPoint() not implemented\n");
-    } else {
-        size_t inst_size = inst_ptr->size();
-        const void* inst_raw = inst_ptr->ptr();
-        if (inst_ptr->readsMemory()) {
-            fprintf(stdout, "inst readsMemory: ");
-            PrintBytes(inst_raw, inst_size);
-        } 
-    }
+    auto insn = point->getInsnAtPoint();  
+    size_t inst_size = insn.size();
+    const void* inst_raw = insn.ptr();
+    if (insn.readsMemory()) {
+        fprintf(stdout, "inst readsMemory: ");
+        PrintBytes(inst_raw, inst_size);
+    } 
 }
 
 #define DEBUG_DYNINST
@@ -400,7 +396,7 @@ const void* GetInstBaseAndSize(BPatch_point* point, size_t& size)
 class ConstantPred : public Slicer::Predicates {
     public:
        virtual bool endAtPoint(Assignment::Ptr ap) {
-           return ap->insn()->writesMemory();
+           return ap->insn().writesMemory();
        } 
 
        virtual bool addPredecessor(AbsRegion reg) {
@@ -458,7 +454,7 @@ CreateAndInsertSnippet(BPatch_addressSpace* app,
         }    
 
         auto instnAddr = points->at(i)->getAddress();
-        auto instrPtr = points->at(i)->getInsnAtPoint();
+        auto insn = points->at(i)->getInsnAtPoint();
        // auto funcAtInstr = points->at(i)->getCalledFunction();
         auto parseAPIfunc = ParseAPI::convert(cur_func);
         BPatch_flowGraph* fg = cur_func->getCFG();             
@@ -473,67 +469,30 @@ CreateAndInsertSnippet(BPatch_addressSpace* app,
         string instn_raw_str = "";
         bool has_lock_prefix = false;  
         bool only_reads_rodata = false;
-            
-        if (instrPtr != NULL) {
-            if (instrPtr->readsMemory() && !(instrPtr->writesMemory())) { 
-                // if the instruction reads memory and does not write memory
-                AssignmentConverter ac(true, false);
-                vector<Assignment::Ptr> assignments;
-                //cout << "convert assignment " << endl;
-                ac.convert(instrPtr, (unsigned long)instnAddr, parseAPIfunc, parseAPIblock, assignments);
-                vector<uint64_t> heapMemAddrs;
-                AnalyzeMemAccess(instnAddr, assignments, heapMemAddrs);            
-                if (heapMemAddrs.size() > 0) {
-                    bool out_of_range = false; 
-                    for (auto addr : heapMemAddrs) {
-                        if (addr > rodata_upper || addr < rodata_offset) {
-                            out_of_range = true;
-                            break;
-                        }
-                    }   
-                    if (!out_of_range) 
-                        only_reads_rodata = true;
-                }
-                /*
-                vector<Dyninst::InstructionAPI::Operand> operands; 
-                instrPtr->getOperands(operands);  
-                for (auto operand : operands) {
-                    if (operand.readsMemory()) { // this operand reads memory 
-                        // check if the memory access is performed by [RIP + imm] 
-                        std::set<Expression::Ptr> memAccessors;    
-                        operand.addEffectiveReadAddresses(memAccessors);
-                       // cout << "\nmem accessors count: " <<  memAccessors.size() << endl;
-                       // for (auto m : memAccessors) {
-                        //    PrintVisitor pv((uint64_t)instnAddr);
-                         //   m->apply(&pv);
-                       // }
-                        PrintVisitor pv((uint64_t)instnAddr);
-                        auto expr = operand.getValue(); // get the expression tree  
-                        expr->apply(&pv);
-                        IPVisitor visitor;
-                        expr->apply(&visitor);     
-                        if (visitor.isRipMemAccess()) { // the operand contains a read into rodata via rip 
-                            auto imm = visitor.getImm();
-                            unsigned long hex_imm_value = strtoul(imm.c_str(), 0, 16);
-                            uint64_t effective_addr = (uint64_t)instnAddr + (uint64_t)hex_imm_value;
-                            if (effective_addr > rodata_upper || effective_addr < rodata_offset) { // not in the .rodata section
-                                only_reads_rodata = false;
-                            }
-                        } else {
-                            only_reads_rodata = false; // cannot statically determine the memory address accessed 
-                        }
-                    }  
-                }      
-                */
+        if (insn.readsMemory() && !(insn.writesMemory())) { 
+            // if the instruction reads memory and does not write memory
+            AssignmentConverter ac(true, false);
+            vector<Assignment::Ptr> assignments;
+           //cout << "convert assignment " << endl;
+            ac.convert(insn, (unsigned long)instnAddr, parseAPIfunc, parseAPIblock, assignments);
+            vector<uint64_t> heapMemAddrs;
+            AnalyzeMemAccess(instnAddr, assignments, heapMemAddrs);            
+            if (heapMemAddrs.size() > 0) {
+                bool out_of_range = false; 
+                for (auto addr : heapMemAddrs) {
+                  if (addr > rodata_upper || addr < rodata_offset) {
+                      out_of_range = true;
+                      break;
+                  }
+               }   
+               if (!out_of_range) 
+                   only_reads_rodata = true;
             } 
-            unsigned char first_byte = instrPtr->rawByte(0);
+            unsigned char first_byte = insn.rawByte(0);
             if (first_byte == 0xf0) {
                 has_lock_prefix = true;
             }
-        } else {
-            cerr << "ERROR: cannot get pointer to InstructionAPI::Instruction" << endl;
-            continue;
-        }
+        } 
 
         if (only_reads_rodata) {
             cout << hex << "\ninstruction@" << instnAddr << dec << " only reads rodata " << endl;
@@ -601,13 +560,13 @@ GetMemInstCount(BPatch_function* func)
               block_iter != blocks.end();
               ++block_iter) {
         BPatch_basicBlock* block = *block_iter;
-        vector<InstructionAPI::Instruction::Ptr> insns;
+        vector<InstructionAPI::Instruction> insns;
         block->getInstructions(insns);
         for (auto insn_iter = insns.begin();
                   insn_iter != insns.end();
                   ++insn_iter) {
-            InstructionAPI::Instruction::Ptr insn = *insn_iter;
-            if (insn->readsMemory() || insn->writesMemory()) {
+            InstructionAPI::Instruction insn = *insn_iter;
+            if (insn.readsMemory() || insn.writesMemory()) {
                 insns_access_memory++;
             }
         }
