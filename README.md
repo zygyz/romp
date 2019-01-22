@@ -156,8 +156,9 @@ ROMP relies on several packages. One needs to install packages listed below. We 
      - the instrumented binary is called instrumented_app
 
 ### Running custom tests 
-   - to run your own tests, first compile your program, then: 
+   - to run your own tests, first compile your program using clang/clang++, then: 
    ```
+      export LD_LIBRARY_PATH=/path/to/llvm-openmp/lib:$LD_LIBRARY_PATH
       export DYNINST_CLIENT=/path/to/dyninst/client/omp_race_client
       export ROMP_PATH=/path/to/libomptrace.so
       $DYNINST_CLIENT your_program
