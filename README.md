@@ -25,6 +25,8 @@ These instructions will get you a copy of the project up and running on your loc
 
 ROMP relies on several packages. One needs to install packages listed below. We also provide an installation script install.sh which summarizes the command lines listed below. One needs to make sure clang version 8.0.0 or later version is properly installed before invoking the script.
 
+We recommend using install.sh to automate the intsallation process. 
+
 1. Clang version 8.0.0 or later version (required)
    - [Clang](https://github.com/llvm-mirror/clang) could be downloaded from [https://github.com/llvm-mirror/clang](https://github.com/llvm-mirror/clang)
 
