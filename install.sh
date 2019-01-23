@@ -2,7 +2,19 @@
 
 root=`pwd`
 
+#build and install TCMalloc
+cd pkgs-src
+git clone https://github.com/gperftools/gperftools.git
+cd gperftools
+mkdir gperftools-build gperftools-install    
+./autogen.sh
+./autogen.sh
+cd gperftools-build
+../configure --prefix=`pwd`/../gperftools-install 
+make && make install
+
 #build and install dyninst
+cd $root
 cd pkgs-src
 git clone https://github.com/dyninst/dyninst.git
 cd dyninst
@@ -20,19 +32,11 @@ cd llvm-openmp-build
 cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++  -DCMAKE_INSTALL_PREFIX=`pwd`/../llvm-openmp-install ..    
 make && make install
 
-#build and install TCMalloc
-cd $root
-cd pkgs-src/gperftools
-mkdir gperftools-build gperftools-install    
-./autogen.sh
-cd gperftools-build
-../configure --prefix=`pwd`/../gperftools-install 
-make && make install
 
 #build and install romp
+cd $root
 export CPATH=`pwd`/pkgs-src/llvm-openmp/openmp/llvm-openmp-install/include:$CPATH
 export LD_LIBRARY_PATH=`pwd`/pkgs-src/llvm-openmp/openmp/llvm-openmp-install/lib:`pwd`/pkgs-src/gperftools/gperftools-install/lib:$LD_LIBRARY_PATH
-cd $root
 cd pkgs-src/romp-lib
 mkdir romp-build romp-install
 cd romp-build
