@@ -1,3 +1,5 @@
+An effort to refactor romp is in progress. Please refer to romp-v2 for latest status. 
+
 # ROMP
 
 ROMP is a dynamic data race detector for OpenMP programs. 
