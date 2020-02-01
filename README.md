@@ -1,192 +1,115 @@
-An effort to refactor romp is in progress. Please refer to romp-v2 for latest status. 
+Refactoring and improving ROMP is in progress. Please refer to romp-v2 experimental branch for the latest status. 
 https://github.com/zygyz/romp-v2
 
-# ROMP
-
-ROMP is a dynamic data race detector for OpenMP programs. 
-
-## Getting Started
-
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. 
+### ROMP 
+A dynamic data race detector for OpenMP program 
 
 ### System Requirements
-1. Operating Systems:  Linux
+Operating Systems: Linux
 
-2. Architecture:  x86_64
+Architecture: x86_64
 
-### Prerequisites
+Compiler: gcc 9.2.0 (recommended); any compiler supporting c++17
 
-1. [Clang](https://github.com/llvm-mirror/clang) (version 8.0.0 or later versions)
+### Installation Guide
 
-2. [DynInst](https://github.com/dyninst/dyninst)
+By default, we use `spack` to manage the installation of ROMP and related packages.
+This should be the default way of installing ROMP. Installation using CMake 'manually' 
+is described in a separate section.
 
-3. LLVM OpenMP runtime library (should use the llvm-openmp provided in romp/pkgs-src/)
+#### Install ROMP using Spack
 
-4. TCMalloc(https://github.com/gperftools/gperftools) 
+1. install `spack`
+* Checkout my forked branch of `spack`. It contains changes to package.py for `llvm-openmp`, `dyninst`, and 
+the pacakge spec for `romp`:
 
-### Installing
+```
+   git clone git@github.com:zygyz/spack.git
+   git checkout romp-build
+```
+* For the installation of Spack, please refer to the guide in Spack project readme. 
 
-ROMP relies on several packages. One needs to install packages listed below. We also provide an installation script install.sh which summarizes the command lines listed below. One needs to make sure clang version 8.0.0 or later version is properly installed before invoking the script.
-
-We recommend using install.sh to automate the intsallation process. 
-
-1. Clang version 8.0.0 or later version (required)
-   - [Clang](https://github.com/llvm-mirror/clang) could be downloaded from [https://github.com/llvm-mirror/clang](https://github.com/llvm-mirror/clang)
-
-2. DynInst (required) 
-   - to build and install dyninst, start from romp root directory 
-    
-   ```
-      cd pkgs-src
-      git clone https://github.com/dyninst/dyninst.git
-      cd dyninst
-      mkdir dyninst-build dyninst-install
-      cd dyninst-build
-      cmake -DCMAKE_INSTALL_PREFIX=`pwd`/../dyninst-install -DBOOST_MIN_VERSION=1.61.0 -DLIBELF_INCLUDE_DIR="" -DLIBELF_LIBRARIES="" -DLIBDWARF_LIBRARIES="" -DLIBDWARF_INCLUDE_DIR="" ..
-      make -j4
-      make install
-   ```  
-
-3.  LLVM OpenMP runtime library (required)
+2. install gcc 9.2.0
+* fetch and install gcc 9.2.0 using spack 
+ ``` spack install gcc@9.2.0```
+* (optional) create a symlink to the sapck installed gcc location: 
+ ```
+ ln -s `spack location install-dir gcc@9.2.0` /home/to/your/gcc/root
+ ```
+* update spack compiler configuration file 
+  * `spack config edit compilers`
+  * inside the opened file, set up another compiler configuration entry using 
+  the path to the gcc 9.2.0 compiler. If you set up the symlink, it could be the symlink path. 
   
-   - to build and install LLVM OpenMP runtime library, start from romp root directory 
-   
-   ```
-      cd pkgs-src/llvm-openmp/openmp
-      mkdir llvm-openmp-build llvm-openmp-install 
-      cd llvm-openmp-build
-      cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++  -DCMAKE_INSTALL_PREFIX=`pwd`/../llvm-openmp-install ..    
-      make && make install
-   ```   
-
-4. tcmalloc (required)
-   - to build and install TCMalloc, start from romp root 
-  
-   ```
-     cd pkgs-src/gperftools
-     mkdir gperftools-build gperftools-install    
-     ./autogen.sh
-     cd gperftools-build
-     ../configure --prefix=`pwd`/../gperftools-install 
-     make && make install
-   ``` 
-
-5. ROMP 
-  - to build and install ROMP, start from romp root
-  
-   ```
-      export CPATH=`pwd`/pkgs-src/llvm-openmp/openmp/llvm-openmp-install/include:$CPATH
-      export LD_LIBRARY_PATH=`pwd`/pkgs-src/llvm-openmp/openmp/llvm-openmp-install/lib:`pwd`/pkgs-src/gperftools/gperftools-         install/lib:$LD_LIBRARY_PATH
-      cd $root
-      cd pkgs-src/romp-lib
-      mkdir romp-build romp-install
-      cd romp-build
-      cmake -DCMAKE_INSTALL_PREFIX=`pwd`/../romp-install ..
-      make && make install
-   ```
-
-6. DynInst Client 
-  - DynInst relies on libdwarf, to build libdwarf, start from romp root
-  
-  ```
-      cd pkgs-src
-      tar xvf libdwarf.tar.gz
-      cd libdwarf
-      mkdir libdwarf-build libdwarf-install
-      cd libdwarf-build
-      ../configure --prefix=`pwd`/../libdwarf-install
-      make && make install
+3. install dependent pacakges 
+* gflags
   ``` 
-  
-  - to build dyninst client, start from romp root
-  
+  spack install gflags %gcc@9.2.0
   ```
-     cd $root
-     cd pkgs-src/dyninst-client
-     make 
+* glog
+  ```
+  spack install glog %gcc@9.2.0
+  ```
+* llvm-openmp
+  ```
+  spack install llvm-openmp@romp-mod%gcc@9.2.0
+  ``` 
+* dyninst
+  ```
+  spack install dyninst@10.1.2%gcc@9.2.0
   ```
   
-  - after compilation, one should get a binary called omp_race_client
+#### Install ROMP using CMake
+People may want a faster developement and iteration experience when debugging and developing ROMP. Installation using 
+spack requires changes to be committed to remote repos. ROMP's cmake files make it possible to build ROMP locally without
+going through spack pipeline. Note that we still use spack to install some dependent libraries:
 
-### Trouble shooting for installation
-  - When installing dyninst, one may encounter the following error:
-   ```
-     .../dyninst-build/elfutils/src/LibElf/backends/ppc_init_reg.c:69:1: error: stack usage might be unbounded
-   ```
-   To solve this problem, add the following line in ppc_initreg.c: 
-   ```
-        #pragma GCC diagnostic ignored "-Wstack-usage="
-   ```
-## Running the tests
+* gflags 
+* glog 
+* llvm-openmp
 
-### Running benchmarks
-1. DataRaceBench
-   - to run DataRaceBench, first make sure ROMP has been intalled as described above
-   - start from romp root
-   ```
-      export DYNINST_ROOT=`pwd`/pkgs-src/dyninst/dyninst-install
-      export DYNINSTAPI_RT_LIB=$DYNINST_ROOT/lib/libdyninstAPI_RT.so
-      export DYNINST_CLIENT=`pwd`/pkgs-src/dyninst-client/omp_race_client
-      export ROMP_PATH=`pwd`/pkgs-src/romp-lib/romp-install/lib/libomptrace.so
-      export CPATH=`pwd`/pkgs-src/llvm-openmp/openmp/llvm-openmp-install/include:$CPATH
-      export LD_LIBRARY_PATH=`pwd`/pkgs-src/llvm-openmp/openmp/llvm-openmp-install/lib:$LD_LIBRARY_PATH
-      export LD_LIBRARY_PATH=`pwd`/pkgs-src/gperftools/gperftools-install/lib:$LD_LIBRARY_PATH
-      export LD_LIBRARY_PATH=`pwd`/pkgs-src/dyninst/dyninst-install/lib:$LD_LIBRARY_PATH
-      cd tests/dataracebench
-      ./check-data-races.sh --romp
-   ```
+The installation of these libraries are described in the section above: 'Install ROMP using Spack'
 
-2. OmpSCR   
-    - start from romp root 
-    ```
-      export DYNINST_ROOT=`pwd`/pkgs-src/dyninst/dyninst-install
-      export DYNINSTAPI_RT_LIB=$DYNINST_ROOT/lib/libdyninstAPI_RT.so
-      export DYNINST_CLIENT=`pwd`/pkgs-src/dyninst-client/omp_race_client
-      export ROMP_PATH=`pwd`/pkgs-src/romp-lib/romp-install/lib/libomptrace.so
-      export C_PATH=`pwd`/pkgs-src/llvm-openmp/openmp/llvm-openmp-install/include:$CPATH
-      export LD_LIBRARY_PATH=`pwd`/pkgs-src/llvm-openmp/openmp/llvm-openmp-install/lib:$LD_LIBRARY_PATH
-      export LD_LIBRARY_PATH=`pwd`/pkgs-src/gperftools/gperftools-install/lib:$LD_LIBRARY_PATH
-      export LD_LIBRARY_PATH=`pwd`/pkgs-src/dyninst/dyninst-install/lib:$LD_LIBRARY_PATH
-      cd tests/OmpSCR_v2.0 
-      gmake bashconfig
-    ```
-     - after configuration  
-    ```
-       gmake par     
-    ```
-     - to instrument an application to enable romp 
-    ```
-     $DYNINST_CLIENT your_application  
-    ``` 
-     - the instrumented binary is called instrumented_app
+We assume the two following things:
 
-### Running custom tests 
-   - to run your own tests, first compile your program using clang/clang++, then: 
-   ```
-      export LD_LIBRARY_PATH=/path/to/llvm-openmp/lib:$LD_LIBRARY_PATH
-      export DYNINST_CLIENT=/path/to/dyninst/client/omp_race_client
-      export ROMP_PATH=/path/to/libomptrace.so
-      $DYNINST_CLIENT your_program
-      mv instrumented_app renamed_instrumented_program
-      ./renamed_instrumented_program [your parameters]
-   ``` 
 
-### Miscellaneous
-    - to turn on verbose race report: 
-       export ROMP_VERBOSE=on 
-    - to turn off verboes race report:
-       export ROMP_VERBOSE=off 
+Remember to install with c++17 compatible compiler option. e.g.,
 
-### Caveats
-    - For DRB047 in dataracebench, please use the byte level granularity checking otherwise the word level granularity checking causes false positives 
-    - To switch from word level checking to byte level checking, disable the macro definition #define WORD_LEVEL and enable the macro definition #define BYTE_LEVEL and recompile romp library
-    - For DRB114 in dataracebench, whether data race occurs is dependent on the control flow, i.e., the value of rand()%2 
-    - DRB094,DRB095,DRB096,DRB112 require an OpenMP 4.5 compiler, currently romp does not test these programs
-    - DRB116 tests use of target + teams constructs. The support for these two constructs is out of the scope of our SC18 paper. Adding support for target and teams constructs is subject to ongoing work.
-## Authors
+spack install gflags %gcc@9.2.0
+Configure the compiler option by following the steps in
 
-* **Yizi Gu (yg31@rice.edu)** - *Initial work* 
+https://spack-tutorial.readthedocs.io/en/latest/tutorial_configuration.html
 
-## License
+spack config edit compilers 
+Build dyninst. Suppose the dyninst is located in /path/to/dyninst, and the artifact is installed in path/to/dyninst/install. Create a symlink: ln -s /path/to/dyninst/install $HOME/dyninst
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+set environement variables
+
+export GLOG_PREFIX=`spack location --install-dir glog`
+export GFLAGS_PREFIX=`spack location --install-dir gflags`
+export LLVM_PREFIX=`spack location --install-dir llvm-openmp`
+export CUSTOM_DYNINST_PREFIX=$HOME/dyninst
+export LIBRARY_PATH=`spack location --install-dir glog`/lib\
+`spack location --install-dir llvm-openmp`/lib
+Change directory to romp-v2:
+   mkdir install
+   cd build
+   cmake -DCMAKE_PREFIX_PATH="$GFLAGS_PREFIX;$GLOG_PREFIX;$CUSTOM_DYNINST_PREFIX"
+         -DLLVM_PATH=$LLVM_PREFIX -DCMAKE_CXX_FLAGS=-std=c++17 -DCUSTOM_DYNINST=ON 
+         -DCMAKE_INSTALL_PREFIX=`pwd`/../install ..
+   make
+   make install
+Now dyninst client InstrumentMain is installed in romp-v2/install/bin Before running instrumentation, set up several environment variables:
+ export ROMP_PATH=/path/to/romp-v2/install/lib/libomptrace.so
+ export DYNINSTAPI_RT_LIB=$HOME/dyninst/lib/libdyninstAPI_RT.so
+ export LD_LIBRARY_PATH=`spack location --install-dir glog`/lib:\
+                        `spack location --install-dir llvm-openmp`/lib:\
+                         $HOME/dyninst/lib
+Now compile tests/test_lib_inst.cpp with:
+g++ test.cpp -std=c++11 -lomp- fopenmp
+Then, go to romp-v2/install/bin,
+./InstrumentMain --program=./a.out
+This will generate a.out.inst
+
+LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH ./a.out.inst
+The dyninst client code is in InstrumentClient. Core functions are in InstrumentClient.cpp. Library names are listed in skipLibraryName vector. Currently, three libraries could be instrumented and linked without generating segmentation fault: libomp.so, libgromp.so.1, libm.so.6.
