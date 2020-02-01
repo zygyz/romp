@@ -64,7 +64,8 @@ INSPECTOR=${INSPECTOR:-"inspxe-cl"}
 ICC_COMPILE_FLAGS="-O0 -fopenmp -std=c99 -qopenmp-offload=host"
 ICPC_COMPILE_FLAGS="-O0 -fopenmp -qopenmp-offload=host"
 
-ROMP_COMPILE_FLAGS="-g -O0 -L`pwd`/../../pkgs-src/romp-lib/lib -L`pwd`/../../pkgs-src/gperftools/gperftools-install/lib -L`pwd`/../../pkgs-src/llvm-openmp/openmp/llvm-openmp-install/lib -fopenmp -fpermissive -ltcmalloc"
+ROMP_CPP_COMPILE_FLAGS="-O3 -std=c++11 -fopenmp -lomp"
+ROMP_C_COMPILE_FLAGS="-O3 -fopenmp -lomp"
 
 POLYFLAG="micro-benchmarks/utilities/polybench.c -I micro-benchmarks -I micro-benchmarks/utilities -DPOLYBENCH_NO_FLUSH_CACHE -DPOLYBENCH_TIME -D_POSIX_C_SOURCE=200112L"
 
@@ -242,8 +243,8 @@ for tool in "${TOOLS[@]}"; do
             archer)     clang-archer++ $ARCHER_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm ;;
             tsan)       clang++ $TSAN_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm ;;
             inspector)  icpc $ICPC_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm ;;
-            romp)       clang++ $ROMP_COMPILE_FLAGS $additional_compile_flags $test -o $rompcompile -lm; 
-                        $DYNINST_CLIENT $rompcompile;
+            romp)       g++ $ROMP_CPP_COMPILE_FLAGS $additional_compile_flags $test -o $rompcompile -lm; 
+                        $DYNINST_CLIENT --program=$rompcompile;
                         mv instrumented_app $exname;;
         esac
     else
@@ -252,8 +253,8 @@ for tool in "${TOOLS[@]}"; do
             archer)     clang-archer $ARCHER_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm ;;
             tsan)       clang $TSAN_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm ;;
             inspector)  icpc $ICC_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm ;;
-            romp)       clang $ROMP_COMPILE_FLAGS $additional_compile_flags $test -o $rompcompile -lm; 
-                        $DYNINST_CLIENT $rompcompile;
+            romp)       gcc $ROMP_C_COMPILE_FLAGS $additional_compile_flags $test -o $rompcompile -lm; 
+                        $DYNINST_CLIENT --program=$rompcompile;
                         mv instrumented_app $exname;;
 
        esac
