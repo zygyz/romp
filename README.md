@@ -32,7 +32,7 @@ the pacakge spec for `romp`:
 2. install gcc 9.2.0
 * fetch and install gcc 9.2.0 using spack 
  ``` spack install gcc@9.2.0```
-* (optional) create a symlink to the sapck installed gcc location: 
+* (optional) create a symlink to the spack installed gcc location: 
  ```
  ln -s `spack location install-dir gcc@9.2.0` /home/to/your/gcc/root
  ```
