@@ -40,7 +40,10 @@ the pacakge spec for `romp`:
   * `spack config edit compilers`
   * inside the opened file, set up another compiler configuration entry using 
   the path to the gcc 9.2.0 compiler. If you set up the symlink, it could be the symlink path. 
-  
+  * configuration guide for the compiler can be found in: 
+    
+    https://spack-tutorial.readthedocs.io/en/latest/tutorial_configuration.html
+    
 3. install dependent pacakges 
 * gflags
   ``` 
@@ -58,58 +61,138 @@ the pacakge spec for `romp`:
   ```
   spack install dyninst@10.1.2%gcc@9.2.0
   ```
-  
+4. install ROMP
+  ```
+  spack install romp@develop%gcc@9.2.0
+  ```
+##### Setup environment variables 
+ Setup environment variables so that we can run ROMP:
+ ```
+ export LD_LIBRARY_PATH=`spack location --install-dir llvm-openmp`/lib:`spack location --install-dir dyninst`/lib
+ export DYNINSTAPI_RT_LIB=`spack location --install-dir dyninst`/lib/libdyninstAPI_RT.so
+ export ROMP_PATH=`spack location --install-dir romp`/lib/libomptrace.so
+ export PATH=`spack location --install-dir romp`/bin:$PATH
+ ```
 #### Install ROMP using CMake
 People may want a faster developement and iteration experience when debugging and developing ROMP. Installation using 
-spack requires changes to be committed to remote repos. ROMP's cmake files make it possible to build ROMP locally without
-going through spack pipeline. Note that we still use spack to install some dependent libraries:
+spack requires changes to be committed to remote repos. ROMP's cmake files make it possible to build ROMP and a local copy of dyninst without using spack. Note that we still use spack to install some dependent libraries.
 
-* gflags 
-* glog 
+1. install `spack`
+*  same as described in above section
+2. install dependent packages
+* gflags
+  ``` 
+  spack install gflags %gcc@9.2.0
+  ```
+* glog
+  ```
+  spack install glog %gcc@9.2.0
+  ```
 * llvm-openmp
-
-The installation of these libraries are described in the section above: 'Install ROMP using Spack'
-
-We assume the two following things:
-
-
-Remember to install with c++17 compatible compiler option. e.g.,
-
-spack install gflags %gcc@9.2.0
-Configure the compiler option by following the steps in
-
-https://spack-tutorial.readthedocs.io/en/latest/tutorial_configuration.html
-
-spack config edit compilers 
-Build dyninst. Suppose the dyninst is located in /path/to/dyninst, and the artifact is installed in path/to/dyninst/install. Create a symlink: ln -s /path/to/dyninst/install $HOME/dyninst
-
-set environement variables
-
-export GLOG_PREFIX=`spack location --install-dir glog`
-export GFLAGS_PREFIX=`spack location --install-dir gflags`
-export LLVM_PREFIX=`spack location --install-dir llvm-openmp`
-export CUSTOM_DYNINST_PREFIX=$HOME/dyninst
-export LIBRARY_PATH=`spack location --install-dir glog`/lib\
-`spack location --install-dir llvm-openmp`/lib
-Change directory to romp-v2:
+  ```
+  spack install llvm-openmp@romp-mod%gcc@9.2.0
+  ```
+* dyninst
+  ```
+  spack install dyninst@10.1.2%gcc@9.2.0
+  ``` 
+3. setup envorinment variables for building
+  ```
+   export GLOG_PREFIX=`spack location --install-dir glog`
+   export GFLAGS_PREFIX=`spack location --install-dir gflags`
+   export LLVM_PREFIX=`spack location --install-dir llvm-openmp`
+   export LIBRARY_PATH=`spack location --install-dir glog`/lib\
+   `spack location --install-dir llvm-openmp`/lib
+  ```
+4. build and install romp
+* suppose romp is located in `/home/to/romp`
+  ```
+   cd /home/to/romp
+   mkdir build
    mkdir install
    cd build
-   cmake -DCMAKE_PREFIX_PATH="$GFLAGS_PREFIX;$GLOG_PREFIX;$CUSTOM_DYNINST_PREFIX"
-         -DLLVM_PATH=$LLVM_PREFIX -DCMAKE_CXX_FLAGS=-std=c++17 -DCUSTOM_DYNINST=ON 
+   cmake -DCMAKE_PREFIX_PATH="$GFLAGS_PREFIX;$GLOG_PREFIX"
+         -DLLVM_PATH=$LLVM_PREFIX -DCMAKE_CXX_FLAGS=-std=c++17
          -DCMAKE_INSTALL_PREFIX=`pwd`/../install ..
    make
    make install
-Now dyninst client InstrumentMain is installed in romp-v2/install/bin Before running instrumentation, set up several environment variables:
- export ROMP_PATH=/path/to/romp-v2/install/lib/libomptrace.so
- export DYNINSTAPI_RT_LIB=$HOME/dyninst/lib/libdyninstAPI_RT.so
+  ```
+##### Setup environment variables 
+Setup environment variables so that we can run ROMP. 
+* Suppose romp root path is `/home/to/romp`:
+```
+ export ROMP_PATH=/home/to/romp/install/lib/libomptrace.so
+ export DYNINSTAPI_RT_LIB=`spack location --install-dir dyninst`/lib/libdyninstAPI_RT.so
  export LD_LIBRARY_PATH=`spack location --install-dir glog`/lib:\
                         `spack location --install-dir llvm-openmp`/lib:\
-                         $HOME/dyninst/lib
-Now compile tests/test_lib_inst.cpp with:
-g++ test.cpp -std=c++11 -lomp- fopenmp
-Then, go to romp-v2/install/bin,
-./InstrumentMain --program=./a.out
-This will generate a.out.inst
+                        `spack location --install-dir dyninst`/lib
+ export PATH=/home/to/romp/install/bin:$PATH
+```
+##### Build a local copy of dyninst
+Mainly for debugging purpose, one may want to build romp without spack, and also build a copy of dyninst locally
+without spack. To enable this, one should do the following:
+1. Build dyninst. 
+* suppose the dyninst is located in `/path/to/dyninst`, and the artifact is installed in `path/to/dyninst/install`.
 
-LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH ./a.out.inst
-The dyninst client code is in InstrumentClient. Core functions are in InstrumentClient.cpp. Library names are listed in skipLibraryName vector. Currently, three libraries could be instrumented and linked without generating segmentation fault: libomp.so, libgromp.so.1, libm.so.6.
+2. set environement variables for building 
+```
+export GLOG_PREFIX=`spack location --install-dir glog`
+export GFLAGS_PREFIX=`spack location --install-dir gflags`
+export LLVM_PREFIX=`spack location --install-dir llvm-openmp`
+export CUSTOM_DYNINST_PREFIX=/path/to/dyninst
+export LIBRARY_PATH=`spack location --install-dir glog`/lib\
+`spack location --install-dir llvm-openmp`/lib
+```
+3. build romp that uses dyninst installed locally instead
+* suppose romp root path is `/home/to/romp`:
+```
+ cd /home/to/romp
+ mkdir build
+ mkdir install
+ cd build
+ cmake -DCMAKE_PREFIX_PATH="$GFLAGS_PREFIX;$GLOG_PREFIX;$CUSTOM_DYNINST_PREFIX"
+       -DLLVM_PATH=$LLVM_PREFIX -DCMAKE_CXX_FLAGS=-std=c++17 -DCUSTOM_DYNINST=ON 
+       -DCMAKE_INSTALL_PREFIX=`pwd`/../install ..
+ make
+ make install
+```
+4. setup environment variable 
+```
+ export ROMP_PATH=/home/to/romp/install/lib/libomptrace.so
+ export DYNINSTAPI_RT_LIB=/path/to/dyninst/install/lib/libdyninstAPI_RT.so
+ export LD_LIBRARY_PATH=`spack location --install-dir glog`/lib:\
+                        `spack location --install-dir llvm-openmp`/lib:\
+                         /path/to/dyninst/install/lib 
+```
+### Compile and instrument a program
+* suppose an OpenMP program is `test.cpp`
+1. compile the program so that it links against our llvm-openmp library
+```
+g++ -g -fopenmp -lomp test.cpp -o test
+```
+* one can `ldd test` to check if `libomp` is our spack installed one, which contains changes to support OMPT callbacks
+* if the linkage is incorrect, e.g., it uses system library, check if the library name mismatches:
+```
+cd `spack location --install-dir llvm-openmp`/lib
+```
+* it is possible that linker wants to find `libomp.so.5` but the spack installed lib only contains `libomp.so`. In this case, create a symlink `libomp.so.5->libomp.so` yourself
+
+2. instrument the binary
+* use dyninst instrument client `InstrumentMain` to instrument the binary
+```
+InstrumentMain --program=./test
+```
+* this would generate an instrumented bianry: `test.inst`
+3. check data races for a program
+* (optional) turn on line info report.
+```
+export ROMP_REPORT_LINE=on
+```
+when enabled, this would print all data races found with line information
+* (optional) turn on on-the-fly data race report
+```
+export ROMP_REPORT=on
+```
+when enabled, once a data race is found during the program execution, it is reported. Otherwise,
+all report would be generated after the execution of the program
+* run `test.inst` to check data races for program `test`
