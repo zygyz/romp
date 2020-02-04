@@ -196,3 +196,13 @@ export ROMP_REPORT=on
 when enabled, once a data race is found during the program execution, it is reported. Otherwise,
 all report would be generated after the execution of the program
 * run `test.inst` to check data races for program `test`
+
+### Running DataRaceBench
+* check out my forked branch `romp-test` of data race bench, which contains modifications to scripts to support running romp
+ https://github.com/zygyz/dataracebench 
+```
+git clone git@github.com:zygyz/dataracebench.git
+git checkout romp-test
+cd dataracebench
+./check-data-races.sh --romp
+```
