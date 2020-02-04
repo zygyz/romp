@@ -74,7 +74,7 @@ the pacakge spec for `romp`:
  export PATH=`spack location --install-dir romp`/bin:$PATH
  ```
 #### Install ROMP using CMake
-People may want a faster developement and iteration experience when debugging and developing ROMP. Installation using 
+People may want a faster development and iteration experience when debugging and developing ROMP. Installation using 
 spack requires changes to be committed to remote repos. ROMP's cmake files make it possible to build ROMP and a local copy of dyninst without using spack. Note that we still use spack to install some dependent libraries.
 
 1. install `spack`
