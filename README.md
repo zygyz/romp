@@ -101,8 +101,17 @@ spack requires changes to be committed to remote repos. ROMP's cmake files make 
    export GLOG_PREFIX=`spack location --install-dir glog`
    export GFLAGS_PREFIX=`spack location --install-dir gflags`
    export LLVM_PREFIX=`spack location --install-dir llvm-openmp`
-   export LIBRARY_PATH=`spack location --install-dir glog`/lib\
-   `spack location --install-dir llvm-openmp`/lib
+   export BOOST_PREFIX=`spack location --install-dir boost`
+   export DYNINST_PREFIX=`spack location --install-dir dyninst`
+   export TBB_PREFIX=`spack location --install-dir intel-tbb`
+   export CPLUS_INCLUDE_PATH=$GLOG_PREFIX/include:\
+   $GFLAGS_PREFIX/include:$BOOST_PREFIX/include:\
+   $DYNINST_PREFIX/include:$TBB_PREFIX/include:\
+   $LLVM_PREFIX/include
+   export LIBRARY_PATH=$GLOG_PREFIX/lib:$GFLAGS_PREFIX/lib:$LLVM_PREFIX/lib
+   export LD_LIBRARY_PATH=$GLOG_PREFIX/lib:$GFLAGS_PREFIX/lib:\
+                           $LLVM_PREFIX/lib:$DYNINST_PREFIX/lib
+
   ```
 4. build and install romp
 * suppose romp is located in `/home/to/romp`
@@ -114,6 +123,11 @@ spack requires changes to be committed to remote repos. ROMP's cmake files make 
    cmake -DCMAKE_PREFIX_PATH="$GFLAGS_PREFIX;$GLOG_PREFIX"
          -DLLVM_PATH=$LLVM_PREFIX -DCMAKE_CXX_FLAGS=-std=c++17
          -DCMAKE_INSTALL_PREFIX=`pwd`/../install ..
+         
+   cmake -DCMAKE_PREFIX_PATH="$GFLAGS_PREFIX;$GLOG_PREFIX;$DYNINST_PREFIX;$BOOST_PREFIX"
+         -DLLVM_PATH=$LLVM_PREFIX -DCMAKE_CXX_FLAGS=-std=c++17 
+         -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc 
+         -DCMAKE_INSTALL_PREFIX=`pwd`/../install ..
    make
    make install
   ```
@@ -122,48 +136,13 @@ Setup environment variables so that we can run ROMP.
 * Suppose romp root path is `/home/to/romp`:
 ```
  export ROMP_PATH=/home/to/romp/install/lib/libomptrace.so
- export DYNINSTAPI_RT_LIB=`spack location --install-dir dyninst`/lib/libdyninstAPI_RT.so
- export LD_LIBRARY_PATH=`spack location --install-dir glog`/lib:\
-                        `spack location --install-dir llvm-openmp`/lib:\
-                        `spack location --install-dir dyninst`/lib
+ export DYNINSTAPI_RT_LIB=$DYNINST_PREFIX/lib/libdyninstAPI_RT.so
+ export LD_LIBRARY_PATH=$GLOG_PREFIX/lib:\
+                        $LLVM_PREFIX/lib:\
+                        $DYNINST_PREFIX/lib
  export PATH=/home/to/romp/install/bin:$PATH
 ```
-##### Build a local copy of dyninst
-Mainly for debugging purpose, one may want to build romp without spack, and also build a copy of dyninst locally
-without spack. To enable this, one should do the following:
-1. Build dyninst. 
-* suppose the dyninst is located in `/path/to/dyninst`, and the artifact is installed in `path/to/dyninst/install`.
 
-2. set environement variables for building 
-```
-export GLOG_PREFIX=`spack location --install-dir glog`
-export GFLAGS_PREFIX=`spack location --install-dir gflags`
-export LLVM_PREFIX=`spack location --install-dir llvm-openmp`
-export CUSTOM_DYNINST_PREFIX=/path/to/dyninst
-export LIBRARY_PATH=`spack location --install-dir glog`/lib\
-`spack location --install-dir llvm-openmp`/lib
-```
-3. build romp that uses dyninst installed locally instead
-* suppose romp root path is `/home/to/romp`:
-```
- cd /home/to/romp
- mkdir build
- mkdir install
- cd build
- cmake -DCMAKE_PREFIX_PATH="$GFLAGS_PREFIX;$GLOG_PREFIX;$CUSTOM_DYNINST_PREFIX"
-       -DLLVM_PATH=$LLVM_PREFIX -DCMAKE_CXX_FLAGS=-std=c++17 -DCUSTOM_DYNINST=ON 
-       -DCMAKE_INSTALL_PREFIX=`pwd`/../install ..
- make
- make install
-```
-4. setup environment variable 
-```
- export ROMP_PATH=/home/to/romp/install/lib/libomptrace.so
- export DYNINSTAPI_RT_LIB=/path/to/dyninst/install/lib/libdyninstAPI_RT.so
- export LD_LIBRARY_PATH=`spack location --install-dir glog`/lib:\
-                        `spack location --install-dir llvm-openmp`/lib:\
-                         /path/to/dyninst/install/lib 
-```
 ### Compile and instrument a program
 * suppose an OpenMP program is `test.cpp`
 1. compile the program so that it links against our llvm-openmp library
