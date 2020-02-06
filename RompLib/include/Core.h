@@ -43,7 +43,6 @@ bool analyzeNextWorkImp(Label* histLabel, Label* curLabel, int index);
 bool analyzeNextWorkExp(Label* histLabel, Label* curLabel, int index);
 bool analyzeNextWorkWork(Label* histLabel , Label* curLabel, int index);
 bool analyzeOrderedDescendents(Label* histLabel, int index, uint64_t histPhase);
-bool analyzeSingleExecutor(Label* histLabel, Label* curLabel, int index);
 bool analyzeSyncChain(Label* label, int index);
 bool analyzeMutualExclusion(const Record& histRecord, const Record& curRecord);
 bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, 

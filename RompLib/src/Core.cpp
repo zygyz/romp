@@ -54,22 +54,6 @@ bool analyzeMutualExclusion(const Record& histRecord, const Record& curRecord) {
            (histRecord.hasHwLock() && curRecord.hasHwLock());
 }
 
-/*
- * This function analyzes happens before relationship between T(histLabel) 
- * and T(curLabel). In this case, T(histLabel, index) and T(curLabel, index)
- * are represents the same single construct.
- */
-bool analyzeSingleExecutor(Label* histLabel, Label* curLabel, int index) {
-  auto histNextSeg = histLabel->getKthSegment(index + 1);
-  auto curNextSeg = curLabel->getKthSegment(index + 1);
-  auto histNextType = histNextSeg->getType();
-  auto curNextType = curNextSeg->getType();
-  RAW_CHECK(!(histNextType == eImplicit && curNextType == eImplicit),
-            "not expecting next level tasks are sibling implicit tasks");
-  // invoke different checking depending on next segment's type 
-  auto checkCase = buildCheckCase(histNextType, curNextType);
-  return dispatchAnalysis(checkCase, histLabel, curLabel, index);
-}
 
 /*
  * This function analyzes the happens-before relationship between two memory
@@ -129,7 +113,7 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex) {
       case eWorkShare:
         if (static_cast<WorkShareSegment*>(histSegment)->isSingleExecutor() && 
             static_cast<WorkShareSegment*>(curSegment)->isSingleExecutor()) { 
-          return analyzeSingleExecutor(histLabel, curLabel, diffIndex);
+          return analyzeSameTask(histLabel, curLabel, diffIndex);
         } else {
           return analyzeOrderedSection(histLabel, curLabel,  diffIndex);
         }
@@ -359,11 +343,11 @@ bool analyzeSyncChain(Label* label, int startIndex) {
 
 /*
  * This function analyzes happens-before relation when first pair of different 
- * segments are implicit segment, or explicit task, where offset are the same. 
- * This means that 
- * T(histLabel, diffIndex) and T(curLabel, diffIndex) are the same implicit 
- * task, or explicit task, denote it as T'. T(histLabel), T(curLabel) are 
- * descendent tasks of T'.
+ * segments are implicit segment, explicit task, or single workshare task, where
+ * offset are the same. This means that T(histLabel, diffIndex) and 
+ * T(curLabel, diffIndex) are the same implicit task, or explicit task, or 
+ * single task, denote it as T'. T(histLabel), T(curLabel) are descendent tasks 
+ * of T'.
  *
  * Return true if T(histLabel) -> T(curLabel)
  * Return false if T(histLabel) || T(curLabel)
