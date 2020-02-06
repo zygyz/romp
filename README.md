@@ -1,5 +1,4 @@
-Refactoring and improving ROMP is in progress. Please refer to romp-v2 experimental branch for the latest status. 
-https://github.com/zygyz/romp-v2
+Refactoring and improving ROMP is in progress.
 
 ### ROMP 
 A dynamic data race detector for OpenMP program 
