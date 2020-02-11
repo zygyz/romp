@@ -119,9 +119,6 @@ spack requires changes to be committed to remote repos. ROMP's cmake files make 
    mkdir build
    mkdir install
    cd build
-   cmake -DCMAKE_PREFIX_PATH="$GFLAGS_PREFIX;$GLOG_PREFIX"
-         -DLLVM_PATH=$LLVM_PREFIX -DCMAKE_CXX_FLAGS=-std=c++17
-         -DCMAKE_INSTALL_PREFIX=`pwd`/../install ..
          
    cmake -DCMAKE_PREFIX_PATH="$GFLAGS_PREFIX;$GLOG_PREFIX;$DYNINST_PREFIX;$BOOST_PREFIX"
          -DLLVM_PATH=$LLVM_PREFIX -DCMAKE_CXX_FLAGS=-std=c++17 
