@@ -43,24 +43,7 @@ the pacakge spec for `romp`:
     
     https://spack-tutorial.readthedocs.io/en/latest/tutorial_configuration.html
     
-3. install dependent pacakges 
-* gflags
-  ``` 
-  spack install gflags %gcc@9.2.0
-  ```
-* glog
-  ```
-  spack install glog %gcc@9.2.0
-  ```
-* llvm-openmp
-  ```
-  spack install llvm-openmp@romp-mod%gcc@9.2.0
-  ``` 
-* dyninst
-  ```
-  spack install dyninst@10.1.2%gcc@9.2.0
-  ```
-4. install ROMP
+3. install ROMP
   ```
   spack install romp@develop%gcc@9.2.0
   ```
