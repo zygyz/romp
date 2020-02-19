@@ -45,7 +45,7 @@ the pacakge spec for `romp`:
     
 3. install ROMP
   ```
-  spack install romp@develop%gcc@9.2.0
+  spack install romp@develop^dyninst%10.1.2~openmp%gcc@9.2.0
   ```
 ##### Setup environment variables 
  Setup environment variables so that we can run ROMP:
