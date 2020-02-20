@@ -50,10 +50,12 @@ the pacakge spec for `romp`:
 ##### Setup environment variables 
  Setup environment variables so that we can run ROMP:
  ```
- export LD_LIBRARY_PATH=`spack location --install-dir llvm-openmp`/lib:`spack location --install-dir dyninst`/lib
- export DYNINSTAPI_RT_LIB=`spack location --install-dir dyninst`/lib/libdyninstAPI_RT.so
- export ROMP_PATH=`spack location --install-dir romp`/lib/libomptrace.so
- export PATH=`spack location --install-dir romp`/bin:$PATH
+ export DYNINST_PREFIX=`spack location --install-dir dyninst`
+ export ROMP_PREFIX=`spack location --install-dir romp`
+ export LD_LIBRARY_PATH=`spack location --install-dir llvm-openmp`/lib:$DYNINST_PREFIX/lib
+ export DYNINSTAPI_RT_LIB=$DYNINST_PREFIX/lib/libdyninstAPI_RT.so
+ export ROMP_PATH=$ROMP_PREFIX/lib/libomptrace.so
+ export PATH=$ROMP_PREFIX/bin:$PATH
  ```
 #### Install ROMP using CMake
 People may want a faster development and iteration experience when debugging and developing ROMP. Installation using 
