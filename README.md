@@ -52,7 +52,9 @@ the pacakge spec for `romp`:
  ```
  export DYNINST_PREFIX=`spack location --install-dir dyninst`
  export ROMP_PREFIX=`spack location --install-dir romp`
- export LD_LIBRARY_PATH=`spack location --install-dir llvm-openmp`/lib:$DYNINST_PREFIX/lib
+ export LLVM_PREFIX=`spack location --install-dir llvm-openmp`
+ export LIBRARY_PATH=$LLVM_PREFIX/lib
+ export LD_LIBRARY_PATH=$LLVM_PREFIX/lib:$DYNINST_PREFIX/lib
  export DYNINSTAPI_RT_LIB=$DYNINST_PREFIX/lib/libdyninstAPI_RT.so
  export ROMP_PATH=$ROMP_PREFIX/lib/libomptrace.so
  export PATH=$ROMP_PREFIX/bin:$PATH
@@ -128,7 +130,7 @@ Setup environment variables so that we can run ROMP.
 * suppose an OpenMP program is `test.cpp`
 1. compile the program so that it links against our llvm-openmp library
 ```
-g++ -g -fopenmp -lomp test.cpp -o test
+g++ -g -lomp test.cpp -o test
 ```
 * one can `ldd test` to check if `libomp` is our spack installed one, which contains changes to support OMPT callbacks
 * if the linkage is incorrect, e.g., it uses system library, check if the library name mismatches:
