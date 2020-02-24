@@ -132,6 +132,10 @@ Setup environment variables so that we can run ROMP.
 ```
 g++ -g -fopenmp -lomp test.cpp -o test
 ```
+or 
+```
+clang++ -g -fopenmp -lomp test.cpp -o test
+```
 * one can `ldd test` to check if `libomp` is our spack installed one, which contains changes to support OMPT callbacks
 * if the linkage is incorrect, e.g., it uses system library, check if the library name mismatches:
 ```
