@@ -148,7 +148,7 @@ cd `spack location --install-dir llvm-openmp`/lib
 ```
 InstrumentMain --program=./test
 ```
-* this would generate an instrumented bianry: `test.inst`
+* this would generate an instrumented binary: `test.inst`
 3. check data races for a program
 * (optional) turn on line info report.
 ```
