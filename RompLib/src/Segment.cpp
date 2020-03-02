@@ -297,7 +297,7 @@ bool WorkShareSegment::operator!=(const Segment& segment) const {
 }
 
 bool WorkShareSegment::isPlaceHolder() const {
-  return ((_value & WS_PLACE_HOLDER_MASK) >> WS_PLACE_HOLDER_POS) == 1;
+  return ((_value & ~WS_PLACE_HOLDER_MASK) >> WS_PLACE_HOLDER_POS) == 1;
 }
 
 bool WorkShareSegment::isSingleExecutor() const {

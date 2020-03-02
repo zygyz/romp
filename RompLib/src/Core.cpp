@@ -405,7 +405,12 @@ bool analyzeSameTask(Label* histLabel, Label* curLabel, int diffIndex) {
        * T(histLabel, diffIndex + 1) is workshare task. As descendent task, 
        * T(histLabel) is logically concurrent with T(curLabel) even with 
        * ordered section depending on the scheduling of the workshare work.
+       * Be careful when histLabel[diffIndex+1] is place holder segment, 
+       * in this case, happens-before relation hold
        */ 
+      if (static_cast<WorkShareSegment*>(histNextSeg)->isPlaceHolder()) {
+        return true;
+      }
       return false; 
     }
   } else {
