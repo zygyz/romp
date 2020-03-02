@@ -1,5 +1,4 @@
-Refactoring and improving ROMP is in progress. Please refer to romp-v2 experimental branch for the latest status. 
-https://github.com/zygyz/romp-v2
+Refactoring and improving ROMP is in progress.
 
 ### ROMP 
 A dynamic data race detector for OpenMP program 
@@ -34,7 +33,7 @@ the pacakge spec for `romp`:
  ``` spack install gcc@9.2.0```
 * (optional) create a symlink to the spack installed gcc location: 
  ```
- ln -s `spack location install-dir gcc@9.2.0` /home/to/your/gcc/root
+ ln -s `spack location --install-dir gcc@9.2.0` /home/to/your/gcc/root
  ```
 * update spack compiler configuration file 
   * `spack config edit compilers`
@@ -44,34 +43,21 @@ the pacakge spec for `romp`:
     
     https://spack-tutorial.readthedocs.io/en/latest/tutorial_configuration.html
     
-3. install dependent pacakges 
-* gflags
-  ``` 
-  spack install gflags %gcc@9.2.0
+3. install ROMP
   ```
-* glog
-  ```
-  spack install glog %gcc@9.2.0
-  ```
-* llvm-openmp
-  ```
-  spack install llvm-openmp@romp-mod%gcc@9.2.0
-  ``` 
-* dyninst
-  ```
-  spack install dyninst@10.1.2%gcc@9.2.0
-  ```
-4. install ROMP
-  ```
-  spack install romp@develop%gcc@9.2.0
+  spack install romp@develop^dyninst%10.1.2~openmp%gcc@9.2.0
   ```
 ##### Setup environment variables 
  Setup environment variables so that we can run ROMP:
  ```
- export LD_LIBRARY_PATH=`spack location --install-dir llvm-openmp`/lib:`spack location --install-dir dyninst`/lib
- export DYNINSTAPI_RT_LIB=`spack location --install-dir dyninst`/lib/libdyninstAPI_RT.so
- export ROMP_PATH=`spack location --install-dir romp`/lib/libomptrace.so
- export PATH=`spack location --install-dir romp`/bin:$PATH
+ export DYNINST_PREFIX=`spack location --install-dir dyninst`
+ export ROMP_PREFIX=`spack location --install-dir romp`
+ export LLVM_PREFIX=`spack location --install-dir llvm-openmp`
+ export LIBRARY_PATH=$LLVM_PREFIX/lib
+ export LD_LIBRARY_PATH=$LLVM_PREFIX/lib:$DYNINST_PREFIX/lib
+ export DYNINSTAPI_RT_LIB=$DYNINST_PREFIX/lib/libdyninstAPI_RT.so
+ export ROMP_PATH=$ROMP_PREFIX/lib/libomptrace.so
+ export PATH=$ROMP_PREFIX/bin:$PATH
  ```
 #### Install ROMP using CMake
 People may want a faster development and iteration experience when debugging and developing ROMP. Installation using 
@@ -120,9 +106,6 @@ spack requires changes to be committed to remote repos. ROMP's cmake files make 
    mkdir build
    mkdir install
    cd build
-   cmake -DCMAKE_PREFIX_PATH="$GFLAGS_PREFIX;$GLOG_PREFIX"
-         -DLLVM_PATH=$LLVM_PREFIX -DCMAKE_CXX_FLAGS=-std=c++17
-         -DCMAKE_INSTALL_PREFIX=`pwd`/../install ..
          
    cmake -DCMAKE_PREFIX_PATH="$GFLAGS_PREFIX;$GLOG_PREFIX;$DYNINST_PREFIX;$BOOST_PREFIX"
          -DLLVM_PATH=$LLVM_PREFIX -DCMAKE_CXX_FLAGS=-std=c++17 
@@ -161,7 +144,7 @@ cd `spack location --install-dir llvm-openmp`/lib
 ```
 InstrumentMain --program=./test
 ```
-* this would generate an instrumented bianry: `test.inst`
+* this would generate an instrumented binary: `test.inst`
 3. check data races for a program
 * (optional) turn on line info report.
 ```
