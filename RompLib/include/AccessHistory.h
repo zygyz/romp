@@ -1,9 +1,9 @@
 #pragma once
 #include <cstdint>
 #include <memory>
-#include <mutex>
 #include <vector>
 
+#include "McsLock.h"
 #include "Record.h"
 
 namespace romp {
@@ -17,7 +17,7 @@ class AccessHistory {
 
 public: 
   AccessHistory() : _state(0) {}
-  std::mutex& getMutex();
+  McsLock& getLock();
   std::vector<Record>* getRecords();
   void setFlag(AccessHistoryFlag flag);
   void clearFlags();
@@ -28,7 +28,7 @@ public:
 private:
   void _initRecords();
 private:
-  std::mutex _mutex; // use simple mutex, avoid premature optimization
+  McsLock _lock; 
   uint64_t _state;  
   std::unique_ptr<std::vector<Record>> _records; 
 

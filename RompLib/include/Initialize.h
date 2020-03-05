@@ -1,7 +1,6 @@
 #pragma once
 #include <atomic>
 #include <glog/logging.h>
-#include <mutex>
 #include <ompt.h>
 #include <stdlib.h>
 #include <string>
@@ -9,6 +8,7 @@
 
 #include "Callbacks.h"
 #include "CoreUtil.h"
+#include "McsLock.h"
 #include "QueryFuncs.h"
 
 /* 
@@ -23,7 +23,7 @@ bool gReportLineInfo = false;
 bool gReportAtRuntime = false;
 Dyninst::SymtabAPI::Symtab* gSymtabHandle = nullptr;
 
-std::mutex gDataRaceLock;
+McsLock gDataRaceLock;
 std::atomic_int gNumDataRace = 0;
 std::vector<DataRaceInfo> gDataRaceRecords;
 
