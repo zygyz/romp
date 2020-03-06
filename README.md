@@ -8,7 +8,7 @@ Operating Systems: Linux
 
 Architecture: x86_64
 
-Compiler: gcc 9.2.0 (recommended); any compiler supporting c++17
+Compiler: gcc 9.2.0 (recommended); c++17 support is required;
 
 ### Installation Guide
 
