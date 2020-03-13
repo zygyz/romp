@@ -34,6 +34,10 @@ void TaskDepGraph::addDeps(const ompt_dependence_t& deps,  void* taskPtr) {
     return;
   }
   if (depType == ompt_dependence_type_mutexinoutset) {
+    /* Note this dependence type is not currently included in the omp library
+     * so this flag is literally not set. We still implement this for being
+     * future proof.
+     */
     auto taskData = static_cast<TaskData*>(taskPtr);
     taskData->isMutexTask = true;
   }

@@ -44,6 +44,10 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord,
     // are both explicit tasks. If no task dependence, return true
     auto histTaskData = static_cast<TaskData*>(histRecord.getTaskPtr()); 
     if (curTaskData->isExplicitTask && histTaskData->isExplicitTask) {
+      // first check if the two tasks are mutex tasks
+      if (curTaskData->isMutexTask && histTaskData->isMutexTask) { 
+        return false; // mutex task does not form race condition
+      }
       // have to get the associated parallel region
       auto teamSize = 0;
       void* parallelDataPtr = nullptr;
