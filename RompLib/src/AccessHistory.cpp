@@ -9,8 +9,8 @@ void AccessHistory::_initRecords() {
   _records = std::make_unique<std::vector<Record>>();
 }
 
-std::mutex& AccessHistory::getMutex() {
-  return _mutex;
+McsLock& AccessHistory::getLock() {
+  return _lock;
 }
 
 /*

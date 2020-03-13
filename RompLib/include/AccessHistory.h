@@ -16,7 +16,7 @@ enum AccessHistoryFlag {
 class AccessHistory {
 
 public: 
-  AccessHistory() : _state(0) {}
+  AccessHistory() : _state(0) { mcsInit(&_lock); }
   McsLock& getLock();
   std::vector<Record>* getRecords();
   void setFlag(AccessHistoryFlag flag);

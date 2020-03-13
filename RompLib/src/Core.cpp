@@ -3,6 +3,9 @@
 #include <glog/logging.h>
 #include <glog/raw_logging.h>
 
+#include "ParRegionData.h"
+#include "QueryFuncs.h"
+
 namespace romp {
 /*
  * Note: comments for functions contain some notation about task and its 
@@ -29,13 +32,35 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord,
   if (analyzeMutualExclusion(histRecord, curRecord)) {
     return false;
   }  
-  auto curTaskPtr = curRecord.getTaskPtr();   
-  if (static_cast<TaskData*>(curTaskPtr)->inReduction) { 
+  auto curTaskData = static_cast<TaskData*>(curRecord.getTaskPtr());
+  if (curTaskData->inReduction) { 
     // current memory access is in reduction phase, we trust runtime library
     // that in this phase no data race is genereted by reduction method.
     return false;
   }
   isHistBeforeCur = happensBefore(histLabel, curLabel, diffIndex);
+  if (!isHistBeforeCur) {
+    // further check explicit task dependence if current task and history task 
+    // are both explicit tasks. If no task dependence, return true
+    auto histTaskData = static_cast<TaskData*>(histRecord.getTaskPtr()); 
+    if (curTaskData->isExplicitTask && histTaskData->isExplicitTask) {
+      // have to get the associated parallel region
+      auto teamSize = 0;
+      void* parallelDataPtr = nullptr;
+      if (!queryParallelInfo(0, teamSize, parallelDataPtr)) {
+        RAW_LOG(WARNING, "cannot get parallel region data");
+      } else {
+        auto parallelData = static_cast<ParRegionData*>(parallelDataPtr); 
+        // have to lock the task dep graph before graph traversal
+	McsNode node;
+	LockGuard guard(&(parallelData->lock), &node);
+        if (parallelData->taskDepGraph.hasPath((void*)histTaskData, 
+				 (void*)curTaskData)) {
+          isHistBeforeCur = true;
+	}
+      }
+    }
+  }
   return !isHistBeforeCur && (histRecord.isWrite() || curRecord.isWrite());
 }
 

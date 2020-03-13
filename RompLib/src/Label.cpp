@@ -362,6 +362,9 @@ std::shared_ptr<Label> mutateTaskGroupEnd(Label* label) {
  * task segment.
  */
 std::shared_ptr<Label> mutateTaskComplete(Label* label) {
+  if (!label) {
+    return nullptr;
+  }
   auto newLabel = std::make_shared<Label>(*label);
   auto lastSeg = newLabel->popSegment();       
   auto lastSegType = lastSeg->getType(); 

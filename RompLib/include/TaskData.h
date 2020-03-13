@@ -4,7 +4,7 @@
 
 namespace romp {
 class Label;
-class SmallLockSet;
+class LockSet;
 
 /*
  * TaskData struct records information related to a task.
@@ -18,11 +18,17 @@ typedef struct TaskData {
   bool inReduction;
   std::vector<void*> childExpTaskData;
   void* exitFrame; 
+  int expLocalId; // if the task is explicit, store its local id in par region
+  bool isMutexTask;
+  bool isExplicitTask; 
   TaskData() {
     label = nullptr;
     lockSet = nullptr;
     inReduction = false;
     exitFrame = nullptr;
+    expLocalId = 0;
+    isMutexTask = false;
+    isExplicitTask = false;
   }
 } TaskData;
 

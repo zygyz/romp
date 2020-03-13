@@ -434,8 +434,11 @@ void on_ompt_callback_parallel_end(
        ompt_data_t *encounteringTaskData,
        int flags,
        const void *codePtrRa) {
-  RAW_DLOG(INFO, "parallel end et:%lx p:%lx %d", encounteringTaskData, 
-           parallelData, flags);
+  RAW_DLOG(INFO, "parallel end et:%lx p:%lx par data: %lx flag:%lx", 
+		  encounteringTaskData, 
+		  parallelData,
+		  parallelData->ptr,
+                  flags);
   auto parRegionData = parallelData->ptr;
   delete static_cast<ParRegionData*>(parRegionData);
 }  
@@ -467,9 +470,22 @@ void on_ompt_callback_task_create(
     auto parentLabel = (parentTaskData->label).get();
     auto newTaskLabel = genExpTaskLabel(parentLabel);
     taskData->label = std::move(newTaskLabel);
+    taskData->isExplicitTask = true; // mark current task as explicit task
     auto mutatedParentLabel = mutateParentTaskCreate(parentLabel); 
     parentTaskData->label = std::move(mutatedParentLabel);
     parentTaskData->childExpTaskData.push_back(static_cast<void*>(taskData));
+    // get parallel region info, atomic fetch and add the explicit task id
+    auto teamSize = 0;
+    void* parallelDataPtr = nullptr;   
+    if (!queryParallelInfo(0, teamSize, parallelDataPtr)) {
+      RAW_LOG(WARNING, "cannot get parallel region data");
+    } else {
+      auto parallelData = static_cast<ParRegionData*>(parallelDataPtr);
+      auto taskId = parallelData->expTaskCount.fetch_add(1, 
+		      std::memory_order_relaxed);
+      RAW_DLOG(INFO, "explicit task create, local id: %d", taskId);
+      taskData->expLocalId = taskId;        
+    }	    
   } else if (flags == ompt_task_target) {
     // TODO: prepare the task data pointer for target 
     RAW_LOG(FATAL, "ompt_task_target not implemented yet");
@@ -532,8 +548,34 @@ void on_ompt_callback_dependences(
         ompt_data_t *taskData,
         const ompt_dependence_t *deps,
         int ndeps) {
-
+  RAW_DLOG(INFO, "callback dependencies -- num deps: %lu", ndeps);
+  auto teamSize = 0;
+  void* parallelDataPtr = nullptr;
+  if (!queryParallelInfo(0, teamSize, parallelDataPtr)) {
+    RAW_LOG(WARNING, "cannot get parallel region data");
+    return;
+  }	  
+  // get pointer parallel region data structure
+  auto parallelData = static_cast<ParRegionData*>(parallelDataPtr);
+  if (!parallelData) {
+    RAW_LOG(WARNING, "callback dependences: current parallel data ptr is null");
+    return;
+  }
+  auto taskPtr = taskData->ptr;
+  if (!taskPtr) {
+    RAW_LOG(WARNING, "callback dependences: current task data ptr is null");
+    return;
+  }
+  McsNode node;      
+  LockGuard guard(&(parallelData->lock), &node);
+  // while in mutual exculsion, maintain explicit task dependencies
+  for (int i = 0; i < ndeps; ++i) {
+    auto variable = deps[i].variable; 
+    auto depType = deps[i].dependence_type;
+    maintainTaskDeps(deps[i], taskPtr, parallelData);
+  }
 }
+
 
 void on_ompt_callback_thread_begin(
        ompt_thread_t threadType,
