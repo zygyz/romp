@@ -9,5 +9,5 @@ find_library(SYMTABAPI "libsymtabAPI.so")
 target_include_directories(omptrace PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 target_link_libraries(romp glog ${SYMTABAPI})
-install(TARGETS omptrace 
+install(TARGETS romp 
         LIBRARY DESTINATION lib)
