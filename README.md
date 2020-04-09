@@ -121,26 +121,30 @@ Spack installation of ROMP requires changes to be committed to remote repos. ROM
   ```
 ### Running ROMP 
 #### Setup environment variables so that we can run ROMP. 
-* Load the following modules into environment variables.  
+1. Load the following modules into environment variables.  
  ```
  module load gcc-9.2.0-gcc-a.b.c-somehash
  module load llvm-openmp-romp-mod-gcc-9.2.0-somehash
  module load glog-0.3.5-gcc-9.2.0-somehash
  module load dyninst-10.1.2-gcc-9.2.0-somehash
  ```
-It is possible that various verions/variants of dyninst are installed in your system. For example, hpctoolkit requires a variant of dyninst that supports parallel parsing using OpenMP, while ROMP requires a variant of dyninst that turns off this parallel parsing feature. It is important to make sure the correct version/varient of dyninst is used by ROMP. To check this, one can run `spack spec -l romp` to get the hash for dyninst package it use. For example, if it is 'jmairsn', then ```module load dyninst-10.1.2-gcc-9.2.0-jmairsn```.
+It is possible that various verions/variants of dyninst are installed in your system. For example, hpctoolkit requires a variant of dyninst that supports parallel parsing using OpenMP, while ROMP requires a variant of dyninst that turns off this parallel parsing feature. It is important to make sure the correct version/varient of dyninst is used by ROMP. To check this, one can run `spack spec -l romp` to get the hash for dyninst package it use. For example, if it is 'jmairsn', then:
+```
+module load dyninst-10.1.2-gcc-9.2.0-jmairsn
+```
 
-* Export DYNINSTAPI_RT_LIB and ROMP_PATH
-  * It is required by dyninst to set environment variable DYNINSTAPI_RT_LIB. Make sure one uses the correct version of dyninst using the method described above. 
+2. Export DYNINSTAPI_RT_LIB and ROMP_PATH
+* It is required by dyninst to set environment variable DYNINSTAPI_RT_LIB. Make sure one uses the correct version of dyninst using the method described above. 
+
 ```
 export DYNINSTAPI_RT_LIB=`spack location --install-dir dyninst/jmaisrn`/lib/libdyninstAPI_RT.so
 ```
-  * ROMP's instrumentation client needs to know where ROMP library is located. This is done by setting environment variable ROMP_PATH. Depending on the ROMP installation method:
-    * If ROMP is installed using spack:
+ROMP's instrumentation client needs to know where ROMP library is located. This is done by setting environment variable ROMP_PATH. Depending on the ROMP installation method:
+* If ROMP is installed using spack:
 ```
 export ROMP_PATH=`spack location --install-dir romp`/lib/libromp.so
 ```
-    * If ROMP is installed using cmake:
+* If ROMP is installed using cmake:
 
 ```
 export ROMP_PATH=/path/to/romp/install/lib/libromp.so
