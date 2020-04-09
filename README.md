@@ -29,24 +29,24 @@ the pacakge spec for `romp`:
 * For the installation of Spack, please refer to the guide in Spack project readme. 
 
 2. Install environment module
-* We use environment module to manage environment variable settings. Section 'Bootstrapping Environment Modules' in link http://hpctoolkit.org/software-instructions.html#Building-a-New-Compiler provides a guide to install environment module.
+* We use environment module to manage environment variable settings. Section 'Bootstrapping Environment Modules' in link http://hpctoolkit.org/software-instructions.html#Building-a-New-Compiler provides a guide to installing environment module.
 
 3. Setup spack configuration for environment modules
 * Spack treats each software it manages as a module. A module contains package and modulefile. Package contains all the compiled binaries of the software. Modulefile is for environment module to setup the environment variables of the software such as LD_LIBRARY_PATH. Do the following steps to tell spack where to put packages and modulefiles. Usually packages and modulefiles are under the same directory. Suppose we use /path/to/spack/Modules as the directory:
-  * edit config.yaml in $HOME/.spack:
+      * edit config.yaml in $HOME/.spack:
 ```
 config:
   install_tree: /path/to/spack/Modules/packages
   module_roots:
     tcl: /path/to/spack/Modules/modules
 ```
-   * edit modules.yaml in $HOME/.spack:
+      * edit modules.yaml in $HOME/.spack:
 ```
 modules:
    enable:
     - tcl 
 ```
-One can replace tcl with lmod depending on which interpreter the system uses to manage modulefiles. 
+One can replace `tcl` with `lmod` depending on which interpreter the system uses to manage modulefiles. 
 
 3. Install gcc 9.2.0
 * Before installing using spack, it is important to make sure your system has a clean environment variable setting.
@@ -128,7 +128,7 @@ Spack installation of ROMP requires changes to be committed to remote repos. ROM
  module load glog-0.3.5-gcc-9.2.0-somehash
  module load dyninst-10.1.2-gcc-9.2.0-somehash
  ```
-Note that it is possible that various verions/variants of dyninst are installed in your system. For example, hpctoolkit requires a variant of dyninst that supports parallel parsing using OpenMP, while ROMP requires a variant of dyninst that turns off this parallel parsing feature. It is important to make sure the correct version/varient of dyninst is used by ROMP. To check this, one can run `spack spec -l romp` to get the hash for dyninst package it use. For example, if it is 'jmairsn', then `module load dyninst-10.1.2-gcc-9.2.0-jmairsn`.
+It is possible that various verions/variants of dyninst are installed in your system. For example, hpctoolkit requires a variant of dyninst that supports parallel parsing using OpenMP, while ROMP requires a variant of dyninst that turns off this parallel parsing feature. It is important to make sure the correct version/varient of dyninst is used by ROMP. To check this, one can run `spack spec -l romp` to get the hash for dyninst package it use. For example, if it is 'jmairsn', then ```module load dyninst-10.1.2-gcc-9.2.0-jmairsn```.
 
 * Export DYNINSTAPI_RT_LIB and ROMP_PATH
   * It is required by dyninst to set environment variable DYNINSTAPI_RT_LIB. Make sure one uses the correct version of dyninst using the method described above. 
@@ -141,6 +141,7 @@ export DYNINSTAPI_RT_LIB=`spack location --install-dir dyninst/jmaisrn`/lib/libd
 export ROMP_PATH=`spack location --install-dir romp`/lib/libromp.so
 ```
     * If ROMP is installed using cmake:
+
 ```
 export ROMP_PATH=/path/to/romp/install/lib/libromp.so
 ```
