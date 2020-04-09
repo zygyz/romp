@@ -42,7 +42,7 @@ DataSharingType analyzeDataSharing(const void* threadDataPtr,
     return eUndefined;
   }
   const auto addressValue = reinterpret_cast<const uint64_t>(address);
-  if (addressValue >= reinterpret_cast<const uint64_t>(
+  if (addressValue >= static_cast<const uint64_t>(
                   STATIC_THREAD_PRIVATE_LOWER_BOUND)) {
     return eStaticThreadPrivate;  
   }
