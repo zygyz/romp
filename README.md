@@ -8,7 +8,7 @@ Operating Systems: Linux
 
 Architecture: x86_64
 
-Compiler: gcc 7.5.0 (recommended);
+Compiler: gcc 7.4.0 (recommended);
 
 ### Install ROMP
 
@@ -50,28 +50,28 @@ modules:
 ```
 One can replace `tcl` with `lmod` depending on which interpreter the system uses to manage modulefiles. 
 
-3. Install gcc 7.5.0
+3. Install gcc 7.4.0
 * Before installing using spack, it is important to make sure your system has a clean environment variable setting.
 This can be done by `printenv | grep PATH`. Then:
 ```
-spack install gcc@7.5.0
+spack install gcc@7.4.0
 ```
-4. Using gcc 7.5.0 for all builds
+4. Using gcc 7.4.0 for all builds
 * To ensure all packages are built using the same compiler, do the following steps:
-  * After installation of gcc, you will find a directory in /path/to/spack/Modules/modules, suppose it is called system-arch. You can also find the gcc module in this direcotry, suppose it is called gcc-7.5.0-gcc-a.b.c-somehash Do the following steps:
+  * After installation of gcc, you will find a directory in /path/to/spack/Modules/modules, suppose it is called system-arch. You can also find the gcc module in this direcotry, suppose it is called gcc-7.4.0-gcc-a.b.c-somehash Do the following steps:
 ```
 module use /path/to/spack/Modules/modules/system-arch
-module load gcc-7.5.0-gcc-a.b.c-somehash
+module load gcc-7.4.0-gcc-a.b.c-somehash
 ```
-  * Tell spack to add gcc7.5.0 into available compilers:
+  * Tell spack to add gcc7.4.0 into available compilers:
 ```
 spack compiler find
 ```
-  * Tell spack to use gcc7.5.0 to build the rest of all software by editing $HOME/.spack/packages.yaml:
+  * Tell spack to use gcc7.4.0 to build the rest of all software by editing $HOME/.spack/packages.yaml:
 ```
 packages:
   all:
-    compiler: [gcc@7.5.0]
+    compiler: [gcc@7.4.0]
 ```
 
 4. Install ROMP
@@ -102,18 +102,18 @@ Spack installation of ROMP requires changes to be committed to remote repos. ROM
 * We need environment variables setting for three dependent packages (gflags, intel-tbb, boost). The exact name for each package can be found using `module avail` command.
 
   ```
-  module load gflags-2.1.2-gcc-7.5.0-somehash
-  module load intel-tbb-2020.2-gcc-7.5.0-somehash
-  module load boost-1.72.0-gcc-7.5.0-somehash
-  module load llvm-openmp-romp-mod-gcc-7.5.0-somehash
-  module load dyninst-10.1.2-gcc-7.5.0-somehash
+  module load gflags-2.1.2-gcc-7.4.0-somehash
+  module load intel-tbb-2020.2-gcc-7.4.0-somehash
+  module load boost-1.72.0-gcc-7.4.0-somehash
+  module load llvm-openmp-romp-mod-gcc-7.4.0-somehash
+  module load dyninst-10.1.2-gcc-7.4.0-somehash
   ```
 Please make sure the dyninst variant is the one required by ROMP (dyninst@10.1.2~openmp).
 
 4. Build makefiles using cmake
 * Suppose ROMP is located in `/home/to/romp`
   ```
-   module load gcc-7.5.0-gcc-a.b.c-somehash
+   module load gcc-7.4.0-gcc-a.b.c-somehash
    cd /home/to/romp
    mkdir build
    mkdir install
@@ -129,10 +129,10 @@ Please make sure the dyninst variant is the one required by ROMP (dyninst@10.1.2
 #### Setup environment variables so that we can run ROMP. 
 1. Load the following modules into environment variables.  
  ```
- module load gcc-7.5.0-gcc-a.b.c-somehash
- module load llvm-openmp-romp-mod-gcc-7.5.0-somehash
- module load glog-0.3.5-gcc-7.5.0-somehash
- module load dyninst-10.1.2-gcc-7.5.0-somehash
+ module load gcc-7.4.0-gcc-a.b.c-somehash
+ module load llvm-openmp-romp-mod-gcc-7.4.0-somehash
+ module load glog-0.3.5-gcc-7.4.0-somehash
+ module load dyninst-10.1.2-gcc-7.4.0-somehash
  ```
 It is possible that various verions/variants of dyninst are installed in your system. For example, hpctoolkit requires a variant of dyninst that supports parallel parsing using OpenMP, while ROMP requires a variant of dyninst that turns off this parallel parsing feature. It is important to make sure the correct version/varient of dyninst is used by ROMP. To check this, one can run 
 ```
@@ -140,7 +140,7 @@ spack spec -l romp
 ``` 
 to get the hash for dyninst package it use. For example, if it is 'jmairsn', then:
 ```
-module load dyninst-10.1.2-gcc-7.5.0-jmairsn
+module load dyninst-10.1.2-gcc-7.4.0-jmairsn
 ```
 
 2. Export DYNINSTAPI_RT_LIB and ROMP_PATH
