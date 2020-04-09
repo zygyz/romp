@@ -128,7 +128,11 @@ Spack installation of ROMP requires changes to be committed to remote repos. ROM
  module load glog-0.3.5-gcc-9.2.0-somehash
  module load dyninst-10.1.2-gcc-9.2.0-somehash
  ```
-It is possible that various verions/variants of dyninst are installed in your system. For example, hpctoolkit requires a variant of dyninst that supports parallel parsing using OpenMP, while ROMP requires a variant of dyninst that turns off this parallel parsing feature. It is important to make sure the correct version/varient of dyninst is used by ROMP. To check this, one can run `spack spec -l romp` to get the hash for dyninst package it use. For example, if it is 'jmairsn', then:
+It is possible that various verions/variants of dyninst are installed in your system. For example, hpctoolkit requires a variant of dyninst that supports parallel parsing using OpenMP, while ROMP requires a variant of dyninst that turns off this parallel parsing feature. It is important to make sure the correct version/varient of dyninst is used by ROMP. To check this, one can run 
+```
+spack spec -l romp
+``` 
+to get the hash for dyninst package it use. For example, if it is 'jmairsn', then:
 ```
 module load dyninst-10.1.2-gcc-9.2.0-jmairsn
 ```
