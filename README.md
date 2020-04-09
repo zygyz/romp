@@ -40,7 +40,9 @@ config:
   module_roots:
     tcl: /path/to/spack/Modules/modules
 ```
-      * edit modules.yaml in $HOME/.spack:
+
+* edit modules.yaml in $HOME/.spack:
+
 ```
 modules:
    enable:
