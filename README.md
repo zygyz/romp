@@ -33,7 +33,9 @@ the pacakge spec for `romp`:
 
 3. Setup spack configuration for environment modules
 * Spack treats each software it manages as a module. A module contains package and modulefile. Package contains all the compiled binaries of the software. Modulefile is for environment module to setup the environment variables of the software such as LD_LIBRARY_PATH. Do the following steps to tell spack where to put packages and modulefiles. Usually packages and modulefiles are under the same directory. Suppose we use /path/to/spack/Modules as the directory:
-      * edit config.yaml in $HOME/.spack:
+
+* edit config.yaml in $HOME/.spack:
+
 ```
 config:
   install_tree: /path/to/spack/Modules/packages
