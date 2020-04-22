@@ -17,10 +17,12 @@ public:
          std::shared_ptr<Label> label, 
          std::shared_ptr<LockSet> lockSet,   
          void* taskPtr, 
-         void* instnAddr): 
+         void* instnAddr,
+	 bool hasHwLock): 
       _label(label), _lockSet(lockSet), _taskPtr(taskPtr), 
       _instnAddr(instnAddr) { 
         setAccessType(isWrite); 
+	setHasHwLock(hasHwLock);
       }
   void setAccessType(bool isWrite);
   void setHasHwLock(bool hwLock);
