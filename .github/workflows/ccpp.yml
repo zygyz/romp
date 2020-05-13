@@ -36,6 +36,6 @@ jobs:
         cmake -DCMAKE_CXX_FLAGS=-std=c++17 \
               -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc \
               -DCMAKE_INSTALL_PREFIX=`pwd`/../install ..
-      - name: Build and install
-        run: make install
-        working-directory: ./build
+    - name: Build and install
+      run: make install
+      working-directory: ./build
