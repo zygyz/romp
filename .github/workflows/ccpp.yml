@@ -5,6 +5,7 @@ on:
     paths-ignore:
     - 'README.md'
     - 'LICENSE.md'
+    - 'tests/**'
     branches: [ master, master-ci]
   pull_request:
     branches: [ master ]
