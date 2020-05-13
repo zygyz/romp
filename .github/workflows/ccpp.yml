@@ -40,3 +40,34 @@ jobs:
     - name: Build and install
       run: make install
       working-directory: ./build
+  simple-test:
+    needs: build   
+    runs-on: self-hosted
+    env: 
+      DYNINSTAPI_RT_LIB: `spack location --install-dir dyninst/pxqjj4q`/lib/libdyninstAPI_RT.so
+      ROMP_PATH: ./install/lib/libromp.so 
+    defaults:
+      run:
+        shell: bash
+    steps:
+    - name: Load Modules 
+      run: |
+        module load gcc-7.4.0-gcc-7.5.0-domzzsx
+        module load llvm-openmp-romp-mod-gcc-7.4.0-6kbf57l 
+        module load glog-0.3.5-gcc-7.4.0-y7ajvq2  
+        module load dyninst-10.1.2-gcc-7.4.0-pxqjj4q
+    - name: Compile simple test program
+      run: g++ -g -fopenmp -lomp simple-omp.cpp -o simple-omp 
+      working-directory: ./tests
+    - name: Instrument test program
+      run: ../install/bin/InstrumentMain --program=./simple-omp
+      working-directory: ./tests 
+    - name: Run test program
+      run: ./simple-omp.inst >> tmp.log
+      working-directory: ./tests
+      id: run-simple-test
+    - name: Check tmp.log
+      run: |
+         races=$(grep -ce 'data race round:' tmp.log)
+         if (( races != 1)); then exit 1; else exit 0; fi
+      working-directory: ./tests
