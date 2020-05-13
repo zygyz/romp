@@ -13,7 +13,7 @@ jobs:
   build:
 
     runs-on: self-hosted
-    defualts:
+    defaults:
       run:
         shell: bash
 
