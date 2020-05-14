@@ -65,7 +65,7 @@ jobs:
       run: ../install/bin/InstrumentMain --program=./simple-omp
       working-directory: ./tests 
       env:
-        DYNINSTAPI_RT_LIB=$DYNINST_LIB_PATH 
+        DYNINSTAPI_RT_LIB: $DYNINST_LIB_PATH 
     - name: Run test program
       run: ./simple-omp.inst >> tmp.log
       working-directory: ./tests
