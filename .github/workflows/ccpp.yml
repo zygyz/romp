@@ -57,6 +57,7 @@ jobs:
       run: |
          DYNINST_LIB_PATH=`spack location --install-dir dyninst/pxqjj4q`/lib/libdyninstAPI_RT.so
          ROMP_LIB_PATH=`pwd`/install/lib/libromp.so
+         echo $ROMP_LIB_PATH $DYNINST_LIB_PATH
     - name: Compile simple test program
       run: g++ -g -fopenmp -lomp simple-omp.cpp -o simple-omp 
       working-directory: ./tests
