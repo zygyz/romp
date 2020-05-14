@@ -78,5 +78,5 @@ jobs:
     - name: Check tmp.log
       run: |
          races=$(grep -ce 'data race round:' tmp.log)
-         if (( races != 1)); then echo "::error file=a,line=,col=,::False negative on simple-omp"; else exit 0; fi
+         if (( races != 1)); then exit 1; else exit 0; fi
       working-directory: ./tests
