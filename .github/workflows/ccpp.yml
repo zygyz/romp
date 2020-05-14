@@ -1,0 +1,82 @@
+name: C/C++ CI
+
+on:
+  push:
+    paths-ignore:
+    - 'README.md'
+    - 'LICENSE.md'
+    - 'tests/**'
+    branches: [ master, master-ci, develop]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: self-hosted
+    defaults:
+      run:
+        shell: bash
+    outputs:
+      dyninst_lib_path: ${{ steps.get-paths.outputs.dyninst }}
+      romp_lib_path:    ${{ steps.get-paths.outputs.romp}}
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v2
+    - name: Load Modules
+      run: |
+        module load gflags-2.1.2-gcc-7.4.0-4vasfdn 
+        module load intel-tbb-2020.2-gcc-7.4.0-tpthcp6
+        module load boost-1.72.0-gcc-7.4.0-mfchp2d
+        module load llvm-openmp-romp-mod-gcc-7.4.0-6kbf57l 
+        module load dyninst-10.1.2-gcc-7.4.0-pxqjj4q
+    - name: Build make files
+      run: |
+        module load gcc-7.4.0-gcc-7.5.0-domzzsx
+        mkdir build
+        mkdir install
+        cd build 
+        cmake -DCMAKE_CXX_FLAGS=-std=c++17 \
+              -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc \
+              -DCMAKE_INSTALL_PREFIX=`pwd`/../install ..
+    - name: Build and install
+      run: make install
+      working-directory: ./build
+    - name: Get library paths
+      id: get-paths 
+      run: |
+        DYNINST_LIB_PATH=`spack location --install-dir dyninst/pxqjj4q`/lib/libdyninstAPI_RT.so
+        ROMP_LIB_PATH=`pwd`/install/lib/libromp.so
+        echo "::set-output name=dyninst::$DYNINST_LIB_PATH"
+        echo "::set-output name=romp::$ROMP_LIB_PATH"
+  simple-test:
+    needs: build   
+    runs-on: self-hosted
+    defaults:
+      run:
+        shell: bash
+    steps:
+    - name: Load Modules 
+      run: |
+        module load gcc-7.4.0-gcc-7.5.0-domzzsx
+        module load llvm-openmp-romp-mod-gcc-7.4.0-6kbf57l 
+        module load glog-0.3.5-gcc-7.4.0-y7ajvq2  
+        module load dyninst-10.1.2-gcc-7.4.0-pxqjj4q
+    - name: Compile simple test program
+      run: g++ -g -fopenmp -lomp simple-omp.cpp -o simple-omp 
+      working-directory: ./tests
+    - name: Instrument test program
+      run: ../install/bin/InstrumentMain --program=./simple-omp
+      working-directory: ./tests 
+      env:
+        DYNINSTAPI_RT_LIB: ${{needs.build.outputs.dyninst_lib_path}}
+        ROMP_PATH: ${{needs.build.outputs.romp_lib_path}}
+    - name: Run test program
+      run: ./simple-omp.inst &> tmp.log
+      working-directory: ./tests
+      id: run-simple-test
+    - name: Check tmp.log
+      run: |
+        races=$(grep -ce 'data race found:' tmp.log)
+        if (( races != 1)); then echo "::error ::False negative on simple-omp"; else exit 0; fi
+      working-directory: ./tests
