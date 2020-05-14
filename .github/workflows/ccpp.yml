@@ -72,11 +72,11 @@ jobs:
         DYNINSTAPI_RT_LIB: ${{needs.build.outputs.dyninst_lib_path}}
         ROMP_PATH: ${{needs.build.outputs.romp_lib_path}}
     - name: Run test program
-      run: ./simple-omp.inst >> tmp.log
+      run: ./simple-omp.inst &> tmp.log
       working-directory: ./tests
       id: run-simple-test
     - name: Check tmp.log
       run: |
          races=$(grep -ce 'data race round:' tmp.log)
-         if (( races != 1)); then exit 1; else exit 0; fi
+         if (( races != 1)); then echo "::error ::False negative on simple-omp"; else exit 0; fi
       working-directory: ./tests
