@@ -43,8 +43,6 @@ jobs:
   simple-test:
     needs: build   
     runs-on: self-hosted
-    env: 
-      ROMP_PATH: ./install/lib/libromp.so 
     defaults:
       run:
         shell: bash
@@ -55,9 +53,10 @@ jobs:
         module load llvm-openmp-romp-mod-gcc-7.4.0-6kbf57l 
         module load glog-0.3.5-gcc-7.4.0-y7ajvq2  
         module load dyninst-10.1.2-gcc-7.4.0-pxqjj4q
-    - name: Setup dyninst rt lib path
+    - name: Setup env vars
       run: |
          DYNINST_LIB_PATH=`spack location --install-dir dyninst/pxqjj4q`/lib/libdyninstAPI_RT.so
+         ROMP_LIB_PATH=`pwd`/install/lib/libromp.so
     - name: Compile simple test program
       run: g++ -g -fopenmp -lomp simple-omp.cpp -o simple-omp 
       working-directory: ./tests
@@ -66,6 +65,7 @@ jobs:
       working-directory: ./tests 
       env:
         DYNINSTAPI_RT_LIB: $DYNINST_LIB_PATH 
+        ROMP_PATH: $ROMP_LIB_PATH
     - name: Run test program
       run: ./simple-omp.inst >> tmp.log
       working-directory: ./tests
