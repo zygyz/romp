@@ -6,7 +6,7 @@ on:
     - 'README.md'
     - 'LICENSE.md'
     - 'tests/**'
-    branches: [ master, master-ci]
+    branches: [ master, master-ci, develop]
   pull_request:
     branches: [ master ]
 
