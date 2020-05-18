@@ -44,12 +44,16 @@
 # IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 # THE POSSIBILITY OF SUCH DAMAGE.
 
-CSV_HEADER="tool,filename,haverace,threads,dataset,races,elapsed-time(seconds)"
-TESTS=($(grep -l main micro-benchmarks/*.c micro-benchmarks/*.cpp))
+CSV_HEADER="tool,id,filename,haverace,threads,dataset,races,elapsed-time(seconds),used-mem(KBs),compile-return,runtime-return"
+TESTS=($(grep -l main micro-benchmarks/*.cpp micro-benchmarks/*.c))
 OUTPUT_DIR="results"
-LOG_DIR="results/log"
+LOG_DIR="$OUTPUT_DIR/log"
+EXEC_DIR="$OUTPUT_DIR/exec"
 LOGFILE="$LOG_DIR/dataracecheck.log"
 
+
+MEMCHECK=${MEMCHECK:-"/usr/bin/time"}
+TIMEOUTCMD=${TIMEOUTCMD:-"timeout"}
 VALGRIND=${VALGRIND:-"valgrind"}
 VALGRIND_COMPILE_C_FLAGS="-g -std=c99 -fopenmp"
 VALGRIND_COMPILE_CPP_FLAGS="-g -fopenmp"
@@ -64,8 +68,8 @@ INSPECTOR=${INSPECTOR:-"inspxe-cl"}
 ICC_COMPILE_FLAGS="-O0 -fopenmp -std=c99 -qopenmp-offload=host"
 ICPC_COMPILE_FLAGS="-O0 -fopenmp -qopenmp-offload=host"
 
-ROMP_CPP_COMPILE_FLAGS="-O3 -std=c++11 -fopenmp -lomp"
-ROMP_C_COMPILE_FLAGS="-O3 -fopenmp -lomp"
+ROMP_CPP_COMPILE_FLAGS="-g -std=c++11 -fopenmp -lomp"
+ROMP_C_COMPILE_FLAGS="-g -fopenmp -lomp"
 
 POLYFLAG="micro-benchmarks/utilities/polybench.c -I micro-benchmarks -I micro-benchmarks/utilities -DPOLYBENCH_NO_FLUSH_CACHE -DPOLYBENCH_TIME -D_POSIX_C_SOURCE=200112L"
 
@@ -80,22 +84,36 @@ usage () {
   echo
   echo "OPTIONS:"
   echo "  -x tool       : Add the specified tool to test set."
-  echo "                  Value can be one of: helgrind, tsan, archer, inspector, inspector-max-resources."
+  echo "                  Value can be one of: gnu, clang, intel, helgrind, tsan-clang, tsan-gcc, archer, inspector, inspector-max-resources, romp."
   echo "  -n iterations : Run each setting the specified number of iterations."
   echo "  -t threads    : Add the specified number of threads as a testcase."
   echo "  -d size       : Add a specific dataset size to the varlen test suite."
+  echo "  -s minutes    : Add a specific timeout minutes."
   echo
 }
 
 valid_tool_name () {
   case "$1" in
+    gnu) return 0 ;;
+    clang) return 0 ;;
+    intel) return 0 ;;
     helgrind) return 0 ;;
     archer) return 0 ;;
-    tsan) return 0 ;;
+    tsan-clang) return 0 ;;
+    tsan-gcc) return 0 ;;
     inspector) return 0 ;;
     inspector-max-resources) return 0 ;;
     romp) return 0;;   
     *) return 1 ;;
+  esac
+}
+
+check_return_code () {
+  case "$1" in
+    11) echo "Seg Fault"; testreturn=11 ;;
+    124) echo "Executime timeout";testreturn=124  ;;
+    139) echo "Seg Fault"; testreturn=11 ;;
+    *) testreturn=0  ;;
   esac
 }
 
@@ -105,13 +123,15 @@ fi
 
 mkdir -p "$OUTPUT_DIR"
 mkdir -p "$LOG_DIR"
+mkdir -p "$EXEC_DIR"
 
 TOOLS=()
 DATASET_SIZES=()
 THREADLIST=()
 ITERATIONS=0
+TIMEOUTMIN="10"
 # Parse options
-while getopts "n:t:x:d:" opt; do
+while getopts "n:t:x:d:s:" opt; do
   case $opt in
     x)  if valid_tool_name "${OPTARG}"; then TOOLS+=(${OPTARG});
         else echo "Invalid tool name ${OPTARG}" && usage && exit 1
@@ -125,13 +145,16 @@ while getopts "n:t:x:d:" opt; do
     d)  if [[ ${OPTARG} -gt 1 ]]; then DATASET_SIZES+=(${OPTARG})
         else echo "Dataset size must be greater than 1" && usage && exit 1;
         fi ;;
+    s)  if [[ ${OPTARG} -gt 0 ]]; then TIMEOUTMIN=(${OPTARG})
+        else echo "timeout must be greater than 0" && usage && exit 1;
+        fi ;;
   esac
 done
 
 # Set default values
 if [[ ! ${#TOOLS[@]} -gt 0 ]]; then
-  echo "Default tool set will be used: helgrind, tsan, archer, inspector-max-resources."
-  TOOLS=( 'helgrind' 'tsan' 'archer' 'inspector-max-resources' )
+  echo "Default tool set will be used: gnu, clang, intel helgrind, tsan-clang, tsan-gcc, archer, inspector-max-resources."
+  TOOLS=( 'gnu' 'clang' 'intel' 'helgrind' 'tsan-clang' 'tsan-gcc' 'archer' 'inspector-max-resources' )
 else
   echo "Tools: ${TOOLS[*]}";
 fi
@@ -155,6 +178,13 @@ if [[ ! $ITERATIONS -gt 0 ]]; then
   ITERATIONS=5
 else
   echo "Iterations: ${ITERATIONS}";
+fi
+
+if [[ ! $TIMEOUTMIN -gt 0 ]]; then
+  echo "Default timeout will be 10 minutes"
+  TIMEOUTMIN=10
+else
+  echo "Timeout minutes: ${TIMEOUTMIN}";
 fi
 
 if [[ -e "$LOGFILE" ]]; then rm "$LOGFILE"; fi
@@ -207,8 +237,9 @@ cleanup () {
 
 for tool in "${TOOLS[@]}"; do
 
+  MEMLOG="$LOG_DIR/$tool.memlog"
   file="$OUTPUT_DIR/$tool.csv"
-  echo "Saving to: $file"
+  echo "Saving to: $file and $MEMLOG"
   [ -e "$file" ] && rm "$file"
   echo "$CSV_HEADER" >> "$file"
 
@@ -228,38 +259,51 @@ for tool in "${TOOLS[@]}"; do
     additional_compile_flags=''
     if [[ "$test" =~ $RACES_PATTERN ]]; then haverace=true; else haverace=false; fi
     if [[ "$test" =~ $VARLEN_PATTERN ]]; then SIZES=("${DATASET_SIZES[@]}"); else SIZES=(''); fi
-
+    testname=$(basename $test)
+    id=${testname#DRB}
+    id=${id%%-*}
+    echo "$test has $testname and ID=$id"
+ 
     # Compile
-    exname="$(basename "$test").$tool.out"
-    rompcompile="$(basename "$test").$tool.compile"
+    exname="$EXEC_DIR/$(basename "$test").$tool.out"
+    rompexec="$exname.inst"
     logname="$(basename "$test").$tool.log"
     if [[ -e "$LOG_DIR/$logname" ]]; then rm "$LOG_DIR/$logname"; fi
     if grep -q 'PolyBench' "$test"; then additional_compile_flags+=" $POLYFLAG"; fi
-    
-    if [[ "$test" =~ $CPP_PATTERN ]]; then
-        echo "testing C++ code: $test"
-        case "$tool" in 
-            helgrind)   g++ $VALGRIND_COMPILE_CPP_FLAGS $additional_compile_flags $test -o $exname -lm ;;
-            archer)     clang-archer++ $ARCHER_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm ;;
-            tsan)       clang++ $TSAN_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm ;;
-            inspector)  icpc $ICPC_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm ;;
-            romp)       g++ $ROMP_CPP_COMPILE_FLAGS $additional_compile_flags $test -o $rompcompile -lm; 
-                        $DYNINST_CLIENT --program=$rompcompile;
-                        mv instrumented_app $exname;;
-        esac
-    else
-        case "$tool" in
-            helgrind)   gcc $VALGRIND_COMPILE_C_FLAGS $additional_compile_flags $test -o $exname -lm ;;
-            archer)     clang-archer $ARCHER_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm ;;
-            tsan)       clang $TSAN_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm ;;
-            inspector)  icpc $ICC_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm ;;
-            romp)       gcc $ROMP_C_COMPILE_FLAGS $additional_compile_flags $test -o $rompcompile -lm; 
-                        $DYNINST_CLIENT --program=$rompcompile;
-                        mv instrumented_app $exname;;
 
-       esac
-   fi
-    
+    if [[ "$test" =~ $CPP_PATTERN ]]; then
+      echo "testing C++ code:$test"
+      case "$tool" in 
+        gnu)        g++ -g -fopenmp $additional_compile_flags $test -o $exname -lm ;;
+        clang)      clang++ -fopenmp -g $additional_compile_flags $test -o $exname -lm ;;
+        intel)      icpc $ICPC_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm ;;
+        helgrind)   g++ $VALGRIND_COMPILE_CPP_FLAGS $additional_compile_flags $test -o $exname -lm ;;
+        archer)     clang-archer++ $ARCHER_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm ;;
+        tsan-clang) clang++ $TSAN_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm ;;
+        tsan-gcc)   g++ $TSAN_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm ;;
+        inspector)  icpc $ICPC_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm ;;
+        romp)       g++ $ROMP_CPP_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm;
+                    echo $exname
+                    InstrumentMain --program=$exname;
+      esac
+    else 
+      case "$tool" in 
+        gnu)        gcc -g -std=c99 -fopenmp $additional_compile_flags $test -o $exname -lm ;;
+        clang)      clang -fopenmp -g $additional_compile_flags $test -o $exname -lm ;;
+        intel)      icc $ICC_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm ;;
+        helgrind)   gcc $VALGRIND_COMPILE_C_FLAGS $additional_compile_flags $test -o $exname -lm ;;
+        archer)     clang-archer $ARCHER_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm ;;
+        tsan-clang) clang $TSAN_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm ;;
+        tsan-gcc)   gcc $TSAN_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm ;;
+        inspector)  icc $ICC_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm ;;
+        romp)       gcc $ROMP_C_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm;
+                    echo $exname
+                    InstrumentMain --program=$exname;
+      esac
+    fi
+    compilereturn=$?; 
+    echo "compile return code: $compilereturn";
+
     THREAD_INDEX=0
     for thread in "${THREADLIST[@]}"; do
       echo "Testing $test: with $thread threads"
@@ -268,31 +312,76 @@ for tool in "${TOOLS[@]}"; do
       for size in "${SIZES[@]}"; do
         # Sanity check
         if [[ ! -e "$exname" ]]; then
-          echo "$tool,\"$test\",$haverace,$thread,${size:-"N/A"},Error,N/A" >> "$file";
-          echo "Executable for $test with $thread threads and input size $size is not available" >> "$LOGFILE";
+          echo "$tool,$id,\"$testname\",$haverace,$thread,${size:-"N/A"},,,,$compilereturn," >> "$file";
+          echo "Executable for $testname with $thread threads and input size $size is not available" >> "$LOGFILE";
         elif { "./$exname $size"; } 2>&1 | grep -Eq 'Segmentation fault'; then
-            echo "$tool,\"$test\",$haverace,$thread,${size:-"N/A"},Error,N/A" >> "$file";
-            echo "Seg fault found in $test with $thread threads and input size $size" >> "$LOGFILE";
+            echo "$tool,$id,\"$testname\",$haverace,$thread,${size:-"N/A"},,,,$compilereturn," >> "$file";
+            echo "Seg fault found in $testname with $thread threads and input size $size" >> "$LOGFILE";
         else
           ITER_INDEX=1
           for ITER in $(seq 1 "$ITERATIONS"); do
-            echo -e "*****     Log $ITER_INDEX for $test with $thread threads and input size $size     *****" >> "$LOG_DIR/$logname"
+            echo -e "*****     Log $ITER_INDEX for $testname with $thread threads and input size $size     *****" >> "$LOG_DIR/$logname"
             start=$(date +%s%6N)
             case "$tool" in
+              gnu)
+                #races=$($TIMEOUTCMD $TIMEOUTMIN"m" $MEMCHECK -f "%M" -o "$MEMLOG" "./$exname" $size 2>&1 | tee -a "$LOG_DIR/$logname" | grep -ce 'Possible data race') ;;
+		;&
+              clang)
+                #races=$($MEMCHECK -f "%M" -o "$MEMLOG" "./$exname" $size 2>&1 | tee -a "$LOG_DIR/$logname" | grep -ce 'Possible data race') ;;
+		;&
+              intel)
+                #races=$($MEMCHECK -f "%M" -o "$MEMLOG" "./$exname" $size 2>&1 | tee -a "$LOG_DIR/$logname" | grep -ce 'Possible data race') ;;
+		$TIMEOUTCMD $TIMEOUTMIN"m" $MEMCHECK -f "%M" -o "$MEMLOG" "./$exname" $size &> tmp.log;
+		check_return_code $?;
+                echo "testname return $testreturn";
+                races="",
+                cat tmp.log >> "$LOG_DIR/$logname" || >tmp.log ;;
               helgrind)
-                races=$($VALGRIND  --tool=helgrind "./$exname" $size 2>&1 | tee -a "$LOG_DIR/$logname" | grep -ce 'Possible data race') ;;
+#                races=$($MEMCHECK -f "%M" -o "$MEMLOG" $VALGRIND  --tool=helgrind "./$exname" $size 2>&1 | tee -a "$LOG_DIR/$logname" | grep -ce 'Possible data race') ;;
+                $TIMEOUTCMD $TIMEOUTMIN"m" $MEMCHECK -f "%M" -o "$MEMLOG" $VALGRIND  --tool=helgrind "./$exname" $size &> tmp.log;
+                check_return_code $?;
+		echo "testname return $testreturn"
+                races=$(grep -ce 'Possible data race' tmp.log) 
+                cat tmp.log >> "$LOG_DIR/$logname" || >tmp.log ;;
               archer)
-                races=$("./$exname" $size 2>&1 | tee -a "$LOG_DIR/$logname" | grep -ce 'WARNING: ThreadSanitizer: data race') ;;
-              tsan)
-                races=$("./$exname" $size 2>&1 | tee -a "$LOG_DIR/$logname" | grep -ce 'WARNING: ThreadSanitizer: data race') ;;
+                $TIMEOUTCMD $TIMEOUTMIN"m" $MEMCHECK -f "%M" -o "$MEMLOG" "./$exname" $size &> tmp.log;
+                check_return_code $?;
+		echo "testname return $testreturn"
+                races=$(grep -ce 'WARNING: ThreadSanitizer: data race' tmp.log) 
+                cat tmp.log >> "$LOG_DIR/$logname" || >tmp.log ;;
+              tsan-clang)
+#                races=$($MEMCHECK -f "%M" -o "$MEMLOG" "./$exname" $size 2>&1 | tee -a "$LOG_DIR/$logname" | grep -ce 'WARNING: ThreadSanitizer: data race') ;;
+                $TIMEOUTCMD $TIMEOUTMIN"m" $MEMCHECK -f "%M" -o "$MEMLOG" "./$exname" $size &> tmp.log;
+                check_return_code $?;
+		echo "testname return $testreturn"
+                races=$(grep -ce 'WARNING: ThreadSanitizer: data race' tmp.log) 
+                cat tmp.log >> "$LOG_DIR/$logname" || >tmp.log ;;
+              tsan-gcc)
+#                races=$($MEMCHECK -f "%M" -o "$MEMLOG" "./$exname" $size 2>&1 | tee -a "$LOG_DIR/$logname" | grep -ce 'WARNING: ThreadSanitizer: data race') ;;
+                $TIMEOUTCMD $TIMEOUTMIN"m" $MEMCHECK -f "%M" -o "$MEMLOG" "./$exname" $size &> tmp.log;
+                check_return_code $?;
+		echo "testname return $testreturn"
+                races=$(grep -ce 'WARNING: ThreadSanitizer: data race' tmp.log) 
+                cat tmp.log >> "$LOG_DIR/$logname" || >tmp.log ;;
               inspector)
-                races=$($INSPECTOR $runtime_flags -- "./$exname" $size  2>&1 | tee -a "$LOG_DIR/$logname" | grep 'Data race' | sed -E 's/[[:space:]]*([[:digit:]]+).*/\1/') ;;
+#                races=$($MEMCHECK -f "%M" -o "$MEMLOG" $INSPECTOR $runtime_flags -- "./$exname" $size  2>&1 | tee -a "$LOG_DIR/$logname" | grep 'Data race' | sed -E 's/[[:space:]]*([[:digit:]]+).*/\1/') ;;
+		$TIMEOUTCMD $TIMEOUTMIN"m" $MEMCHECK -f "%M" -o "$MEMLOG" $INSPECTOR $runtime_flags -- "./$exname" $size &> tmp.log;
+		check_return_code $?;
+                echo "testname return $testreturn";
+                races=$(grep 'Data race' tmp.log | sed -E 's/[[:space:]]*([[:digit:]]+).*/\1/');
+                cat tmp.log >> "$LOG_DIR/$logname" || >tmp.log ;;
               romp)
-                races=$("./$exname" $size 2>&1 | tee -a "$LOG_DIR/$logname" | grep -ce 'race found!') ;;
+                #$TIMEOUTCMD $TIMEOUTMIN"m" $MEMCHECK -f "%M" -o "$MEMLOG" "./$rompexec" $size &> tmp.log;
+                #check_return_code $?;
+		#echo "testname return $testreturn"
+                #races=$(grep -ce 'data race found:' tmp.log) 
+                #cat tmp.log >> "$LOG_DIR/$logname" || >tmp.log ;;
+                #races=$("./$exname" $size 2>&1 | tee -a "$LOG_DIR/$logname" | grep -ce 'race found!') ;;
             esac
             end=$(date +%s%6N)
             elapsedtime=$(echo "scale=3; ($end-$start)/1000000"|bc)
-            echo "$tool,\"$test\",$haverace,$thread,${size:-"N/A"},${races:-0},$elapsedtime" >> "$file"
+            mem=$(cat $MEMLOG)
+            echo "$tool,$id,\"$testname\",$haverace,$thread,${size:-"N/A"},${races:-0},$elapsedtime,$mem,$compilereturn,$testreturn" >> "$file"
             ITER_INDEX=$((ITER_INDEX+1))
           done
         fi
