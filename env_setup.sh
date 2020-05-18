@@ -6,3 +6,4 @@ module load boost-1.72.0-gcc-7.4.0-mfchp2d
 module load llvm-openmp-romp-mod-gcc-7.4.0-6kbf57l 
 module load dyninst-10.1.2-gcc-7.4.0-pxqjj4q
 module load gcc-7.4.0-gcc-7.5.0-domzzsx
+echo "modules loaded"

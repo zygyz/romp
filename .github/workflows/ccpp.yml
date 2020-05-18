@@ -25,7 +25,7 @@ jobs:
       uses: actions/checkout@v2
     - name: Build make files
       run: |
-        ./env_setup.sh   
+        source ./env_setup.sh   
         mkdir build
         mkdir install
         cd build 
@@ -34,7 +34,7 @@ jobs:
               -DCMAKE_INSTALL_PREFIX=`pwd`/../install ..
     - name: Build and install
       run: | 
-        ../env_setup.sh
+        source ../env_setup.sh
         make install
       working-directory: ./build
     - name: Get library paths
@@ -53,7 +53,7 @@ jobs:
     steps:
     - name: Compile simple test program
       run: |
-        ../env_setup.sh  
+        source ../env_setup.sh  
         g++ -g -fopenmp -lomp simple-omp.cpp -o simple-omp 
       working-directory: ./tests
     - name: Instrument test program
