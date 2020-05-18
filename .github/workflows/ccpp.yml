@@ -86,10 +86,10 @@ jobs:
     defaults:
       run:
         shell: bash
-      steps:
-      - name: Run test script
-        run: |
-          ret=$(./ci-tests.sh)
-          echo "return value:" $ret
-          if [[ $ret -ne 0 ]];  then echo "::error ::ci test failed"; else exit 0; fi
-        working-directory: ./tests/ci
+    steps:
+    - name: Run test script
+      run: |
+        ret=$(./ci-tests.sh)
+        echo "return value:" $ret
+        if [[ $ret -ne 0 ]];  then echo "::error ::ci test failed"; else exit 0; fi
+      working-directory: ./tests/ci
