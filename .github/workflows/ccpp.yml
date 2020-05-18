@@ -80,3 +80,16 @@ jobs:
         races=$(grep -ce 'data race found:' tmp.log)
         if (( races != 1)); then echo "::error ::False negative on simple-omp"; else exit 0; fi
       working-directory: ./tests
+  benchmark-test:
+    needs: [build, simple-test]
+    runs-on: self-hosted
+    defaults:
+      run:
+        shell: bash
+      steps:
+      - name: Run test script
+        run: |
+          ret=$(./ci-tests.sh)
+          echo "return value:" $ret
+          if [[ $ret -ne 0 ]];  then echo "::error ::ci test failed"; else exit 0; fi
+        working-directory: ./tests/ci
