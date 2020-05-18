@@ -54,6 +54,7 @@ module load llvm-openmp-romp-mod-gcc-7.4.0-6kbf57l
 module load glog-0.3.5-gcc-7.4.0-y7ajvq2  
 module load dyninst-10.1.2-gcc-7.4.0-pxqjj4q
 module load gflags-2.1.2-gcc-7.4.0-4vasfdn
+module load glog-0.3.5-gcc-7.4.0-y7ajvq2
 
 DYNINSTAPI_RT_PATH=`spack location --install-dir dyninst/pxqjj4q`/lib/libdyninstAPI_RT.so
 ROMP_PATH=../../install/lib/libromp.so
