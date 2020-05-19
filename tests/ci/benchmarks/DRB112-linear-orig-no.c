@@ -43,26 +43,33 @@ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 */
-
 /*
-A loop with loop-carried anti-dependence.
-Data race pair: a[i+1]@64:10 vs. a[i]@64:5
+   omp for loop is allowed to use the linear clause, an OpenMP 4.5 addition.
 */
+#if (_OPENMP<201511)
+#error "An OpenMP 4.5 compiler is needed to compile this test."
+#endif
 #include <stdio.h>
-int main(int argc, char* argv[])
-{   
-  int i;
-  int len = 1000;
+int main()
+{
+  int len=100;
+  double a[len], b[len], c[len];
+  int i,j=0;
 
-  int a[1000];
+  for (i=0;i<len;i++)
+  {
+    a[i]=((double)i)/2.0; 
+    b[i]=((double)i)/3.0; 
+    c[i]=((double)i)/7.0; 
+  }
 
-  for (i=0; i<len; i++)
-    a[i]= i; 
+#pragma omp parallel for linear(j)
+  for (i=0;i<len;i++)
+  {
+    c[j]+=a[i]*b[i];
+    j++;
+  }
 
-#pragma omp parallel for
-  for (i=0;i< len -1 ;i++)
-    a[i]=a[i+1]+1;
-
-  printf ("a[500]=%d\n", a[500] );
+  printf ("c[50]=%f\n",c[50]);
   return 0;
-} 
+}

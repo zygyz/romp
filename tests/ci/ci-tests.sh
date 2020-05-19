@@ -28,8 +28,8 @@ mkdir -p "$OUTPUT_DIR"
 mkdir -p "$LOG_DIR"
 mkdir -p "$EXEC_DIR"
 
-DATASET_SIZES=('32' '64' '128' '256' '512' '1024')
-THREADLIST=('2' '3' '8' '12' '24')
+DATASET_SIZES=('32' '128' '512' '1024')
+THREADLIST=('2' '3' '12' '24')
 ITERATIONS=2
 TIMEOUTMIN="10"
 
@@ -65,7 +65,7 @@ for test in "${TESTS[@]}"; do
   if [[ "$test" =~ $RACES_PATTERN ]]; then haverace=true; else haverace=false; fi
   if [[ "$test" =~ $VARLEN_PATTERN ]]; then SIZES=("${DATASET_SIZES[@]}"); else SIZES=(''); fi
   testname=$(basename $test)
-  id=${testname#CI}
+  id=${testname#DRB}
   id=${id%%-*}
   echo "$test has $testname and ID=$id"
   exname="$EXEC_DIR/$(basename "$test").out"
@@ -114,11 +114,11 @@ for test in "${TESTS[@]}"; do
           mem=$(cat $MEMLOG)
 	  echo "thread: " $thread
           echo "romp,$id,\"$testname\",$haverace,$thread,${size:-"N/A"},${races:-0},$elapsedtime,$mem,$compilereturn,$testreturn" >> "$file"
-	  if [[ $races -eq 0  &&  $haverace ]]; then
+	  if [[ $races -eq 0  &&  "$haverace" = true ]]; then
             echo "false negative on \"$testname\"" 
             exit 1
           fi
-	  if [[ $races -eq 1 &&  ! $haverace ]]; then
+	  if [[ $races -eq 1 &&   "$haverace" = false ]]; then
             echo "false positive on \"$testname\""
 	    exit 1
           fi

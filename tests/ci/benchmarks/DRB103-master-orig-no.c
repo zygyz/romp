@@ -7,27 +7,21 @@ Markus Schordan, and Ian Karlin
 schordan1@llnl.gov, karlin1@llnl.gov)
 LLNL-CODE-732144
 All rights reserved.
-
 This file is part of DataRaceBench. For details, see
 https://github.com/LLNL/dataracebench. Please also see the LICENSE file
 for our additional BSD notice.
-
 Redistribution and use in source and binary forms, with
 or without modification, are permitted provided that the following
 conditions are met:
-
 * Redistributions of source code must retain the above copyright
   notice, this list of conditions and the disclaimer below.
-
 * Redistributions in binary form must reproduce the above copyright
   notice, this list of conditions and the disclaimer (as noted below)
   in the documentation and/or other materials provided with the
   distribution.
-
 * Neither the name of the LLNS/LLNL nor the names of its contributors
   may be used to endorse or promote products derived from this
   software without specific prior written permission.
-
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
 CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
@@ -45,25 +39,22 @@ THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 /*
-A loop with loop-carried anti-dependence.
-Data race pair: a[i+1]@64:10 vs. a[i]@64:5
+A master directive is used to protect memory accesses.
 */
+#include <omp.h>
 #include <stdio.h>
-#include <vector>
-int main(int argc, char* argv[])
-{   
-  int i;
-  int len = 1000;
-  
-  std::vector<int> a(1000, 0);
 
-  for (i=0; i<len; i++)
-    a[i]= i; 
+int main()
+{
+  int k;
 
-#pragma omp parallel for
-  for (i=0;i< len -1 ;i++)
-    a[i] = a.at(i+1)+1;
-
-  printf ("a[500]=%d\n", a[500] );
+#pragma omp parallel
+  {
+#pragma omp master
+    {
+      k = omp_get_num_threads();
+      printf ("Number of Threads requested = %i\n",k);
+    }
+  }
   return 0;
-} 
+}
