@@ -45,26 +45,55 @@ THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 /*
-A loop with loop-carried anti-dependence.
-Data race pair: a[i+1]@67:10 vs. a[i]@67:5
+The restrict type qualifier is an indication to the compiler that,
+if the memory addressed by the restrict -qualified pointer is modified, no other pointer will access that same memory.
+If a particular chunk of memory is not modified, it can be aliased through more than one restricted pointer.
+A C99 restrict feature.
+For gcc, you must use -std=c99 to compile this program.
 */
+
 #include <stdlib.h>
-int main(int argc, char* argv[])
-{   
+#include <stdio.h>
+
+void foo(int n, int * restrict  a, int * restrict b, int * restrict  c)
+{
   int i;
-  int len = 1000;
+#pragma omp parallel for schedule(dynamic)
+  for (i = 0; i < n; i++)
+    a[i] = b[i] + c[i];  
+}
 
-  if (argc>1)
-    len = atoi(argv[1]);
+int main()
+{
+  int n = 1000;
+  int * a , *b, *c;
 
-  int a[len];
+  a = (int*) malloc (n* sizeof (int));
+  if (a ==0)
+  {
+    fprintf (stderr, "skip the execution due to malloc failures.\n");
+    return 1;
+  }
 
-  for (i=0; i<len; i++)
-    a[i]= i; 
+  b = (int*) malloc (n* sizeof (int));
+  if (b ==0)
+  {
+    fprintf (stderr, "skip the execution due to malloc failures.\n");
+    return 1;
+  }
 
-#pragma omp parallel for
-  for (i=0;i< len -1 ;i++)
-    a[i]=a[i+1]+1;
+  c = (int*) malloc (n* sizeof (int));
+  if (c ==0)
+  {
+    fprintf (stderr, "skip the execution due to malloc failures.\n");
+    return 1;
+  }
 
+  foo (n, a, b,c);
+
+  free (a);
+  free (b);
+  free (c);
   return 0;
-} 
+}  
+
