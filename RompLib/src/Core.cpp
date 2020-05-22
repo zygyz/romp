@@ -138,6 +138,9 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex) {
          * T(histLabel, diffIndex) and T(curLabel, diffIndex) are both the root
          * task, T(curLabel) should have encountered a barrier counstruct
          */
+        if (diffIndex == 0) {
+          return true;
+	}
         return analyzeSameTask(histLabel, curLabel, diffIndex);
       case eWorkShare:
         if (static_cast<WorkShareSegment*>(histSegment)->isSingleExecutor() && 
@@ -448,6 +451,10 @@ bool analyzeSameTask(Label* histLabel, Label* curLabel, int diffIndex) {
     auto curNextSeg = curLabel->getKthSegment(diffIndex + 1);
     auto histNextType = histNextSeg->getType();
     auto curNextType = curNextSeg->getType();
+    if (histNextType == eImplicit && curNextType == eImplicit) {
+      RAW_LOG(INFO, "analyze same task exception: hist: %s cur: %s diffIndex: %d\n", histLabel->toString().c_str(), 
+		     curLabel->toString().c_str(), diffIndex); 
+    }
     RAW_CHECK(!(histNextType == eImplicit && curNextType == eImplicit),
             "not expecting next level tasks are sibling implicit tasks");
     // invoke different checking depending on next segment's type 
