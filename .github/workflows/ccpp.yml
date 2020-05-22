@@ -8,6 +8,10 @@ on:
     - 'tests/**'
     branches: [ master, master-ci, develop]
   pull_request:
+    paths-ignore:
+    - 'README.md'
+    - 'LICENSE.md'
+    - 'tests/**'
     branches: [ master ]
 
 jobs:
