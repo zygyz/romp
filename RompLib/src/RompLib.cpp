@@ -89,6 +89,7 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel,
                          checkInfo.byteAddress);
         }
         accessHistory->setFlag(eDataRaceFound);  
+	break;
       }
       auto decision = manageAccessRecord(histRecord, curRecord, 
               isHistBeforeCurrent, diffIndex);
