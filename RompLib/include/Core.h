@@ -64,7 +64,6 @@ void modifyAccessHistory(RecordManagement decision,
                          std::vector<Record>* records,
                          std::vector<Record>::iterator& cit);
 
-bool isDupMemAccess(const CheckInfo& checkInfo, 
-		    const std::shared_ptr<Label>& curLabel);
+bool isDupMemAccess(const CheckInfo& checkInfo);
 
 }

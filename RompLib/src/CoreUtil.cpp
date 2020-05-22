@@ -1,4 +1,5 @@
 #include "CoreUtil.h"
+#include "ThreadData.h"
 
 #include <glog/logging.h>
 #include <glog/raw_logging.h>
@@ -93,6 +94,15 @@ void reportDataRace(void* instnAddrPrev, void* instnAddrCur, uint64_t memAddr) {
 void* computeAddressRangeEnd(void* baseAddr, size_t chunkSize) {
   auto rangeEnd = reinterpret_cast<uint64_t>(baseAddr) + chunkSize - 1;
   return reinterpret_cast<void*>(rangeEnd);
+}
+
+void incrementLabelId() {
+  void* threadDataPtr = nullptr;
+  if (!queryOmpThreadInfo(threadDataPtr)) {
+    return;
+  }
+  auto threadData = static_cast<ThreadData*>(threadDataPtr);
+  threadData->labelId++;
 }
 
 }

@@ -4,6 +4,7 @@
 #include <glog/raw_logging.h>
 
 #include "AccessHistory.h"
+#include "CoreUtil.h"
 #include "DataSharing.h"
 #include "Label.h"
 #include "ParRegionData.h"
@@ -25,6 +26,7 @@ void on_ompt_callback_implicit_task(
        int flags) {
   RAW_DLOG(INFO, "on_ompt_callback_implicit_task called:%u p:%lx t:%lx %u %u %d",
           endPoint, parallelData, taskData, actualParallelism, index, flags);
+  incrementLabelId();
   if (flags == ompt_task_initial) {
     RAW_DLOG(INFO, "generating initial task: %lx", taskData);
     auto initTaskData = new TaskData();
@@ -157,6 +159,7 @@ void on_ompt_callback_sync_region(
        const void* codePtrRa) {
   RAW_DLOG(INFO,  "on_ompt_callback_sync_region called %p %d %d", 
           taskData, kind, endPoint);
+  incrementLabelId();
   if (!taskData || !taskData->ptr) {
     RAW_LOG(FATAL, "task data pointer is null");  
     return;
@@ -211,6 +214,7 @@ void on_ompt_callback_mutex_acquired(
         ompt_wait_id_t waitId,
         const void *codePtrRa) {
   RAW_DLOG(INFO, "on_ompt_callback_mutex_acquired called");
+  incrementLabelId();
   int taskType, threadNum;
   void* dataPtr;
   if (!queryTaskInfo(0, taskType, threadNum, dataPtr)) {
@@ -245,6 +249,7 @@ void on_ompt_callback_mutex_released(
         ompt_wait_id_t waitId,
         const void *codePtrRa) {
   RAW_DLOG(INFO, "on_ompt_callback_mutex_released called");
+  incrementLabelId();
   int taskType, threadNum;
   void* dataPtr;
   if (!queryTaskInfo(0, taskType, threadNum, dataPtr)) {
@@ -375,6 +380,7 @@ void on_ompt_callback_work(
       uint64_t count,
       const void *codePtrRa) {
   RAW_DLOG(INFO, "on_ompt_callback_work called");
+  incrementLabelId();
   if (!taskData || !taskData->ptr) {
     RAW_LOG(FATAL, "task data pointer is null");
   }
@@ -425,6 +431,7 @@ void on_ompt_callback_parallel_begin(
        const void *codePtrRa) {
   RAW_DLOG(INFO, "parallel begin et:%lx p:%lx %u %d", encounteringTaskData, 
            parallelData, requestedParallelism, flags);
+  incrementLabelId();
   auto parRegionData = new ParRegionData(requestedParallelism, flags);
   parallelData->ptr = static_cast<void*>(parRegionData);  
 }
@@ -439,6 +446,7 @@ void on_ompt_callback_parallel_end(
 		  parallelData,
 		  parallelData->ptr,
                   flags);
+  incrementLabelId();
   auto parRegionData = parallelData->ptr;
   delete static_cast<ParRegionData*>(parRegionData);
 }  
@@ -451,6 +459,7 @@ void on_ompt_callback_task_create(
         int hasDependences,
         const void *codePtrRa) {
   auto taskData = new TaskData();
+  incrementLabelId();
   if (flags == ompt_task_initial) {
     /*
      * In recent diff (merged from https://reviews.llvm.org/D68615),initial task
@@ -511,6 +520,7 @@ void on_ompt_callback_task_schedule(
         ompt_data_t *nextTaskData) {
   RAW_DLOG(INFO, "ompt_callback_task_schedule"); 
   auto taskPtr = priorTaskData->ptr;
+  incrementLabelId();
   if (!taskPtr) {
     RAW_LOG(FATAL, "prior task data pointer is null"); 
   }
@@ -549,6 +559,7 @@ void on_ompt_callback_dependences(
         const ompt_dependence_t *deps,
         int ndeps) {
   RAW_DLOG(INFO, "callback dependencies -- num deps: %lu", ndeps);
+  incrementLabelId();
   auto teamSize = 0;
   void* parallelDataPtr = nullptr;
   if (!queryParallelInfo(0, teamSize, parallelDataPtr)) {
@@ -590,6 +601,7 @@ void on_ompt_callback_thread_begin(
     return;
   }
   threadData->ptr = static_cast<void*>(newThreadData);
+  incrementLabelId();
   void* stackAddr = nullptr;
   uint64_t stackSize = 0;
   if (!queryThreadStackInfo(stackAddr, stackSize)) {
@@ -608,6 +620,7 @@ void on_ompt_callback_thread_end(
   if (!threadData) {
     return;
   }
+  incrementLabelId();
   auto dataPtr = threadData->ptr;
   if (!dataPtr) {
     delete static_cast<ThreadData*>(dataPtr);
@@ -624,6 +637,7 @@ void on_ompt_callback_dispatch(
     RAW_LOG(FATAL, "cannot get task data info");
     return;
   }
+  incrementLabelId();
   auto taskDataPtr = static_cast<TaskData*>(taskData->ptr);
   auto parentLabel = (taskDataPtr->label).get();
   std::shared_ptr<Label> mutatedLabel = nullptr;
@@ -649,6 +663,7 @@ void on_ompt_callback_reduction(
     RAW_LOG(FATAL, "task data pointer is null");
     return;
   }  
+  incrementLabelId();
   auto taskDataPtr = static_cast<TaskData*>(taskData->ptr);
   if (endPoint == ompt_scope_begin) {
     taskDataPtr->inReduction = true;

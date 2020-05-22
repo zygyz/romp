@@ -76,14 +76,14 @@ for test in "${TESTS[@]}"; do
   
   if [[ "$test" =~ $CPP_PATTERN ]]; then
     echo "testing C++ code:$test"
-    g++ $ROMP_CPP_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm;
+#    g++ $ROMP_CPP_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm;
     echo $exname
-    $INST_CLIENT --program=$exname;
+#    $INST_CLIENT --program=$exname;
   else
     echo "testing C code:$test"
-    gcc $ROMP_C_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm;
+#    gcc $ROMP_C_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm;
     echo $exname
-    $INST_CLIENT --program=$exname;
+#    $INST_CLIENT --program=$exname;
   fi
   compilereturn=$?;
   echo "compile return code: $compilereturn"; 

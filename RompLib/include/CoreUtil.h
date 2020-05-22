@@ -70,4 +70,6 @@ void reportDataRace(void* instnAddrPrev, void* instnAddrCur, uint64_t address);
 
 void* computeAddressRangeEnd(void* baseAddr, size_t chunkSize);
 
+void incrementLabelId();
+
 }

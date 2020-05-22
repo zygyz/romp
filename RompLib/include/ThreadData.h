@@ -1,5 +1,5 @@
 #pragma once
-#include <string>
+#include <atomic>
 #include <unordered_map>
 #define ADDR_MAX 0xffffffffffff
 
@@ -14,8 +14,10 @@ typedef struct ThreadData {
   void* stackBaseAddr;
   void* stackTopAddr;
   void* lowestAccessedAddr;
-  std::unordered_map<uint64_t, std::string> dupReadTable;
-  std::unordered_map<uint64_t, std::string> dupWriteTable;
+  std::atomic_uint64_t labelId;
+  std::unordered_map<uint64_t, uint64_t> dupReadTable;
+  std::unordered_map<uint64_t, uint64_t> dupWriteTable;
+  
   ThreadData() : stackBaseAddr(nullptr), 
                  stackTopAddr(nullptr), 
                  lowestAccessedAddr((void*)ADDR_MAX) {}
@@ -28,22 +30,22 @@ typedef struct ThreadData {
     lowestAccessedAddr = (void*)ADDR_MAX;
   }
 
-  bool isDupRead(uint64_t memAddr, const std::string& labelStr) {
+  bool isDupRead(uint64_t memAddr, uint64_t labelId) {
     if (dupReadTable.find(memAddr) != dupReadTable.end() && 
-        dupReadTable[memAddr] == labelStr) {
+        dupReadTable[memAddr] == labelId) {
       return true;
     } else {
-      dupReadTable[memAddr] = labelStr;
+      dupReadTable[memAddr] = labelId;
       return false;
     }
   }
 
-  bool isDupWrite(uint64_t memAddr, const std::string& labelStr) {
+  bool isDupWrite(uint64_t memAddr, uint64_t labelId) {
     if (dupWriteTable.find(memAddr) != dupWriteTable.end() && 
-        dupWriteTable[memAddr] == labelStr) {
+        dupWriteTable[memAddr] == labelId) {
       return true;
     } else {
-      dupWriteTable[memAddr] = labelStr;
+      dupWriteTable[memAddr] = labelId;
       return false;
     }
   }
