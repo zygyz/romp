@@ -5,6 +5,7 @@
 
 #include "ParRegionData.h"
 #include "QueryFuncs.h"
+#include "ThreadData.h"
 
 namespace romp {
 /*
@@ -733,6 +734,23 @@ void modifyAccessHistory(RecordManagement decision,
     it = records->erase(it);
   } else {
     it++;
+  }
+}
+
+bool isDupMemAccess(const CheckInfo& checkInfo, 
+		    const std::shared_ptr<Label>& curLabel) {
+  void* threadDataPtr = nullptr;
+  if (!queryOmpThreadInfo(threadDataPtr)) {
+    RAW_LOG(INFO, "cannot query omp thread info");
+    return false;
+  } 
+  auto threadData = static_cast<ThreadData*>(threadDataPtr);
+  auto labelStr = curLabel->toString();
+  auto memAddr = checkInfo.byteAddress;
+  if (checkInfo.isWrite) {
+    return threadData->isDupWrite(memAddr, labelStr);
+  } else {
+    return threadData->isDupRead(memAddr, labelStr);   
   }
 }
 

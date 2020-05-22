@@ -1,5 +1,6 @@
 #pragma once 
 #include "AccessHistory.h"
+#include "CoreUtil.h"
 #include "LockSet.h"
 #include "TaskData.h"
 
@@ -62,5 +63,8 @@ RecordManagement manageAccessRecord(const Record& histRecord,
 void modifyAccessHistory(RecordManagement decision,
                          std::vector<Record>* records,
                          std::vector<Record>::iterator& cit);
+
+bool isDupMemAccess(const CheckInfo& checkInfo, 
+		    const std::shared_ptr<Label>& curLabel);
 
 }
