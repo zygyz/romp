@@ -256,14 +256,14 @@ void jacobi ( const int n, const int m, double dx, double dy, double alpha,
 	error = 0.0;
 
 	/* copy new solution into old */
-#pragma omp parallel for private(i)
+#pragma omp parallel for private(i) schedule(dynamic)
     for (j=0; j<m; j++)
 	  for (i=0; i<n; i++)
 		uold[i + m*j] = u[i + m*j];
 
 
 	/* compute stencil, residual and update */
-#pragma omp parallel for reduction(+:error) private(i,resid)
+#pragma omp parallel for reduction(+:error) private(i,resid) schedule(dynamic)
 	for (j=1; j<m-1; j++)
 	  for (i=1; i<n-1; i++){
 		resid =(

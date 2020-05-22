@@ -208,7 +208,7 @@ int dgen(complex *xin, int n) {
 int tpose(complex *a, complex *b, const int n) {
   register int i, j;
 		
-#pragma omp parallel for private(i, j)
+#pragma omp parallel for private(i, j) schedule(dynamic)
   for (i = 0; i < n; ++i) {
     for (j = i; j < n; ++j) {
       b[i * n + j] = a[j * n + i];
@@ -234,7 +234,7 @@ int tpose_seq(complex *a, complex *b, const int n) {
 int cffts(complex *a, int *brt, complex *w, const int n, int logn, int ndv2) {
   register int i;
 
-#pragma omp parallel for private(i)
+#pragma omp parallel for private(i) schedule(dynamic)
   for (i = 0; i < n; ++i)
     fft(&a[i * n], brt, w, n, logn, ndv2); 
     /* fft(a + i * n, brt, w, n, logn, ndv2); */
@@ -304,7 +304,7 @@ int scale(complex *a, complex *v, const int n) {
   register int i, j, index;
 	complex aa, vv;
 
-#pragma omp parallel for private(i, j, index, aa, vv)
+#pragma omp parallel for private(i, j, index, aa, vv) schedule(dynamic)
   for (i = 0; i < n; ++i) {
     for (j = 0; j < n; ++j) {
 			index = i * n + j;
@@ -495,7 +495,7 @@ int main(int argc, char *argv[]) {
 #define TOTAL 0
 
 OSCR_timer_start(TOTAL);
-#pragma omp parallel for private(k)
+#pragma omp parallel for private(k) schedule(dynamic)
   for(k = 0; k < ITERS; k++) {
     dgen(xin[ID], N);
 

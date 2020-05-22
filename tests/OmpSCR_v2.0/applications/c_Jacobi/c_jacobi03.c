@@ -259,13 +259,13 @@ void jacobi ( const int n, const int m, double dx, double dy, double alpha,
 	while (k <= maxit && error > tol) {
 
 	  /* copy new solution into old */
-#pragma omp for
+#pragma omp for schedule(dynamic)
 	  for (j=0; j<m; j++)
 		for (i=0; i<n; i++)
 		  uold[i + m*j] = u[i + m*j];
 
 	  /* compute stencil, residual and update */
-#pragma omp for reduction(+:error)
+#pragma omp for reduction(+:error) schedule(dynamic)
 		for (i=1; i<n-1; i++){
 		  resid =(
 				  ax * (uold[i-1 + m*j] + uold[i+1 + m*j])

@@ -44,7 +44,7 @@ OSCR_C_REPORT=
 #
 # 1.6. (Optional) Other common flags (e.g. optimization)
 #
-OSCR_C_OTHERS=-O3
+OSCR_C_OTHERS=-g
 
 
 
@@ -84,7 +84,7 @@ OSCR_CPP_REPORT=
 #
 # 2.6. (Optional) Other common flags (e.g. optimization)
 #
-OSCR_CPP_OTHERS=-O3
+OSCR_CPP_OTHERS=-g
 
 
 

@@ -39,6 +39,9 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord,
     return false;
   }
   isHistBeforeCur = happensBefore(histLabel, curLabel, diffIndex);
+  if (diffIndex == eRightIsPrefix) {
+    return false;
+  }
   if (!isHistBeforeCur) {
     // further check explicit task dependence if current task and history task 
     // are both explicit tasks. If no task dependence, return true
@@ -108,8 +111,7 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex) {
       case static_cast<int>(eLeftIsPrefix):
         return true;
       case static_cast<int>(eRightIsPrefix):
-        RAW_LOG(FATAL, "cur Label: %s -> hist label: %s", 
-                curLabel->toString().c_str(), histLabel->toString().c_str());
+	// current record -> hist record
         return false;
       default:
         RAW_LOG(FATAL, "unknown label compare result");
@@ -136,9 +138,7 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex) {
          * T(histLabel, diffIndex) and T(curLabel, diffIndex) are both the root
          * task, T(curLabel) should have encountered a barrier counstruct
          */
-        RAW_CHECK(histOffset < curOffset, "not expecting hist offset >=\
-                cur offset");
-        return true;
+        return analyzeSameTask(histLabel, curLabel, diffIndex);
       case eWorkShare:
         if (static_cast<WorkShareSegment*>(histSegment)->isSingleExecutor() && 
             static_cast<WorkShareSegment*>(curSegment)->isSingleExecutor()) { 
