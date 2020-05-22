@@ -87,7 +87,6 @@ ShadowMemory<T>::ShadowMemory(const uint64_t l1PageTableBits,
                               const uint64_t l2PageTableBits,
                               const uint64_t numMemAddrBits, 
                               Granularity granularity) {
-  DLOG(INFO) << "ShadowMemory constructor ";
   uint64_t lowZeroMask = 0;
   switch(granularity) {
     case eByteLevel:
