@@ -91,7 +91,7 @@ InstrumentClient::getFunctionsVector(
     LOG(INFO) << "module name: " 
               << module->getFullName(nameBuffer, MODULE_NAME_LENGTH);
     if (module->isSharedLib()) { 
-      LOG(INFO) << "skip module: " << nameBuffer;
+      //LOG(INFO) << "skip module: " << nameBuffer;
       continue;
     }
     auto procedures = module->getProcedures();
