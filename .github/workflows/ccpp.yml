@@ -61,7 +61,10 @@ jobs:
         g++ -g -fopenmp -lomp simple-omp.cpp -o simple-omp 
       working-directory: ./tests
     - name: Instrument test program
-      run: ../install/bin/InstrumentMain --program=./simple-omp
+      run: |
+        source ../env_setup.sh
+        echo "env setup"
+        ../install/bin/InstrumentMain --program=./simple-omp
       working-directory: ./tests 
       env:
         DYNINSTAPI_RT_LIB: ${{needs.build.outputs.dyninst_lib_path}}
