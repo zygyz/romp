@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+echo "start running ci-test.sh"
 CSV_HEADER="tool, id, filename, haverace, threads, dataset, races, elapsed-time(seconds), used-mem(KBs), compile-return, runtime-return"
 TESTS=($(grep -l main ./benchmarks/*.cpp ./benchmarks/*.c))
 OUTPUT_DIR="results"
