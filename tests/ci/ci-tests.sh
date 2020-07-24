@@ -57,8 +57,8 @@ module load gflags-2.1.2-gcc-7.4.0-4vasfdn
 module load glog-0.3.5-gcc-7.4.0-y7ajvq2
 
 DYNINSTAPI_RT_PATH=`spack location --install-dir dyninst/pxqjj4q`/lib/libdyninstAPI_RT.so
-ROMP_PATH=../../install/lib/libromp.so
-INST_CLIENT=../../install/bin/InstrumentMain
+ROMP_PATH=`pwd`/../../install/lib/libromp.so
+INST_CLIENT=`pwd`/../../install/bin/InstrumentMain
 
 for test in "${TESTS[@]}"; do
   additional_compile_flags=''
@@ -76,14 +76,14 @@ for test in "${TESTS[@]}"; do
   
   if [[ "$test" =~ $CPP_PATTERN ]]; then
     echo "testing C++ code:$test"
-#    g++ $ROMP_CPP_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm;
+    g++ $ROMP_CPP_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm;
     echo $exname
-#    $INST_CLIENT --program=$exname;
+    $INST_CLIENT --program=$exname;
   else
     echo "testing C code:$test"
-#    gcc $ROMP_C_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm;
+    gcc $ROMP_C_COMPILE_FLAGS $additional_compile_flags $test -o $exname -lm;
     echo $exname
-#    $INST_CLIENT --program=$exname;
+    $INST_CLIENT --program=$exname;
   fi
   compilereturn=$?;
   echo "compile return code: $compilereturn"; 
