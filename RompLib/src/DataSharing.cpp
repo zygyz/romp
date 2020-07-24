@@ -86,7 +86,7 @@ void recycleMemRange(void* lowerBound, void* upperBound) {
 /*
  * This function is called when an explicit task is completed. This function 
  * looks up the task private thread stack memory locations and marks these 
- * locations as deallocated. Because a 
+ * locations as deallocated. The lower bound is the base of thread stack.
  */
 void recycleTaskThreadStackMemory(void* taskData) {
   ompt_frame_t omptFrame;
