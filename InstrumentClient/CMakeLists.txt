@@ -6,7 +6,7 @@ add_executable(InstrumentMain InstrumentMain.cpp
   
 if (CUSTOM_DYNINST MATCHES "ON")
     # find the dyninst install directory by searching BPatch.h 
-    find_path(DYNINST_INCLUDE_PATH BPatch.h) 
+    find_path(DYNINST_INCLUDE_PATH BPatch.h)
     find_path(GFLAGS_PATH "gflags/gflags.h")  
     find_path(GLOG_PATH  "glog/logging.h")
     include_directories(${DYNINST_INCLUDE_PATH}

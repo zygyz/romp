@@ -127,6 +127,52 @@ Please make sure the dyninst variant is the one required by ROMP (dyninst@10.1.2
    make
    make install
   ```
+
+#### Install ROMP that uses local build of Dyninst 
+1. Install and configure `spack`
+* Use the same steps as described above.
+
+2. Install dependent packages
+* glog
+  ```
+  spack install glog 
+  ```
+* llvm-openmp
+  ```
+  spack install llvm-openmp@romp-mod
+  ```
+* dyninst
+  Build your own dyninst using cmake locally. 
+
+3. Setup environment varibales for building ROMP 
+* We need environment variables setting for three dependent packages (gflags, intel-tbb, boost). The exact name for each package can be found using `module avail` command.
+
+  ```
+  module load gflags-2.1.2-gcc-7.4.0-somehash
+  module load intel-tbb-2020.2-gcc-7.4.0-somehash
+  module load boost-1.72.0-gcc-7.4.0-somehash
+  module load llvm-openmp-romp-mod-gcc-7.4.0-somehash
+  ```
+4. Build makefiles using cmake
+* Suppose ROMP is located in `/home/to/romp`, and dyninst is installed in `/home/to/dyninst/install`
+  ```
+   export CUSTOM_DYNINST_PREFIX=/home/to/dyninst/install
+   export CPLUS_INCLUDE_PATH=/home/to/dyninst/install/include:$CPLUS_INCLUDE_PATH
+   module load gcc-7.4.0-gcc-a.b.c-somehash
+   cd /home/to/romp
+   mkdir build
+   mkdir install
+   cd build
+         
+   cmake -DCMAKE_PREFIX_PATH="$CUSTOM_DYNINST_PREFIX"
+         -DCMAKE_CXX_FLAGS=-std=c++17 
+         -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc 
+         -DCUSTOM_DYNINST=ON
+         -DCMAKE_INSTALL_PREFIX=`pwd`/../install ..
+   make
+   make install
+  ```
+
 ### Running ROMP 
 #### Setup environment variables so that we can run ROMP. 
 1. Load the following modules into environment variables.  
