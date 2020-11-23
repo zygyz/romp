@@ -123,6 +123,7 @@ Please make sure the dyninst variant is the one required by ROMP (dyninst@10.1.2
          
    cmake -DCMAKE_CXX_FLAGS=-std=c++17 
          -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc 
+         -DCMAKE_BUILD_TYPE=RelWithDebInfo
          -DCMAKE_INSTALL_PREFIX=`pwd`/../install ..
    make
    make install
@@ -166,7 +167,8 @@ Please make sure the dyninst variant is the one required by ROMP (dyninst@10.1.2
          
    cmake -DCMAKE_PREFIX_PATH="$CUSTOM_DYNINST_PREFIX"
          -DCMAKE_CXX_FLAGS=-std=c++17 
-         -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc 
+         -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc
+         -DCMAKE_BUILD_TYPE=RelWithDebInfo
          -DCUSTOM_DYNINST=ON
          -DCMAKE_INSTALL_PREFIX=`pwd`/../install ..
    make
