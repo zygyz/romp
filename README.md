@@ -8,7 +8,7 @@ Operating Systems: Linux
 
 Architecture: x86_64
 
-Compiler: gcc version >=7.4.0
+Compiler: gcc supproting c++17
 
 ### Install ROMP
 
