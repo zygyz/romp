@@ -102,32 +102,14 @@ Spack installation of ROMP requires changes to be committed to remote repos. ROM
   spack install dyninst@11.0.0~openmp
   ``` 
 3. Setup environment varibales for building ROMP 
-* We need environment variables setting for three dependent packages (gflags, intel-tbb, boost). The exact name for each package can be found using `module avail` command.
-
-  ```
-  module load gflags-2.1.2-gcc-7.4.0-somehash
-  module load intel-tbb-2020.2-gcc-7.4.0-somehash
-  module load boost-1.72.0-gcc-7.4.0-somehash
-  module load llvm-openmp-romp-mod-gcc-7.4.0-somehash
-  module load dyninst-10.1.2-gcc-7.4.0-somehash
-  ```
-Please make sure the dyninst variant is the one required by ROMP (dyninst@10.1.2~openmp).
+* We need environment variables setting for several dependent packages (gflags, intel-tbb, boost etc.). The exact name for each package can be found using `module avail` command. Please take a look at the env_setup.sh file for your reference. Remember to replace each module load commend with your system's settings in env_setup.sh
 
 4. Build makefiles using cmake
 * Suppose ROMP is located in `/home/to/romp`
   ```
-   module load gcc-7.4.0-gcc-a.b.c-somehash
    cd /home/to/romp
-   mkdir build
-   mkdir install
-   cd build
-         
-   cmake -DCMAKE_CXX_FLAGS=-std=c++17 
-         -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc 
-         -DCMAKE_BUILD_TYPE=RelWithDebInfo
-         -DCMAKE_INSTALL_PREFIX=`pwd`/../install ..
-   make
-   make install
+   source ./env_setup.sh
+   ./install.sh
   ```
 
 #### Install ROMP that uses local build of Dyninst 
