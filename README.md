@@ -12,12 +12,8 @@ Compiler: gcc supporting c++17
 
 ### Install ROMP
 
-By default, we use `spack` to manage the installation of ROMP and related packages.
-This should be the default way of installing ROMP. Installation using CMake 'manually' 
-is described in a separate section.
-
 #### Install ROMP using Spack
-Currently installing ROMP using spack is not maintained. Please install ROMP using CMake. But please follow the steps to install environment module etc.
+##### Currently installing ROMP using spack is not maintained. Please install ROMP using CMake. But please follow the steps to install environment module etc.
 
 1. Install `spack`
 * Checkout my forked branch of `spack`. It contains changes to package.py for `llvm-openmp`, `dyninst`, and 
