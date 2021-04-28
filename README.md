@@ -157,12 +157,8 @@ Spack installation of ROMP requires changes to be committed to remote repos. ROM
  ```
 It is possible that various verions/variants of dyninst are installed in your system. For example, hpctoolkit requires a variant of dyninst that supports parallel parsing using OpenMP, while ROMP requires a variant of dyninst that turns off this parallel parsing feature. It is important to make sure the correct version/variant of dyninst is used by ROMP. To check this, one can run 
 ```
-spack spec -l romp
+spack spec -l hpctoolkit
 ``` 
-to get the hash for dyninst package it use. For example, if it is 'jmairsn', then:
-```
-module load dyninst-10.1.2-gcc-7.4.0-jmairsn
-```
 
 2. Export DYNINSTAPI_RT_LIB and ROMP_PATH
 * It is required by dyninst to set environment variable DYNINSTAPI_RT_LIB. Make sure one uses the correct version of dyninst using the method described above. 
