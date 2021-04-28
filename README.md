@@ -53,28 +53,28 @@ modules:
 ```
 One can replace `tcl` with `lmod` depending on which interpreter the system uses to manage modulefiles. 
 
-3. Install gcc 7.4.0
+3. Install gcc a.b.c
 * Before installing using spack, it is important to make sure your system has a clean environment variable setting.
 This can be done by `printenv | grep PATH`. Then:
 ```
-spack install gcc@7.4.0
+spack install gcc@a.b.c
 ```
-4. Using gcc 7.4.0 for all builds
+4. Using gcc a.b.c for all builds
 * To ensure all packages are built using the same compiler, do the following steps:
-  * After installation of gcc, you will find a directory in /path/to/spack/Modules/modules, suppose it is called system-arch. You can also find the gcc module in this direcotry, suppose it is called gcc-7.4.0-gcc-a.b.c-somehash Do the following steps:
+  * After installation of gcc, you will find a directory in /path/to/spack/Modules/modules, suppose it is called system-arch. You can also find the gcc module in this direcotry, suppose it is called gcc-a.b.c-gcc-a.b.c-somehash Do the following steps:
 ```
 module use /path/to/spack/Modules/modules/system-arch
-module load gcc-7.4.0-gcc-a.b.c-somehash
+module load gcc-a.b.c-gcc-e.f.g-somehash
 ```
-  * Tell spack to add gcc7.4.0 into available compilers:
+  * Tell spack to add gcc a.b.c into available compilers:
 ```
 spack compiler find
 ```
-  * Tell spack to use gcc7.4.0 to build the rest of all software by editing $HOME/.spack/packages.yaml:
+  * Tell spack to use gcc a.b.c to build the rest of all software by editing $HOME/.spack/packages.yaml:
 ```
 packages:
   all:
-    compiler: [gcc@7.4.0]
+    compiler: [gcc@a.b.c]
 ```
 
 4. Install ROMP
@@ -99,7 +99,7 @@ Spack installation of ROMP requires changes to be committed to remote repos. ROM
   ```
 * dyninst
   ```
-  spack install dyninst@10.1.2~openmp
+  spack install dyninst@11.0.0~openmp
   ``` 
 3. Setup environment varibales for building ROMP 
 * We need environment variables setting for three dependent packages (gflags, intel-tbb, boost). The exact name for each package can be found using `module avail` command.
@@ -147,14 +147,9 @@ Please make sure the dyninst variant is the one required by ROMP (dyninst@10.1.2
   Build your own dyninst using cmake locally. 
 
 3. Setup environment varibales for building ROMP 
-* We need environment variables setting for three dependent packages (gflags, intel-tbb, boost). The exact name for each package can be found using `module avail` command.
+* We need environment variables setting for several dependent packages (gflags, intel-tbb, boost etc.). The exact name for each package can be found using `module avail` command. Please take a look at the env_setup.sh file for your reference. Remember to replace each module load command with your own system's settings.
 
-  ```
-  module load gflags-2.1.2-gcc-7.4.0-somehash
-  module load intel-tbb-2020.2-gcc-7.4.0-somehash
-  module load boost-1.72.0-gcc-7.4.0-somehash
-  module load llvm-openmp-romp-mod-gcc-7.4.0-somehash
-  ```
+
 4. Build makefiles using cmake
 * Suppose ROMP is located in `/home/to/romp`, and dyninst is installed in `/home/to/dyninst/install`
   ```
