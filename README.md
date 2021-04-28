@@ -8,7 +8,7 @@ Operating Systems: Linux
 
 Architecture: x86_64
 
-Compiler: gcc 7.4.0 (recommended);
+Compiler: gcc version >=7.4.0
 
 ### Install ROMP
 
@@ -17,6 +17,7 @@ This should be the default way of installing ROMP. Installation using CMake 'man
 is described in a separate section.
 
 #### Install ROMP using Spack
+Currently installing ROMP using spack is not maintained. Please install ROMP using CMake. But please follow the steps to install environment module etc.
 
 1. Install `spack`
 * Checkout my forked branch of `spack`. It contains changes to package.py for `llvm-openmp`, `dyninst`, and 
