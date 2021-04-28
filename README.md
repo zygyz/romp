@@ -151,12 +151,9 @@ Spack installation of ROMP requires changes to be committed to remote repos. ROM
 
 ### Running ROMP 
 #### Setup environment variables so that we can run ROMP. 
-1. Load the following modules into environment variables.  
+1. Load the following modules into environment variables. Remember to replace contents in env_setup.sh with your own system settings.
  ```
- module load gcc-7.4.0-gcc-a.b.c-somehash
- module load llvm-openmp-romp-mod-gcc-7.4.0-somehash
- module load glog-0.3.5-gcc-7.4.0-somehash
- module load dyninst-10.1.2-gcc-7.4.0-somehash
+  source ./env_setup.sh
  ```
 It is possible that various verions/variants of dyninst are installed in your system. For example, hpctoolkit requires a variant of dyninst that supports parallel parsing using OpenMP, while ROMP requires a variant of dyninst that turns off this parallel parsing feature. It is important to make sure the correct version/variant of dyninst is used by ROMP. To check this, one can run 
 ```
