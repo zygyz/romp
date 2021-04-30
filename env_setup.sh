@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-module load gcc-10.3.0-gcc-7.4.0-t6c5j3q
-echo 'loaded gcc-10.3.0'
+# Please replace package hashes with the ones on your installation. 
 module load gflags-2.2.2-gcc-10.3.0-svbilh4
 echo 'loaded gflags-2.2.2'
 module load intel-tbb-2020.3-gcc-10.3.0-kpcw75a
