@@ -166,6 +166,13 @@ export ROMP_REPORT=on
 ```
 when enabled, once a data race is found during the program execution, it is reported. Otherwise,
 all report would be generated after the execution of the program
+* (optional) use word level granularity check.
+```
+export ROMP_WORD_LEVEL=on
+```
+when enabled, ROMP performs data race checking at word level granularity. e.g., if a memory access 
+includes x bytes, ROMP checks ceil(x/4) words. 
+
 * run `test.inst` to check data races for program `test`
 
 ### Running DataRaceBench
