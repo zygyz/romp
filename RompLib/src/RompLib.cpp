@@ -2,7 +2,6 @@
 #include <glog/logging.h>
 #include <glog/raw_logging.h>
 #include <limits.h>
-#include <math.h>
 #include <unistd.h>
 
 #include "AccessHistory.h"
@@ -175,7 +174,8 @@ void checkAccess(void* baseAddress,
   curTaskData->exitFrame = allTaskInfo.taskFrame->exit_frame.ptr;
   auto& curLabel = curTaskData->label;
   auto& curLockSet = curTaskData->lockSet;
-  auto memUnitAccessed = gUseWordLevelCheck ? (1 + ((bytesAccessed - 1) / 4)) : bytesAccessed;
+  auto memUnitAccessed = gUseWordLevelCheck ? (1 + ((bytesAccessed - 1) / 4)) : // implementation of ceil(bytesAccessed / 4)
+                         bytesAccessed; 
 
   CheckInfo checkInfo(allTaskInfo,  instnAddr, 
           static_cast<void*>(curTaskData), taskType, isWrite, hwLock, 
