@@ -2,6 +2,7 @@
 #include <glog/logging.h>
 #include <glog/raw_logging.h>
 #include <limits.h>
+#include <math.h>
 #include <unistd.h>
 
 #include "AccessHistory.h"
@@ -132,18 +133,18 @@ ompt_start_tool_result_t* ompt_start_tool(
   return &startToolResult;
 }
 
-void checkAccess(void* address,
+void checkAccess(void* baseAddress,
                  uint32_t bytesAccessed,
                  void* instnAddr,
                  bool hwLock,
                  bool isWrite) {
-  /*
+/*
   RAW_LOG(INFO, "address:%lx bytesAccessed:%u instnAddr: %lx hwLock: %u,"
                 "isWrite: %u", address, bytesAccessed, instnAddr, 
                  hwLock, isWrite);
-                 */
+*/
   if (!gOmptInitialized) {
-    //RAW_LOG(INFO, "ompt not initialized yet");
+  //  RAW_LOG(INFO, "ompt not initialized yet");
     return;
   }
   AllTaskInfo allTaskInfo;
@@ -152,6 +153,9 @@ void checkAccess(void* address,
   int teamSize = -1;
   void* curThreadData = nullptr;
   void* curParRegionData = nullptr;
+  if (bytesAccessed == 0) {
+    return;
+  }
   if (!prepareAllInfo(taskType, teamSize, threadNum, curParRegionData, 
               curThreadData, allTaskInfo)) {
     return;
@@ -161,7 +165,7 @@ void checkAccess(void* address,
     return;
   }
   // query data  
-  auto dataSharingType = analyzeDataSharing(curThreadData, address, 
+  auto dataSharingType = analyzeDataSharing(curThreadData, baseAddress, 
                                            allTaskInfo.taskFrame);
   if (!allTaskInfo.taskData->ptr) {
     RAW_LOG(WARNING, "pointer to current task data is null");
@@ -171,13 +175,16 @@ void checkAccess(void* address,
   curTaskData->exitFrame = allTaskInfo.taskFrame->exit_frame.ptr;
   auto& curLabel = curTaskData->label;
   auto& curLockSet = curTaskData->lockSet;
-  
-  CheckInfo checkInfo(allTaskInfo, bytesAccessed, instnAddr, 
+  auto memUnitAccessed = gUseWordLevelCheck ? (1 + ((bytesAccessed - 1) / 4)) : bytesAccessed;
+
+  CheckInfo checkInfo(allTaskInfo,  instnAddr, 
           static_cast<void*>(curTaskData), taskType, isWrite, hwLock, 
           dataSharingType);
-  for (uint64_t i = 0; i < bytesAccessed; ++i) {
-    auto curAddress = reinterpret_cast<uint64_t>(address) + i;      
+  for (uint64_t i = 0; i < memUnitAccessed; ++i) {
+    auto curAddress = gUseWordLevelCheck ? reinterpret_cast<uint64_t>(baseAddress) + i * 4 :
+                                           reinterpret_cast<uint64_t>(baseAddress) + i;      
     auto accessHistory = shadowMemory.getShadowMemorySlot(curAddress);
+    RAW_LOG(INFO, "baseAddress :%lx curAddress: %lx memUnit: %lu i: %lu", baseAddress, curAddress, memUnitAccessed, i);
     checkInfo.byteAddress = curAddress;
     checkDataRace(accessHistory, curLabel, curLockSet, checkInfo);
   }

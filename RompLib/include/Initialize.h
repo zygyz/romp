@@ -21,6 +21,7 @@ bool gOmptInitialized = false;
 bool gDataRaceFound = false;
 bool gReportLineInfo = false;
 bool gReportAtRuntime = false;
+bool gUseWordLevelCheck = false;
 Dyninst::SymtabAPI::Symtab* gSymtabHandle = nullptr;
 
 McsLock gDataRaceLock;
@@ -52,15 +53,19 @@ int omptInitialize(ompt_function_lookup_t lookup,
                    int initialDeviceNum,
                    ompt_data_t* toolData) {
   LOG(INFO) << "start initializing ompt";
-  auto flag = getenv("ROMP_REPORT_LINE");
-  if (flag != nullptr && std::string(flag) == "on") {
+  auto report_line_flag = getenv("ROMP_REPORT_LINE");
+  if (report_line_flag != nullptr && std::string(report_line_flag) == "on") {
     gReportLineInfo = true;
   }
-  flag = nullptr;
-  flag = getenv("ROMP_REPORT");
-  if (flag != nullptr && std::string(flag) == "on") {
+  auto report_flag = getenv("ROMP_REPORT");
+  if (report_flag != nullptr && std::string(report_flag) == "on") {
     gReportAtRuntime = true;
   }
+  auto word_level_flag = getenv("ROMP_WORD_LEVEL");
+  if (word_level_flag != nullptr && std::string(word_level_flag) == "on") {
+    gUseWordLevelCheck = true;
+  }
+
   auto ompt_set_callback = 
       (ompt_set_callback_t)lookup("ompt_set_callback");
 

@@ -30,7 +30,6 @@ typedef struct DataRaceInfo {
  */
 typedef struct CheckInfo {
   CheckInfo(AllTaskInfo& allTaskInfo, 
-            uint32_t bytesAccessed,
             void* instnAddr,
             void* taskPtr,
             int taskType,
@@ -38,7 +37,6 @@ typedef struct CheckInfo {
             bool hwLock,
             DataSharingType dataSharingType): 
                           allTaskInfo(std::move(allTaskInfo)), 
-                          bytesAccessed(bytesAccessed),
                           instnAddr(instnAddr),
                           taskPtr(taskPtr),
                           taskType(taskType),
@@ -46,7 +44,6 @@ typedef struct CheckInfo {
                           hwLock(hwLock),
                           dataSharingType(dataSharingType){}
   AllTaskInfo allTaskInfo;
-  uint32_t bytesAccessed;
   void* instnAddr;
   void* taskPtr;
   int taskType;
