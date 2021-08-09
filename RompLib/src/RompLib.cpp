@@ -137,13 +137,7 @@ void checkAccess(void* baseAddress,
                  void* instnAddr,
                  bool hwLock,
                  bool isWrite) {
-/*
-  RAW_LOG(INFO, "address:%lx bytesAccessed:%u instnAddr: %lx hwLock: %u,"
-                "isWrite: %u", address, bytesAccessed, instnAddr, 
-                 hwLock, isWrite);
-*/
   if (!gOmptInitialized) {
-  //  RAW_LOG(INFO, "ompt not initialized yet");
     return;
   }
   AllTaskInfo allTaskInfo;
@@ -184,7 +178,6 @@ void checkAccess(void* baseAddress,
     auto curAddress = gUseWordLevelCheck ? reinterpret_cast<uint64_t>(baseAddress) + i * 4 :
                                            reinterpret_cast<uint64_t>(baseAddress) + i;      
     auto accessHistory = shadowMemory.getShadowMemorySlot(curAddress);
-    RAW_LOG(INFO, "baseAddress :%lx curAddress: %lx memUnit: %lu i: %lu", baseAddress, curAddress, memUnitAccessed, i);
     checkInfo.byteAddress = curAddress;
     checkDataRace(accessHistory, curLabel, curLockSet, checkInfo);
   }
