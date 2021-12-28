@@ -737,7 +737,7 @@ void modifyAccessHistory(RecordManagement decision,
   }
 }
 
-bool isDupMemAccess(const CheckInfo& checkInfo) {
+bool isDuplicateMemoryAccess(const CheckInfo& checkInfo) {
   void* threadDataPtr = nullptr;
   if (!queryOmpThreadInfo(threadDataPtr)) {
     RAW_LOG(INFO, "cannot query omp thread info");

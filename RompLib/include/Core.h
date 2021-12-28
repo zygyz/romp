@@ -64,6 +64,6 @@ void modifyAccessHistory(RecordManagement decision,
                          std::vector<Record>* records,
                          std::vector<Record>::iterator& cit);
 
-bool isDupMemAccess(const CheckInfo& checkInfo);
+bool isDuplicateMemoryAccess(const CheckInfo& checkInfo);
 
 }

@@ -46,6 +46,7 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel,
      * to this memory location does not go through data race checking.
      */
     if (!records->empty()) {
+      LOG(INFO) << "clearing records since we have found data race on this access history" << accessHistory;
       records->clear();
     }
     return;
@@ -59,7 +60,7 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel,
      records->clear();
      return;
   }
-  if (isDupMemAccess(checkInfo)) {
+  if (isDuplicateMemoryAccess(checkInfo)) {
     return;
   }
   auto curRecord = Record(checkInfo.isWrite, curLabel, curLockSet, 

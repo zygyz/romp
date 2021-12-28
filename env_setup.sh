@@ -6,8 +6,8 @@ module load intel-tbb-2020.3-gcc-10.3.0-kpcw75a
 echo 'loaded intel-tbb-2020.3'
 module load boost-1.76.0-gcc-10.3.0-6t5io7m
 echo 'loaded boost-1.76.0'
-module load llvm-openmp-romp-mod-gcc-10.3.0-vccvbtz
-echo 'loaded llvm-openmp-romp-mod'
+#module load llvm-openmp-romp-mod-gcc-10.3.0-vccvbtz
+#echo 'loaded llvm-openmp-romp-mod'
 module load dyninst-11.0.0-gcc-10.3.0-sfbg3fy
 echo 'loaded dyninst-11.0.0'
 module load gcc-10.3.0-gcc-7.4.0-t6c5j3q
