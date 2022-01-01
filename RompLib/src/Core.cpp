@@ -284,11 +284,13 @@ bool analyzeOrderedDescendents(Label* histLabel, int startIndex,
   if (nextSegType == eImplicit) {
     // we know that implicit task syncs with its parent task
     return true;
-  } else if (nextSegType == eWorkShare) {
+  } 
+  if (nextSegType == eWorkShare) {
     RAW_LOG(FATAL, "does not expect next segment of workshare seg to be \
            workshare segment"); 
     return false;
-  } else if (nextSegType == eExplicit) {
+  }
+  if (nextSegType == eExplicit) {
     /*
      * Explicit task does not interact with ordered section. i.e., if an
      * explicit task is created inside an ordered section, the finish 
