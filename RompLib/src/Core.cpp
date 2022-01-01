@@ -169,9 +169,9 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex) {
         RAW_CHECK(histOffset < curOffset, "not expecting history access joined \
                 before current access");
         /* 
-         * Any possible descendent tasks of T(histLabel, diffIndex) 
+         * Any possible descendant tasks of T(histLabel, diffIndex) 
          * should have joined with T(histLabel, diffIndex). And they 
-         * should happen before any descendent tasks of T(curLabel, diffIndex)
+         * should happen before any descendant tasks of T(curLabel, diffIndex)
          */
         return true; 
       } else {
@@ -188,7 +188,7 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex) {
  * segments are implicit segment, where offset are different and offset%span 
  * are different. This means the T(histLabel, diffIndex) and 
  * T(curLabel, diffIndex) are two sibling implicit tasks in the same parallel 
- * region. T(histLabel) and T(curLabel) are descendent tasks of 
+ * region. T(histLabel) and T(curLabel) are descendant tasks of 
  * T(histLabel, diffIndex), T(curLabel, diffIndex) respectively.
  *
  * Return true if T(histLabel) -> T(curLabel)
@@ -246,8 +246,6 @@ bool analyzeOrderedSection(Label* histLabel, Label* curLabel, int startIndex) {
     // have not entered the workshare construct yet.
     return false;
   } 
-  auto histWorkShareId = histSegment->getWorkShareId();
-  auto curWorkShareId = curSegment->getWorkShareId(); 
   auto histPhase = histBaseSeg->getPhase();
   auto curPhase = curBaseSeg->getPhase();
   auto histExitRank = computeExitRank(histPhase);
@@ -256,14 +254,14 @@ bool analyzeOrderedSection(Label* histLabel, Label* curLabel, int startIndex) {
     auto histLen = histLabel->getLabelLength();
     auto curLen = curLabel->getLabelLength();
     if (startIndex == histLen - 1) {
-      /* T(histLabel, startIndex) is leaf task, while T(curLabel) is descendent
+      /* T(histLabel, startIndex) is leaf task, while T(curLabel) is descendant
        * task of T(curLabel. startIndex), ordered section has imposed happens
        * before relation in this case
        */
       return true;
     } else {
       /*
-       * T(histLabel) is the descendent task of T(histLabel, startIndex)
+       * T(histLabel) is the descendant task of T(histLabel, startIndex)
        */
       return analyzeOrderedDescendents(histLabel, startIndex, histPhase);
     } 
@@ -297,7 +295,7 @@ bool analyzeOrderedDescendents(Label* histLabel, int startIndex,
      * of ordered section does not sync the explicit task. Here the idea 
      * is that since we have already moved to next iteration of ordered 
      * section, T(histLabel, startIndex+1) is an explicit task, and 
-     * T(histLabel) is its descendent task. If T(histLabel) does sync by
+     * T(histLabel) is its descendant task. If T(histLabel) does sync by
      * the ordered section, there must be some explicit tasking sync 
      * applied (e.g., taskwait, taskgroup).
      */ 
@@ -359,7 +357,7 @@ bool analyzeSyncChain(Label* label, int startIndex) {
     } else if (segType == eExplicit) {
       auto taskGroupLevel = seg->getTaskGroupLevel();    
       if (taskGroupLevel > 0) {
-        // taskgroup guarantees completion of descendents
+        // taskgroup guarantees completion of descendants
         return true;
       } else {
         if (!seg->isTaskwaited()) { 
@@ -379,7 +377,7 @@ bool analyzeSyncChain(Label* label, int startIndex) {
  * segments are implicit segment, explicit task, or single workshare task, where
  * offset are the same. This means that T(histLabel, diffIndex) and 
  * T(curLabel, diffIndex) are the same implicit task, or explicit task, or 
- * single task, denote it as T'. T(histLabel), T(curLabel) are descendent tasks 
+ * single task, denote it as T'. T(histLabel), T(curLabel) are descendant tasks 
  * of T'.
  *
  * Return true if T(histLabel) -> T(curLabel)
@@ -400,7 +398,7 @@ bool analyzeSameTask(Label* histLabel, Label* curLabel, int diffIndex) {
   // T(histLabel, diffIndex) is not leaf task
   if (diffIndex == (lenCurLabel - 1)) {
     /*
-     * T(curLabel, diffIndex) is leaf task, while T(histLabel) is descendent
+     * T(curLabel, diffIndex) is leaf task, while T(histLabel) is descendant
      * task of T(histLabel, diffIndex). We assert that T(histLabel, diffIndex+1)
      * is not implicit task. Because otherwise, T(curLabel, diffIndex) must be
      * the implicit task after join of the parallel region.
@@ -435,7 +433,7 @@ bool analyzeSameTask(Label* histLabel, Label* curLabel, int diffIndex) {
       }
     } else if (histNextType == eWorkShare) {
       /*
-       * T(histLabel, diffIndex + 1) is workshare task. As descendent task, 
+       * T(histLabel, diffIndex + 1) is workshare task. As descendant task, 
        * T(histLabel) is logically concurrent with T(curLabel) even with 
        * ordered section depending on the scheduling of the workshare work.
        * Be careful when histLabel[diffIndex+1] is place holder segment, 
@@ -468,7 +466,7 @@ bool analyzeSameTask(Label* histLabel, Label* curLabel, int diffIndex) {
 /* 
  * This function analyzes case when T(histLabel, diffIndex) and 
  * T(curLabel, diffIndex) are the same implicit task, T'. T(histLabel) and 
- * T(curLabel) are descendent tasks of T'. T(histLabel, diffIndex+1) is 
+ * T(curLabel) are descendant tasks of T'. T(histLabel, diffIndex+1) is 
  * implicit task, T(curLabel, diffIndex + 1) is explicit task. 
  * In this case, we assume that task create count at histLabel[diffIndex] 
  * is smaller than task create count at curLabel[diffIndex]. And 
@@ -495,7 +493,7 @@ bool analyzeNextImpExp(Label* histLabel, Label* curLabel, int diffIndex) {
 /*
  * This function analyzes case when T(histLabel, diffIndex) and 
  * T(curLabel, diffIndex) are the same implicit task, T'. T(histLabel) and
- * T(curLabel) are descendent tasks of T'. T(histLabel, diffIndex+1) is
+ * T(curLabel) are descendant tasks of T'. T(histLabel, diffIndex+1) is
  * implicit task, T(curLabel, diffIndex+1) is workshare task. The workshare
  * task must be created first (If the implicit task is created first, it has
  * to be joined before creating the workshare task, then the offset field in 
@@ -520,7 +518,7 @@ bool analyzeNextImpWork(Label* histLabel, Label* curLabel, int diffIndex) {
 /*
  * This function analyes case when T(histLabel, diffIndex) and 
  * T(curLabel, diffIndex) are the same implicit task, T'. T(histLabel) and 
- * T(curLabel) are descendent tasks of T'. T(histLabel, diffIndex+1) is
+ * T(curLabel) are descendant tasks of T'. T(histLabel, diffIndex+1) is
  * explicit task, T(curLabel, diffIndex+1) is implicit task. For the same
  * reason described in comment of `analyeNextImpWork`, implicit task 
  * T(curLabel, diffIndex+1) must not be created before explicit task
@@ -541,7 +539,7 @@ bool analyzeNextExpImp(Label* histLabel, Label* curLabel, int diffIndex) {
 /*
  * This function analyzes case when T(histLabel, diffIndex) and 
  * T(curLabel, diffIndex) are the same implicit task or single workshare
- * task, T'. T(histLabel) and T(curLabel) are descendent tasks of T'. 
+ * task, T'. T(histLabel) and T(curLabel) are descendant tasks of T'. 
  * T(histLabel, diffIndex+1) is explicit task, T(curLabel, diffIndex+1) is 
  * also explicit task. Check syncrhonization that could affect the 
  * happens-before relation. e.g., taskwait, taskgroup. Note that we treat 
@@ -594,7 +592,7 @@ bool analyzeTaskGroupSync(Label* histLabel, Label* curLabel, int diffIndex) {
 /*
  * This function analyzes case when T(histLabel, diffIndex) and 
  * T(curLabel, diffIndex) are the same implicit task, T'. T(histLabel) and 
- * T(curLabel) are descendent tasks of T'. T(histLabel, diffIndex + 1) is 
+ * T(curLabel) are descendant tasks of T'. T(histLabel, diffIndex + 1) is 
  * explicit task, T(curLabel, diffIndex + 1) is workshare task.
  * The intereseting part is that since T(histLabel, diffIndex+1) is explicit
  * task, T(histLabel) happens before T(curLabel) only when T(histLabel) 
@@ -609,7 +607,7 @@ bool analyzeNextExpWork(Label* histLabel, Label* curLabel, int diffIndex) {
 /*
  * This function analyzes case when T(histLabel, diffIndex) and 
  * T(curLabel, diffIndex) are the same implicit task, T'. T(histLabel) and
- * T(curLabel) are descendent tasks of T'. T(histLabel, diffIndex+1) is
+ * T(curLabel) are descendant tasks of T'. T(histLabel, diffIndex+1) is
  * workshare task, T(curLabel, diffIndex+1) is implicit task. The workshare
  * task must be created first (If the implicit task is created first, it has
  * to be joined before creating the workshare task, then the offset field in 
@@ -617,7 +615,7 @@ bool analyzeNextExpWork(Label* histLabel, Label* curLabel, int diffIndex) {
  * not encounter the implicit barrier because of the nowait clause (If there 
  * is no nowait clause, the implicit barrier would have made the offset field 
  * in histLabel[diffIndex], curLabel[diffIndex] different). 
- * Since T(histLabel) is descendent task of T(histLabel, diffIndex + 1),
+ * Since T(histLabel) is descendant task of T(histLabel, diffIndex + 1),
  * there is no happens before relationship.
  */
 bool analyzeNextWorkImp(Label* histLabel, Label* curLabel, int diffIndex) {
@@ -628,7 +626,7 @@ bool analyzeNextWorkImp(Label* histLabel, Label* curLabel, int diffIndex) {
 /*
  * This function analyzes case when T(histLabel, diffIndex) and 
  * T(curLabel, diffIndex) are the same implicit task, T'. T(histLabel) and 
- * T(curLabel) are descendent tasks of T'. T(histLabel, diffIndex+1) is 
+ * T(curLabel) are descendant tasks of T'. T(histLabel, diffIndex+1) is 
  * workshare task, T(curLabel, diffIndex + 1) is explicit task. 
  * The reasoning is similar to the one in `analyzeNextWorkImp`
  */
@@ -639,7 +637,7 @@ bool analyzeNextWorkExp(Label* histLabel, Label* curLabel, int diffIndex) {
 /*
  * This function analyzes case when T(histLabel, diffIndex) and 
  * T(curLabel, diffIndex) are the same implicit task, T'. T(histLabel) and
- * T(curLabel) are descendent tasks of T'. T(histLabel, diffIndex+1) is
+ * T(curLabel) are descendant tasks of T'. T(histLabel, diffIndex+1) is
  * workshare task, T(curLabel, diffIndex+1) is also workshare task. 
  * If T(histLabel, diffIndex+1) and T(curLabel, diffIndex+1) are in the same
  * workshare construct, curLabel[diffIndex] and histLabel[diffIndex] would
