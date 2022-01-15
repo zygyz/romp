@@ -33,9 +33,6 @@ ompt_get_parallel_info_t omptGetParallelInfo;
 ompt_get_thread_data_t omptGetThreadData;
 ompt_get_task_memory_t omptGetTaskMemory;
 
-/* 
- * Define macro for registering ompt callback functions. 
- */
 #define register_callback_t(name, type)                      \
 do {                                                         \
   type f_##name = &on_##name;                                \
@@ -46,9 +43,6 @@ do {                                                         \
 
 #define register_callback(name) register_callback_t(name, name##_t)
 
-/** 
- *  initialize OMPT interface by registering callback functions
- */
 int omptInitialize(ompt_function_lookup_t lookup,
                    int initialDeviceNum,
                    ompt_data_t* toolData) {
@@ -90,12 +84,10 @@ int omptInitialize(ompt_function_lookup_t lookup,
   omptGetTaskMemory = (ompt_get_task_memory_t)lookup("ompt_get_task_memory"); 
 
   gOmptInitialized = true;
+  LOG(INFO) << "ompt intialized";
   return 1;
 }
 
-/**
- *  release resources and log info upon finalization of tool
- */
 void omptFinalize(ompt_data_t* toolData) {
   LOG(INFO) << "finalizing ompt";
   if (gDataRaceFound) {
