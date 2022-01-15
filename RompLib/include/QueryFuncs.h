@@ -1,6 +1,6 @@
 #pragma once
 #include <cstddef>
-#include <ompt.h>
+#include <omp-tools.h>
 
 /*
  * This header file defines a set of wrapper for ompt query functions.

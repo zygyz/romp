@@ -1,7 +1,7 @@
 #pragma once
 #include <atomic>
 #include <glog/logging.h>
-#include <ompt.h>
+#include <omp-tools.h>
 #include <stdlib.h>
 #include <string>
 #include <Symtab.h>

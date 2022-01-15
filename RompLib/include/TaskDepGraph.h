@@ -1,5 +1,5 @@
 #pragma once
-#include <ompt.h>
+#include <omp-tools.h>
 #include <unordered_map>
 #include <vector>
 

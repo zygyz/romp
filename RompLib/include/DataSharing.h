@@ -1,5 +1,5 @@
 #pragma once
-#include <ompt.h>
+#include <omp-tools.h>
 
 namespace romp {
 
