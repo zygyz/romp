@@ -9,12 +9,16 @@ find_path(GLOG_PATH "glog/logging.h")
 find_path(GFLAGS_PATH "gflags/gflags.h")
 find_path(SYMTAB_PATH "Symtab.h")
 find_path(BOOST_PATH "boost/shared_ptr.h")
+find_path(TBB_PATH "tbb/concurrent_hash_map.h")
+find_path(OMPT_PATH "omp-tools.h")
 find_library(GLOG_LIB glog)
 
 target_include_directories(romp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include 
                            ${GLOG_PATH} 
                            ${GFLAGS_PATH}
                            ${SYMTAB_PATH}
+                           ${OMPT_PATH}
+                           ${TBB_PATH}
                            ${BOOST_PATH})
 
 target_link_libraries(romp ${SYMTABAPI})

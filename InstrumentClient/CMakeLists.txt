@@ -4,11 +4,13 @@ add_executable(InstrumentMain InstrumentMain.cpp
 find_path(GFLAGS_PATH "gflags/gflags.h")  
 find_path(GLOG_PATH  "glog/logging.h")
 find_path(BOOST_PATH "boost/atomic.hpp")
+find_path(TBB_PATH "tbb/concurrent_hash_map.h")
 find_path(BPATCH_PATH "BPatch.h")
 include_directories(${DYNINST_INCLUDE_PATH}
                       ${GFLAGS_PATH}
                       ${BOOST_PATH}
                       ${GLOG_PATH}
+                      ${TBB_PATH}
                       ${BPATCH_PATH})
 find_library(DYNINST_LIB dyninstAPI)
 find_library(INSTRUCTION_LIB instructionAPI)
