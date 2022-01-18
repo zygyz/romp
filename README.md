@@ -116,7 +116,12 @@ export ROMP_PATH=/path/to/romp/install/lib/libromp.so
  
 #### Compile and instrument a program
 * suppose an OpenMP program is `test.cpp`
-1. compile the program so that it links against our llvm-openmp library
+1. compile the program so that it links against the openmp runtime library
+* one can 
+```
+module unload llvm-openmp 
+```
+to unload the default llvm-openmp library and provide a LD_LIBRARY_PATH to their own installation of llvm-openmp library.
 ```
 g++ -g -fopenmp -lomp test.cpp -o test
 ```
