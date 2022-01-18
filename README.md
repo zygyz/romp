@@ -12,17 +12,8 @@ Compiler: gcc supporting c++17
 
 ### Install ROMP
 
-#### Install ROMP using Spack
-**Currently installing ROMP using spack is not maintained. Please install ROMP using CMake. But please follow the steps in this section to install environment module etc.**
-
 1. Install `spack`
-* Checkout my forked branch of `spack`. It contains changes to package.py for `llvm-openmp`, `dyninst`, and 
-the pacakge spec for `romp`:
 
-```
-   git clone https://github.com:zygyz/spack.git
-   git checkout romp-build
-```
 * For the installation of Spack, please refer to the guide in Spack project readme. 
 
 2. Install environment module
@@ -72,30 +63,18 @@ packages:
   all:
     compiler: [gcc@a.b.c]
 ```
-
-4. Install ROMP
-  ```
-  spack install romp@master
-  ```
-
-#### Install ROMP using CMake
-Spack installation of ROMP requires changes to be committed to remote repos. ROMP's cmake files make it possible to build ROMP without using spack. Note that we still use spack to install some dependent libraries.
-
-1. Install and configure `spack`
-* Use the same steps as described above.
-
-2. Install dependent packages
+5. Install dependent packages
 * glog
   ```
   spack install glog 
   ```
 * llvm-openmp
   ```
-  spack install llvm-openmp@romp-mod
+  spack install llvm-openmp
   ```
 * dyninst
   ```
-  spack install dyninst@11.0.0~openmp
+  spack install dyninst@12.0.0~openmp
   ``` 
 3. Setup environment varibales for building ROMP 
 * We need environment variables setting for several dependent packages (gflags, intel-tbb, boost etc.). The exact name for each package can be found using `module avail` command. Please take a look at the env_setup.sh file for your reference. Remember to replace each module load commend with your system's settings in env_setup.sh
