@@ -83,7 +83,6 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex) {
         return false;
     }
   }
-  // `diffIndex` points to the first pair of different label segment
   auto histSegment = histLabel->getKthSegment(diffIndex); 
   auto curSegment = curLabel->getKthSegment(diffIndex);
   uint64_t histOffset, curOffset, histSpan, curSpan; 
@@ -99,10 +98,11 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex) {
             != cur seg type");
     switch(histType) {
       case eImplicit:
-        if (diffIndex == 0) {
-          return true;
-	}
-        return analyzeSameTask(histLabel, curLabel, diffIndex);
+      //  if (diffIndex == 0) {
+      //    return true;
+      //}
+      //  return analyzeSameTask(histLabel, curLabel, diffIndex);
+        return true;
       case eWorkShare:
         if (static_cast<WorkShareSegment*>(histSegment)->isSingleExecutor() && 
             static_cast<WorkShareSegment*>(curSegment)->isSingleExecutor()) { 
@@ -113,24 +113,20 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex) {
       case eExplicit:
         return analyzeSameTask(histLabel, curLabel, diffIndex);
       default:
-        break;
+        RAW_LOG(FATAL, "unexpected segment type: %d", histType);
+        return false;
     }
-    RAW_LOG(FATAL, "unexpected segment type: %d", histType);
-    return false;
-  } else { // left span == right span and span > 1, implicit task
-    if (histOffset != curOffset) { 
-      auto span = histSpan;
-      if (histOffset % span == curOffset % span) {
-        RAW_CHECK(histOffset < curOffset, "not expecting history access joined \
+  } 
+  if (histOffset != curOffset) { 
+    auto span = histSpan;
+    if (histOffset % span == curOffset % span) {
+      RAW_CHECK(histOffset < curOffset, "not expecting history access joined \
                 before current access");
-        return true; 
-      } else {
-        return analyzeSiblingImpTask(histLabel, curLabel, diffIndex);
-      }
-    } else { 
-      return analyzeSameTask(histLabel, curLabel, diffIndex); 
-    }
-  }
+      return true; 
+    } 
+     return analyzeSiblingImpTask(histLabel, curLabel, diffIndex);
+   } 
+   return analyzeSameTask(histLabel, curLabel, diffIndex); 
 }
 
 bool analyzeSiblingImpTask(Label* histLabel, Label* curLabel, int diffIndex) { 
@@ -183,14 +179,13 @@ bool analyzeOrderedSection(Label* histLabel, Label* curLabel, int startIndex) {
     auto curLen = curLabel->getLabelLength();
     if (startIndex == histLen - 1) {
       return true;
-    } else {
-      return analyzeOrderedDescendents(histLabel, startIndex, histPhase);
     } 
+    return analyzeOrderedDescendants(histLabel, startIndex, histPhase);
   }
   return false;
 }
 
-bool analyzeOrderedDescendents(Label* histLabel, int startIndex, 
+bool analyzeOrderedDescendants(Label* histLabel, int startIndex, 
         uint64_t histPhase) {
   auto nextSeg = histLabel->getKthSegment(startIndex + 1);
   auto nextSegType = nextSeg->getType();
@@ -211,7 +206,8 @@ bool analyzeOrderedDescendents(Label* histLabel, int startIndex,
       if (phase % 2 == 0 && nextSeg->isTaskGroupSync() && 
               nextSeg->getTaskGroupPhase() <= histPhase) {
         return true;
-      } else if (phase % 2 == 1) {
+      } 
+      if (phase % 2 == 1) {
         return true;
       } 
     }
@@ -280,78 +276,34 @@ bool analyzeSameTask(Label* histLabel, Label* curLabel, int diffIndex) {
           // construct wrapping T(histLabel,diffIndex + 1) finishes before 
           // T(curLabel, diffIndex)
           return true;
-        } else {
-          return false;
         }
-      } else {
-        // curTaskwait > histTaskwait
-        return analyzeSyncChain(histLabel, diffIndex + 1); 
-      }
-    } else if (histNextType == eWorkShare) {
+        return false;
+      } 
+      return analyzeSyncChain(histLabel, diffIndex + 1); 
+    } 
+    if (histNextType == eWorkShare) {
       if (static_cast<WorkShareSegment*>(histNextSeg)->isPlaceHolder()) {
         return true;
       }
       return false; 
     }
-  } else {
-    // both T(histLabel, diffIndex) and T(curLabel, diffIndex) are not leaf task 
-    auto histNextSeg = histLabel->getKthSegment(diffIndex + 1);
-    auto curNextSeg = curLabel->getKthSegment(diffIndex + 1);
-    auto histNextType = histNextSeg->getType();
-    auto curNextType = curNextSeg->getType();
-    if (histNextType == eImplicit && curNextType == eImplicit) {
-      RAW_LOG(INFO, "analyze same task exception: hist: %s cur: %s diffIndex: %d\n", histLabel->toString().c_str(), 
-		     curLabel->toString().c_str(), diffIndex); 
-    }
-    RAW_CHECK(!(histNextType == eImplicit && curNextType == eImplicit),
+  } 
+  // both T(histLabel, diffIndex) and T(curLabel, diffIndex) are not leaf task 
+  auto histNextSeg = histLabel->getKthSegment(diffIndex + 1);
+  auto curNextSeg = curLabel->getKthSegment(diffIndex + 1);
+  auto histNextType = histNextSeg->getType();
+  auto curNextType = curNextSeg->getType();
+  RAW_CHECK(!(histNextType == eImplicit && curNextType == eImplicit),
             "not expecting next level tasks are sibling implicit tasks");
     // invoke different checking depending on next segment's type 
-    auto checkCase = buildCheckCase(histNextType, curNextType);
-    return dispatchAnalysis(checkCase, histLabel, curLabel, diffIndex);
+  if (histNextType == eExplicit && curNextType == eExplicit || histNextType == eExplicit && curNextType == eWorkShare) {
+    return analyzeExplicitTask(histLabel, curLabel, diffIndex);
   }
   return false;
 }
 
-bool analyzeNextImpExp(Label* histLabel, Label* curLabel, int diffIndex) {
-#ifdef DEBUG_CORE
-  // checking like this is to make sure label segments meet our expectation
-  // it could be eliminated in production 
-  auto histSeg = histLabel->getKthSegment(diffIndex);
-  auto curSeg = curLabel->getKthSegment(diffIndex);
-  auto histTaskcreate = histSeg->getTaskcreate();
-  auto curTaskcreate = curSeg->getTaskcreate();
-  RAW_CHECK(histTaskcreate > curTaskcreate, "unexpecting hist task create \
-         count <= cur task create count");
-#endif
-  return false;
-}
 
-bool analyzeNextImpWork(Label* histLabel, Label* curLabel, int diffIndex) {
-#ifdef DEBUG_CORE
-  auto histSeg = histLabel->getKthSegment(diffIndex);
-  auto curSeg = curLabel->getKthSegment(diffIndex);
-  uint64_t histLoopCnt, curLoopCnt;
-  auto histLoopCnt = histSeg->getLoopCount();
-  auto curLoopCnt = curSeg->getLoopCount();
-  RAW_CHECK(histLoopCnt > curLoopCnt, "unexpecting hist loop count <= cur loop\
-          count");
-#endif
-  return false;
-}
-
-bool analyzeNextExpImp(Label* histLabel, Label* curLabel, int diffIndex) {
-#ifdef DBEUG_CORE
-  auto histSeg = histLabel->getKthSegment(diffIndex);
-  auto curSeg = curLabel->getKthSegment(diffIndex);
-  auto histTaskcreate = histSeg->getTaskcreate();
-  auto curTaskcreate = curSeg->getTaskcreate();
-  RAW_CHECK(curTaskcreate > histTaskcreate, "unexpecting cur task create \
-          count <= hist task create count");
-#endif
-  return false;
-}
-
-bool analyzeNextExpExp(Label* histLabel, Label* curLabel, int diffIndex) {
+bool analyzeExplicitTask(Label* histLabel, Label* curLabel, int diffIndex) {
   // First check if ordered by task group construct   
   if (analyzeTaskGroupSync(histLabel, curLabel, diffIndex)) {
     return true;
@@ -385,22 +337,6 @@ bool analyzeTaskGroupSync(Label* histLabel, Label* curLabel, int diffIndex) {
           curTaskGroupLevel);
 }
 
-bool analyzeNextExpWork(Label* histLabel, Label* curLabel, int diffIndex) {
-  return analyzeNextExpExp(histLabel, curLabel, diffIndex);
-}
-
-bool analyzeNextWorkImp(Label* histLabel, Label* curLabel, int diffIndex) {
-  return false; 
-}
-
-bool analyzeNextWorkExp(Label* histLabel, Label* curLabel, int diffIndex) {
-  return false;  
-}
-
-bool analyzeNextWorkWork(Label* histLabel, Label* curLabel, int diffIndex) {
-  return false;
-}
-
 uint64_t computeExitRank(uint64_t phase) {
   return phase - (phase % 2); 
 }
@@ -411,31 +347,6 @@ uint64_t computeEnterRank(uint64_t phase) {
 
 inline CheckCase buildCheckCase(SegmentType histType, SegmentType curType) {
   return static_cast<CheckCase>(histType | (curType << CASE_SHIFT));
-}
-
-bool dispatchAnalysis(CheckCase checkCase, Label* hist, Label* cur, 
-        int diffIndex) {
-  switch(checkCase) {
-    case eImpImp:
-      RAW_LOG(FATAL, "not expected case: imp-imp");
-    case eImpExp:
-      return analyzeNextImpExp(hist, cur, diffIndex);
-    case eImpWork:
-      return analyzeNextImpWork(hist, cur, diffIndex);
-    case eExpImp:
-      return analyzeNextExpImp(hist, cur, diffIndex);
-    case eExpExp:
-      return analyzeNextExpExp(hist, cur, diffIndex);
-    case eExpWork:
-      return analyzeNextExpWork(hist, cur, diffIndex);
-    case eWorkImp:
-      return analyzeNextWorkImp(hist, cur, diffIndex);
-    case eWorkExp:
-      return analyzeNextWorkExp(hist, cur, diffIndex);
-    case eWorkWork:
-      return analyzeNextWorkWork(hist, cur, diffIndex);
-  }
-  return false;
 }
 
 RecordManagement manageAccessRecord(const Record& histRecord, 
