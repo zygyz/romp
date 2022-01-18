@@ -66,13 +66,6 @@ int Label::getLabelLength() const {
   return _label.size();
 }
 
-/*
- * Given two labels 'left' and 'right', compare corresponding label segments, 
- * find the first position of label segment where two segments differ. Return
- * the index of the position. If 'left' is the prefix of 'right', reutrn -1 
- * (eLeftIsPrefix) If 'right' is the prefix of 'left',return -2 (eRightIsPrefix)
- * If the labels are the same, return -3 (eSame)
- */
 int compareLabels(Label* left, Label* right) {
   auto& leftLabel = left->_label;
   auto& rightLabel = right->_label;  

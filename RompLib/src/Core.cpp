@@ -76,6 +76,7 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex) {
         return true;
       case static_cast<int>(eRightIsPrefix):
 	// current record -> hist record
+	RAW_LOG(FATAL, "current access happens before history access");
         return false;
       default:
         RAW_LOG(FATAL, "unknown label compare result");
