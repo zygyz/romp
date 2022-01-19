@@ -292,22 +292,22 @@ std::shared_ptr<Label> mutateTaskLoopEnd(Label* label) {
  * Depending on the type of workshare construct (iteration/section), create 
  * proper workshare segment.
  */
-std::shared_ptr<Label> mutateWorkShareDispatch(
+std::shared_ptr<Label> mutateLogicalDispatch(
         Label* label, uint64_t id, bool isSection) {
   auto newLabel = std::make_shared<Label>(*label); 
   auto segment = newLabel->popSegment();
-  RAW_DCHECK(segment->getType() == eWorkShare, "not a workshare segment");
+  RAW_DCHECK(segment->getType() == eLogical, "not a workshare segment");
   auto newSegment = std::make_shared<WorkShareSegment>(id, isSection); 
   newLabel->appendSegment(newSegment);   
   return newLabel;
 }
 
 std::shared_ptr<Label> mutateIterDispatch(Label* label, uint64_t id) {
-  return mutateWorkShareDispatch(label, id, false);
+  return mutateLogicalDispatch(label, id, false);
 }
 
 std::shared_ptr<Label> mutateSectionDispatch(Label* label, void* id) {  
-  return mutateWorkShareDispatch(label, reinterpret_cast<uint64_t>(id), true);
+  return mutateLogicalDispatch(label, reinterpret_cast<uint64_t>(id), true);
 }
 
 /*

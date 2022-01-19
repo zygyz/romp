@@ -16,13 +16,13 @@ namespace romp {
 enum CheckCase {
   eImpImp = eImplicit | (eImplicit << CASE_SHIFT),
   eImpExp = eImplicit | (eExplicit << CASE_SHIFT),
-  eImpWork = eImplicit | (eWorkShare << CASE_SHIFT),
+  eImpWork = eImplicit | (eLogical << CASE_SHIFT),
   eExpImp = eExplicit | (eImplicit << CASE_SHIFT),
   eExpExp = eExplicit | (eExplicit << CASE_SHIFT),
-  eExpWork = eExplicit | (eWorkShare<< CASE_SHIFT),
-  eWorkImp = eWorkShare | (eImplicit << CASE_SHIFT),
-  eWorkExp = eWorkShare | (eExplicit << CASE_SHIFT),
-  eWorkWork = eWorkShare | (eWorkShare << CASE_SHIFT),
+  eExpWork = eExplicit | (eLogical<< CASE_SHIFT),
+  eWorkImp = eLogical | (eImplicit << CASE_SHIFT),
+  eWorkExp = eLogical | (eExplicit << CASE_SHIFT),
+  eWorkWork = eLogical | (eLogical << CASE_SHIFT),
 }; 
 
 enum RecordManagement{

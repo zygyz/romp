@@ -8,7 +8,7 @@ namespace romp {
 enum SegmentType {
   eImplicit = 0x1,
   eExplicit = 0x2,
-  eWorkShare = 0x3, 
+  eLogical = 0x3, 
   eError = 0x4,
 };
 
@@ -107,10 +107,10 @@ protected:
  */
 class WorkShareSegment: public BaseSegment {
 public:
-  WorkShareSegment() : _workShareId(0) { setType(eWorkShare); 
+  WorkShareSegment() : _workShareId(0) { setType(eLogical); 
       setOffsetSpan(0, 1); }
   WorkShareSegment(uint64_t id, bool isSection): _workShareId(id) { 
-    setType(eWorkShare); 
+    setType(eLogical); 
     setWorkShareType(isSection);
     setOffsetSpan(0, 1);
   } 

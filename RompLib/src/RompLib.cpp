@@ -110,9 +110,6 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel,
 
 extern "C" {
 
-/** 
- * implement ompt_start_tool which is defined in OpenMP spec 5.0
- */
 ompt_start_tool_result_t* ompt_start_tool(
         unsigned int ompVersion,
         const char* runtimeVersion) {

@@ -252,7 +252,7 @@ SegmentType BaseSegment::getType() const {
     case 0x2:
       return eExplicit;
     case 0x3:
-      return eWorkShare; 
+      return eLogical; 
   }
   RAW_LOG(FATAL, "undefined segment type: %d", mask);
   return eError;

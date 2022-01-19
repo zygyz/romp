@@ -103,7 +103,7 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex) {
       //}
       //  return analyzeSameTask(histLabel, curLabel, diffIndex);
         return true;
-      case eWorkShare:
+      case eLogical:
         if (static_cast<WorkShareSegment*>(histSegment)->isSingleExecutor() && 
             static_cast<WorkShareSegment*>(curSegment)->isSingleExecutor()) { 
           return analyzeSameTask(histLabel, curLabel, diffIndex);
@@ -142,7 +142,7 @@ bool analyzeSiblingImpTask(Label* histLabel, Label* curLabel, int diffIndex) {
   auto curNextSeg = curLabel->getKthSegment(diffIndex + 1);
   auto histNextSegType = histNextSeg->getType();
   auto curNextSegType = curNextSeg->getType();
-  if (histNextSegType == eWorkShare && curNextSegType == eWorkShare) {
+  if (histNextSegType == eLogical && curNextSegType == eLogical) {
     // in this case, it is possible to be ordered with ordered section
     if (static_cast<WorkShareSegment*>(histNextSeg)->isSection() || 
             static_cast<WorkShareSegment*>(curNextSeg)->isSection()) {
@@ -193,7 +193,7 @@ bool analyzeOrderedDescendants(Label* histLabel, int startIndex,
     // we know that implicit task syncs with its parent task
     return true;
   } 
-  if (nextSegType == eWorkShare) {
+  if (nextSegType == eLogical) {
     RAW_LOG(FATAL, "does not expect next segment of workshare seg to be \
            workshare segment"); 
     return false;
@@ -281,7 +281,7 @@ bool analyzeSameTask(Label* histLabel, Label* curLabel, int diffIndex) {
       } 
       return analyzeSyncChain(histLabel, diffIndex + 1); 
     } 
-    if (histNextType == eWorkShare) {
+    if (histNextType == eLogical) {
       if (static_cast<WorkShareSegment*>(histNextSeg)->isPlaceHolder()) {
         return true;
       }
@@ -296,7 +296,7 @@ bool analyzeSameTask(Label* histLabel, Label* curLabel, int diffIndex) {
   RAW_CHECK(!(histNextType == eImplicit && curNextType == eImplicit),
             "not expecting next level tasks are sibling implicit tasks");
     // invoke different checking depending on next segment's type 
-  if (histNextType == eExplicit && curNextType == eExplicit || histNextType == eExplicit && curNextType == eWorkShare) {
+  if (histNextType == eExplicit && curNextType == eExplicit || histNextType == eExplicit && curNextType == eLogical) {
     return analyzeExplicitTask(histLabel, curLabel, diffIndex);
   }
   return false;
