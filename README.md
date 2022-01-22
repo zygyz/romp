@@ -123,12 +123,7 @@ module unload llvm-openmp
 ```
 to unload the default llvm-openmp library and provide a LD_LIBRARY_PATH to their own installation of llvm-openmp library.
 ```
-g++ -g -fopenmp -lomp test.cpp -o test
-```
-* one can `ldd test` to check if `libomp` is our spack installed one, which contains changes to support OMPT callbacks
-* if the linkage is incorrect, e.g., it uses system library, check if the library name mismatches:
-```
-cd `spack location --install-dir llvm-openmp`/lib
+clang++ -g -fopenmp -lomp test.cpp -o test
 ```
 * it is possible that linker wants to find `libomp.so.5` but the spack installed lib only contains `libomp.so`. In this case, create a symlink `libomp.so.5->libomp.so` yourself
 
