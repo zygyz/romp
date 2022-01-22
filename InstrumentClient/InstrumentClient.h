@@ -18,8 +18,8 @@ namespace romp {
               const std::string& programName, 
               const std::string& rompLibPath,
               std::shared_ptr<BPatch> bpatchPtr,
-              const std::string& arch,
-              const std::string& modSuffix);
+              const std::string& architecture,
+              const std::string& moduleSuffix);
       void instrumentMemoryAccess();    
     private:
       std::unique_ptr<BPatch_addressSpace> initInstrumenter(
@@ -40,11 +40,11 @@ namespace romp {
       void finishInstrumentation(
               const std::unique_ptr<BPatch_addressSpace>& addrSpacePtr); 
     private:    
-      std::unique_ptr<BPatch_addressSpace> addrSpacePtr_;
-      std::shared_ptr<BPatch> bpatchPtr_;
-      std::vector<BPatch_function*> checkAccessFuncs_;
-      std::string programName_;
-      std::string arch_;
-      std::string modSuffix_;
+      std::unique_ptr<BPatch_addressSpace> m_addressSpacePtr;
+      std::shared_ptr<BPatch> m_bPatchPtr;
+      std::vector<BPatch_function*> m_checkAccessFunctions;
+      std::string m_programName;
+      std::string m_architecture;
+      std::string m_moduleSuffix;
   };
 }

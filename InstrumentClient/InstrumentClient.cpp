@@ -14,26 +14,26 @@ InstrumentClient::InstrumentClient(
         const string& rompLibPath,
         shared_ptr<BPatch> bpatchPtr,
         const string& arch,
-        const string& modSuffix) : bpatchPtr_(move(bpatchPtr)), 
-                                   programName_(programName),
-                                   arch_(arch),
-                                   modSuffix_(modSuffix) {
-  addrSpacePtr_ = initInstrumenter(programName, rompLibPath);
-  checkAccessFuncs_ = getCheckAccessFuncs(addrSpacePtr_);
-  if (checkAccessFuncs_.size() == 0)  {
-      LOG(FATAL) << "error empty checkAccessFuncs_ vector";
+        const string& modSuffix) : m_bPatchPtr(move(bpatchPtr)), 
+                                   m_programName(programName),
+                                   m_architecture(arch),
+                                   m_moduleSuffix(modSuffix) {
+  m_addressSpacePtr = initInstrumenter(programName, rompLibPath);
+  m_checkAccessFunctions = getCheckAccessFuncs(m_addressSpacePtr);
+  if (m_checkAccessFunctions.size() == 0)  {
+      LOG(FATAL) << "error empty m_checkAccessFunctions vector";
   }
-  if (!checkAccessFuncs_[0]) {
-      LOG(FATAL) << "error empty first checkAccessFuncs_ element";
+  if (!m_checkAccessFunctions[0]) {
+      LOG(FATAL) << "error empty first m_checkAccessFunctions element";
   }
-  LOG(INFO) << "InstrumentClient initialized with arch: " << arch_;
+  LOG(INFO) << "InstrumentClient initialized with arch: " << m_architecture;
 }
 
 unique_ptr<BPatch_addressSpace> 
 InstrumentClient::initInstrumenter(
         const string& programName,
         const string& rompLibPath) {
-  auto handle = bpatchPtr_->openBinary(programName.c_str(), true);
+  auto handle = m_bPatchPtr->openBinary(programName.c_str(), true);
   if (!handle) {
     LOG(FATAL) << "cannot open binary: " << programName;    
   }
@@ -108,9 +108,9 @@ InstrumentClient::getFunctionsVector(
  */
 void
 InstrumentClient::instrumentMemoryAccess() {  
-  auto functions = getFunctionsVector(addrSpacePtr_);
-  instrumentMemoryAccessInternal(addrSpacePtr_, functions);
-  finishInstrumentation(addrSpacePtr_);
+  auto functions = getFunctionsVector(m_addressSpacePtr);
+  instrumentMemoryAccessInternal(m_addressSpacePtr, functions);
+  finishInstrumentation(m_addressSpacePtr);
 }
 
 /*
@@ -202,7 +202,7 @@ InstrumentClient::insertSnippet(
     }
     auto instructionAddress = point->getAddress();         
     auto instruction = point->getInsnAtPoint();
-    auto hardWareLock = hasHardwareLock(instruction, arch_);
+    auto hardWareLock = hasHardwareLock(instruction, m_architecture);
 
     vector<BPatch_snippet*> funcArgs;
     // memory address 
@@ -215,7 +215,7 @@ InstrumentClient::insertSnippet(
     funcArgs.push_back(new BPatch_constExpr(hardWareLock));
     // is write access or not
     funcArgs.push_back(new BPatch_constExpr(isWrite));
-    BPatch_funcCallExpr checkAccessCall(*(checkAccessFuncs_[0]), funcArgs);
+    BPatch_funcCallExpr checkAccessCall(*(m_checkAccessFunctions[0]), funcArgs);
     if (!addrSpacePtr->insertSnippet(
                 checkAccessCall, *point, BPatch_callBefore)) {
         LOG(FATAL) << "snippet insertion failed";
@@ -237,10 +237,10 @@ InstrumentClient::finishInstrumentation(
         LOG(WARNING) << "continue exeuction failed";
     }
     while (!appProc->isTerminated()) {
-      bpatchPtr_->waitForStatusChange();
+      m_bPatchPtr->waitForStatusChange();
     }
   } else if (appBin) {
-    if (!appBin->writeFile((programName_ + modSuffix_).c_str())) {
+    if (!appBin->writeFile((m_programName + m_moduleSuffix).c_str())) {
       LOG(FATAL) << "failed to write instrumented binary to file";
     }
   } 
