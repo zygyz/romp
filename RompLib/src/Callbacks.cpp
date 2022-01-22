@@ -37,13 +37,11 @@ void on_ompt_callback_implicit_task(
   } 
   auto taskDataPtr = static_cast<TaskData*>(taskData->ptr);
   if (actualParallelism == 0 && index != 0) {
-    /* 
-     * Parallelism is 0 means that it is end of task, index != 0 means
-     * that it is not the master thread, simply release the memory and
-     * return. implicit-task-end and initial-task-end events.
-     * We have to do it here before getting parent task because somehow 
-     * the runtime library won't be able to get parent task for this case.
-    */
+    // Parallelism is 0 means that it is end of task, index != 0 means
+    // that it is not the master thread, simply release the memory and
+    // return. implicit-task-end and initial-task-end events.
+    // We have to do it here before getting parent task because somehow 
+    // the runtime library won't be able to get parent task for this case.
     if (!taskDataPtr) {
       RAW_LOG(FATAL, "task data pointer is null");
     }
@@ -71,13 +69,11 @@ void on_ompt_callback_implicit_task(
     RAW_DLOG(INFO, "%p label is: %p", newTaskDataPtr, newTaskDataPtr->label.get());
     taskData->ptr = static_cast<void*>(newTaskDataPtr);
   } else if (endPoint == ompt_scope_end) {
-    /* 
-     * End of the current implicit task, modify parent task's label
-     * only one worker thread with index 0 is responsible for mutating
-     * the parent task label. The mutated label should be created separately
-     * because access history referred to labels by pointer.
-     * At this point, only one implicit task should reach here.
-     */
+    // End of the current implicit task, modify parent task's label
+    // only one worker thread with index 0 is responsible for mutating
+    // the parent task label. The mutated label should be created separately
+    // because access history referred to labels by pointer.
+    // At this point, only one implicit task should reach here.
     if (!taskDataPtr) { 
       RAW_LOG(FATAL, "task data pointer is null");
     }
@@ -439,11 +435,9 @@ void on_ompt_callback_task_create(
   auto taskData = new TaskData();
   incrementLabelId();
   if (flags == ompt_task_initial) {
-    /*
-     * In recent diff (merged from https://reviews.llvm.org/D68615),initial task
-     * creation ompt callback is moved to ompt_callback_implicit_task. The code 
-     * here is not executed. We leave the code here for backward compatibility.
-     */
+    // In recent diff (merged from https://reviews.llvm.org/D68615),initial task
+    // creation ompt callback is moved to ompt_callback_implicit_task. The code 
+    // here is not executed. We leave the code here for backward compatibility.
     RAW_DLOG(INFO, "generating initial task: %lx", taskData);
     auto newTaskLabel = genInitTaskLabel();
     taskData->label = std::move(newTaskLabel);
