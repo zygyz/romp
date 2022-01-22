@@ -93,9 +93,6 @@ void on_ompt_callback_implicit_task(
 }
 
 
-/* 
- * Helper function for getting the phase value of the last label segment.
- */
 inline Segment* getLastSegment(Label* label) {
   auto lenLabel = label->getLabelLength();
   return label->getKthSegment(lenLabel - 1);
@@ -170,6 +167,7 @@ void on_ompt_callback_sync_region(
   if (endPoint == ompt_scope_begin) {
     switch(kind) {
       case ompt_sync_region_reduction:
+        RAW_LOG(INFO, "reduction begin sync region");
         taskDataPtr->inReduction = true;
         break;
       case ompt_sync_region_taskgroup:
@@ -196,6 +194,7 @@ void on_ompt_callback_sync_region(
         mutatedLabel = mutateBarrierEnd(labelPtr);
         break;
       case ompt_sync_region_reduction:
+        RAW_LOG(INFO, "reduction end sync region");
         taskDataPtr->inReduction = false;
         break;
       default:
@@ -272,9 +271,6 @@ void on_ompt_callback_mutex_released(
   }
 }
 
-/*
- * Create a mutated label upon entering/exiting workshare loop construct
- */
 inline std::shared_ptr<Label> handleOmpWorkLoop(
                              ompt_scope_endpoint_t endPoint, 
                              const std::shared_ptr<Label>& label) {
@@ -288,10 +284,6 @@ inline std::shared_ptr<Label> handleOmpWorkLoop(
   return mutatedLabel;
 }
 
-/*
- * Create a mutated label label upon entering/exiting workshare 
- * section construct
- */
 inline std::shared_ptr<Label> handleOmpWorkSections(
         ompt_scope_endpoint_t endPoint, 
         const std::shared_ptr<Label>& label,
@@ -349,31 +341,17 @@ inline std::shared_ptr<Label> handleOmpWorkDistribute(
   return nullptr;
 }
 
-/*
- * Taskloop is another worksharing construct that is like the worksharing
- * for-loop. The difference is that taskloop construct creates explicit 
- * tasks to execute the logical iterations in the loops.  
- */
 inline std::shared_ptr<Label> handleOmpWorkTaskLoop(
         ompt_scope_endpoint_t endPoint, 
         const std::shared_ptr<Label>& label, 
         uint64_t count) {
   // TODO: determine label mutation rule for taskloop begin
-  RAW_LOG(INFO, "task loop %lu", count);
-  /*
-  std::shared_ptr<Label> mutatedLabel = nullptr;
-  if (endPoint == ompt_scope_begin) {
-    mutatedLabel = mutateTaskLoopBegin(label);
-  } else if (endPoint == ompt_scope_end) {
-    mutatedLabel = mutateTaskLoopEnd(label);
-  }
-  return mutatedLabel;
-  */
+  RAW_LOG(FATAL, "task loop is not supported yet", count);
   return nullptr;
 }
 
 void on_ompt_callback_work(
-      ompt_work_t wsType,
+      ompt_work_t workType,
       ompt_scope_endpoint_t endPoint,
       ompt_data_t *parallelData,
       ompt_data_t *taskData,
@@ -387,7 +365,7 @@ void on_ompt_callback_work(
   auto taskDataPtr = static_cast<TaskData*>(taskData->ptr);
   auto label = taskDataPtr->label;
   std::shared_ptr<Label> mutatedLabel = nullptr;
-  switch(wsType) {
+  switch(workType) {
     case ompt_work_loop: 
       RAW_DLOG(INFO, "ompt_work_loop");
       mutatedLabel = handleOmpWorkLoop(endPoint, label);
@@ -641,18 +619,16 @@ void on_ompt_callback_dispatch(
   auto taskDataPtr = static_cast<TaskData*>(taskData->ptr);
   auto parentLabel = (taskDataPtr->label).get();
   std::shared_ptr<Label> mutatedLabel = nullptr;
-  if (kind == ompt_dispatch_iteration) {
-    mutatedLabel = mutateIterDispatch(parentLabel, instance.value);
-  } else if (kind == ompt_dispatch_section) {
-    mutatedLabel = mutateSectionDispatch(parentLabel, instance.ptr);
-  }
+  switch(kind) {
+    case ompt_dispatch_iteration:
+      mutatedLabel = mutateIterDispatch(parentLabel, instance.value);
+      break;
+   case ompt_dispatch_section:
+      mutatedLabel = mutateSectionDispatch(parentLabel, instance.ptr);
+      break; 
   taskDataPtr->label = std::move(mutatedLabel);
 }
 
-/*
- * Note: this callback is merged into on_ompt_callback_sync_region in 
- * latest version of openmp spec. We keep this for backward compatibility.
- */
 void on_ompt_callback_reduction(
        ompt_sync_region_t kind,
        ompt_scope_endpoint_t endPoint,
@@ -665,12 +641,12 @@ void on_ompt_callback_reduction(
   }  
   incrementLabelId();
   auto taskDataPtr = static_cast<TaskData*>(taskData->ptr);
-  if (endPoint == ompt_scope_begin) {
-    taskDataPtr->inReduction = true;
-  } else if (endPoint == ompt_scope_end) {
-    taskDataPtr->inReduction = false;
+  switch(endPoint) {
+    case ompt_scope_begin:
+      taskDataPtr->inReduction = true;
+      break;
+    case ompt_scope_end:
+      taskDataPtr->inReduction = false;
   }
 }
-
-
 }

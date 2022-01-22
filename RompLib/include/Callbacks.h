@@ -2,11 +2,6 @@
 #include <omp-tools.h>
 
 namespace romp {
-/*
- * ompt callback functions declarations and util functions used 
- * in the callbacks.
- * The function name for callbacks are fixed by openmp rtl.
- */
 
 void on_ompt_callback_implicit_task(
         ompt_scope_endpoint_t endPoint,
@@ -23,7 +18,6 @@ void on_ompt_callback_sync_region(
         ompt_data_t *taskData,
         const void* codePtrRa); 
 
-// has signature of ompt_callback_mutex_t
 void on_ompt_callback_mutex_acquired(
         ompt_mutex_t kind,
         ompt_wait_id_t waitId,
@@ -87,10 +81,6 @@ void on_ompt_callback_dispatch(
        ompt_dispatch_t kind,
        ompt_data_t instance);
 
-/* 
- * on_ompt_callback_reduction has the type signature ompt_callback_sync_region_t
- * warning: this callback is merged into ompt_callback_sync_region_t 
- */
 void on_ompt_callback_reduction(
        ompt_sync_region_t kind,
        ompt_scope_endpoint_t endPoint,
