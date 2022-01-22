@@ -621,6 +621,7 @@ void on_ompt_callback_dispatch(
       mutatedLabel = mutateSectionDispatch(parentLabel, instance.ptr);
       break; 
   taskDataPtr->label = std::move(mutatedLabel);
+ }
 }
 
 void on_ompt_callback_reduction(
