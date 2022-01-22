@@ -104,12 +104,6 @@ spack spec -l hpctoolkit
 export DYNINSTAPI_RT_LIB=`spack location --install-dir dyninst/jmaisrn`/lib/libdyninstAPI_RT.so
 ```
 ROMP's instrumentation client needs to know where ROMP library is located. This is done by setting environment variable ROMP_PATH. Depending on the ROMP installation method:
-* If ROMP is installed using spack:
-```
-export ROMP_PATH=`spack location --install-dir romp`/lib/libromp.so
-```
-* If ROMP is installed using cmake:
-
 ```
 export ROMP_PATH=/path/to/romp/install/lib/libromp.so
 ```
