@@ -2,7 +2,7 @@
 #include <omp-tools.h>
 
 #include "McsLock.h"
-#include "TaskDepGraph.h"
+#include "TaskDependenceGraph.h"
 
 namespace romp {
 
@@ -18,7 +18,7 @@ typedef struct ParRegionData {
     expTaskCount = 0;
     mcsInit(&lock);
   } 
-  TaskDepGraph taskDepGraph;
+  TaskDependenceGraph taskDepGraph;
 } ParRegionData;
 
 void maintainTaskDeps(const ompt_dependence_t& dependence, 

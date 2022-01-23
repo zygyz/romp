@@ -3,8 +3,8 @@
 #include <glog/logging.h>
 #include <glog/raw_logging.h>
 
-#include "ParRegionData.h"
-#include "QueryFuncs.h"
+#include "ParallelRegionData.h"
+#include "TaskInfoQuery.h"
 #include "ThreadData.h"
 
 namespace romp {
@@ -27,6 +27,7 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord,
     return false;
   }
   if (!isHistBeforeCur) {
+    RAW_LOG(INFO, "no happens before relation histLabel: %s curLabel: %s", histLabel->toString().c_str(), curLabel->toString().c_str()); 
     // further check explicit task dependence if current task and history task 
     // are both explicit tasks. If no task dependence, return true
     auto histTaskData = static_cast<TaskData*>(histRecord.getTaskPtr()); 
@@ -62,7 +63,7 @@ bool analyzeMutualExclusion(const Record& histRecord, const Record& curRecord) {
     return false;
   }
   return histLockSet->hasCommonLock(*curLockSet) || 
-           (histRecord.hasHwLock() && curRecord.hasHwLock());
+           (histRecord.hasHardwareLock() && curRecord.hasHardwareLock());
 }
 
 

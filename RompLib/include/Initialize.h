@@ -9,7 +9,7 @@
 #include "Callbacks.h"
 #include "CoreUtil.h"
 #include "McsLock.h"
-#include "QueryFuncs.h"
+#include "TaskInfoQuery.h"
 
 /* 
  * This header file defines functions that are used 

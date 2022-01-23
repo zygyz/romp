@@ -3,7 +3,7 @@
 #include <Symtab.h>
 
 #include "DataSharing.h"
-#include "QueryFuncs.h"
+#include "TaskInfoQuery.h"
 /*
  * This header files defines a set of functions used in romp that are not 
  * closely related to the core data race detection algorithm. For example, 

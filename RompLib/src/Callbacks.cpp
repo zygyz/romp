@@ -7,8 +7,8 @@
 #include "CoreUtil.h"
 #include "DataSharing.h"
 #include "Label.h"
-#include "ParRegionData.h"
-#include "QueryFuncs.h"
+#include "ParallelRegionData.h"
+#include "TaskInfoQuery.h"
 #include "ShadowMemory.h"
 #include "TaskData.h"
 #include "ThreadData.h"
@@ -432,46 +432,40 @@ void on_ompt_callback_task_create(
         int flags,
         int hasDependences,
         const void *codePtrRa) {
-  auto taskData = new TaskData();
   incrementLabelId();
-  if (flags == ompt_task_initial) {
-    // In recent diff (merged from https://reviews.llvm.org/D68615),initial task
-    // creation ompt callback is moved to ompt_callback_implicit_task. The code 
-    // here is not executed. We leave the code here for backward compatibility.
-    RAW_DLOG(INFO, "generating initial task: %lx", taskData);
-    auto newTaskLabel = genInitTaskLabel();
-    taskData->label = std::move(newTaskLabel);
-  } else if (flags == ompt_task_explicit) {
-    // create label for explicit task
-    auto parentTaskData = static_cast<TaskData*>(encounteringTaskData->ptr);
-    if (!parentTaskData || !parentTaskData->label) {
-      RAW_LOG(FATAL, "cannot get parent task label");
+  switch(flags) {
+    case ompt_task_target:
+      RAW_LOG(FATAL, "ompt_task_target is not supported yet");
       return;
-    }
-    auto parentLabel = (parentTaskData->label).get();
-    auto newTaskLabel = genExpTaskLabel(parentLabel);
-    taskData->label = std::move(newTaskLabel);
-    taskData->isExplicitTask = true; // mark current task as explicit task
-    auto mutatedParentLabel = mutateParentTaskCreate(parentLabel); 
-    parentTaskData->label = std::move(mutatedParentLabel);
-    parentTaskData->childExpTaskData.push_back(static_cast<void*>(taskData));
-    // get parallel region info, atomic fetch and add the explicit task id
-    auto teamSize = 0;
-    void* parallelDataPtr = nullptr;   
-    if (!queryParallelInfo(0, teamSize, parallelDataPtr)) {
-      RAW_LOG(WARNING, "cannot get parallel region data");
-    } else {
+    case ompt_task_explicit:
+      // create label for explicit task
+      auto parentTaskData = static_cast<TaskData*>(encounteringTaskData->ptr);
+      if (!parentTaskData || !parentTaskData->label) {
+        RAW_LOG(FATAL, "cannot get parent task label");
+        return;
+      }
+      auto taskData = new TaskData();
+      auto parentLabel = (parentTaskData->label).get();
+      auto newTaskLabel = genExpTaskLabel(parentLabel);
+      taskData->label = std::move(newTaskLabel);
+      taskData->isExplicitTask = true; // mark current task as explicit task
+      auto mutatedParentLabel = mutateParentTaskCreate(parentLabel); 
+      parentTaskData->label = std::move(mutatedParentLabel);
+      parentTaskData->childExpTaskData.push_back(static_cast<void*>(taskData));
+      // get parallel region info, atomic fetch and add the explicit task id
+      auto teamSize = 0;
+      void* parallelDataPtr = nullptr;   
+      const auto querySuccess = queryParallelInfo(0, teamSize, parallelDataPtr);
+      if (!querySuccess) {
+        RAW_LOG(FATAL, "cannot get parallel region data");
+        return;
+      }
       auto parallelData = static_cast<ParRegionData*>(parallelDataPtr);
-      auto taskId = parallelData->expTaskCount.fetch_add(1, 
-		      std::memory_order_relaxed);
-      RAW_DLOG(INFO, "explicit task create, local id: %d", taskId);
+      auto taskId = parallelData->expTaskCount.fetch_add(1,std::memory_order_relaxed);
+        RAW_DLOG(INFO, "explicit task create, local id: %d", taskId);
       taskData->expLocalId = taskId;        
-    }	    
-  } else if (flags == ompt_task_target) {
-    // TODO: prepare the task data pointer for target 
-    RAW_LOG(FATAL, "ompt_task_target not implemented yet");
-  }
-  newTaskData->ptr = static_cast<void*>(taskData);
+      newTaskData->ptr = static_cast<void*>(taskData);
+   }
 }
 
 /*

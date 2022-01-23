@@ -81,11 +81,11 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel,
         if (gReportLineInfo) {
           McsNode node;	
           LockGuard recordGuard(&gDataRaceLock, &node);
-          gDataRaceRecords.push_back(DataRaceInfo(histRecord.getInstnAddr(),
-                                                  curRecord.getInstnAddr(),
+          gDataRaceRecords.push_back(DataRaceInfo(histRecord.getInstructionAddress(),
+                                                  curRecord.getInstructionAddress(),
                                                   checkInfo.byteAddress));
         } else if (gReportAtRuntime) {
-          reportDataRace(histRecord.getInstnAddr(), curRecord.getInstnAddr(),
+          reportDataRace(histRecord.getInstructionAddress(), curRecord.getInstructionAddress(),
                          checkInfo.byteAddress);
         }
         accessHistory->setFlag(eDataRaceFound);  

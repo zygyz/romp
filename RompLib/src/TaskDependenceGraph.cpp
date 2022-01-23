@@ -1,4 +1,4 @@
-#include "TaskDepGraph.h"
+#include "TaskDependenceGraph.h"
 
 #include <glog/logging.h>
 #include <glog/raw_logging.h>
@@ -24,7 +24,7 @@ namespace romp {
  *       'inout', add an edge from that task to current task; for any task 
  *       dependence type 'mutexinoutset', form a pair of mutual exclusion task
  */
-void TaskDepGraph::addDeps(const ompt_dependence_t& deps,  void* taskPtr) {
+void TaskDependenceGraph::addDeps(const ompt_dependence_t& deps,  void* taskPtr) {
   // dependence variable is stored in ptr field
   auto variable = deps.variable.ptr; 
   auto depType = deps.dependence_type;
@@ -34,10 +34,9 @@ void TaskDepGraph::addDeps(const ompt_dependence_t& deps,  void* taskPtr) {
     return;
   }
   if (depType == ompt_dependence_type_mutexinoutset) {
-    /* Note this dependence type is not currently included in the omp library
-     * so this flag is literally not set. We still implement this for being
-     * future proof.
-     */
+    // Note this dependence type is not currently included in the omp library
+    // so this flag is not set. We still implement this for being
+    // future proof.
     auto taskData = static_cast<TaskData*>(taskPtr);
     taskData->isMutexTask = true;
   }
@@ -85,7 +84,7 @@ void TaskDepGraph::addDeps(const ompt_dependence_t& deps,  void* taskPtr) {
   } 
 }
 
-void TaskDepGraph::addEdge(void* from, void* to) {
+void TaskDependenceGraph::addEdge(void* from, void* to) {
   if (_graph.find(from) == _graph.end()) {
     std::vector<void*> nodes;
     nodes.push_back(to);
@@ -98,7 +97,7 @@ void TaskDepGraph::addEdge(void* from, void* to) {
 /*
  * Use dfs to find directed path. We assume the graph is DAG.
  */
-bool TaskDepGraph::hasPath(void* from, void* to) {
+bool TaskDependenceGraph::hasPath(void* from, void* to) {
   std::unordered_map<void*, bool> visited;  
   if (_graph.find(from) == _graph.end()) {
     return false;	

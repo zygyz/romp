@@ -6,7 +6,7 @@
 
 #include "AccessHistory.h"
 #include "CoreUtil.h"
-#include "QueryFuncs.h"
+#include "TaskInfoQuery.h"
 #include "ShadowMemory.h"
 #include "TaskData.h"
 #include "ThreadData.h"
