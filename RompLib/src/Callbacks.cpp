@@ -101,14 +101,14 @@ inline Segment* getLastSegment(Label* label) {
 void markExpChildSyncTaskwait(TaskData* taskData, Label* curLabel) {
   auto seg = getLastSegment(curLabel);
   auto phase = seg->getPhase();
-  for (const auto& child : taskData->childExpTaskData) {
+  for (const auto& child : taskData->childrenExplicitTasksData) {
     auto childTaskData = static_cast<const TaskData*>(child); 
     auto lenLabel = childTaskData->label->getLabelLength(); 
     auto lastSeg = childTaskData->label->getKthSegment(lenLabel - 1);
     lastSeg->setTaskwaited();
     lastSeg->setTaskwaitPhase(phase);
   }
-  taskData->childExpTaskData.clear(); // clear the children after taskwait
+  taskData->childrenExplicitTasksData.clear(); // clear the children after taskwait
 }
 
 /*
@@ -120,9 +120,9 @@ void markExpChildSyncTaskGroupEnd(TaskData* taskData, Label* curLabel) {
   auto phase = seg->getPhase();
   auto taskGroupLevel = seg->getTaskGroupLevel();
   auto taskGroupId = seg->getTaskGroupId(); 
-  auto it = taskData->childExpTaskData.begin();
+  auto it = taskData->childrenExplicitTasksData.begin();
   auto lenParentLabel = curLabel->getLabelLength();
-  while (it != taskData->childExpTaskData.end()) {
+  while (it != taskData->childrenExplicitTasksData.end()) {
     auto childTaskData = static_cast<TaskData*>(*it);
     auto childLabel = childTaskData->label;
     auto lenChildLabel = childLabel->getLabelLength();
@@ -136,7 +136,7 @@ void markExpChildSyncTaskGroupEnd(TaskData* taskData, Label* curLabel) {
       if (childTaskGroupId == taskGroupId) {
         auto mutatedChildLabel = mutateTaskGroupSyncChild(childLabel.get());
         childTaskData->label = std::move(mutatedChildLabel);
-        it = taskData->childExpTaskData.erase(it);
+        it = taskData->childrenExplicitTasksData.erase(it);
       } else {
         it++;
       }
@@ -438,6 +438,7 @@ void on_ompt_callback_task_create(
       RAW_LOG(FATAL, "ompt_task_target is not supported yet");
       return;
     case ompt_task_explicit:
+      RAW_LOG(INFO, "task create callback");
       // create label for explicit task
       auto parentTaskData = static_cast<TaskData*>(encounteringTaskData->ptr);
       if (!parentTaskData || !parentTaskData->label) {
@@ -451,7 +452,7 @@ void on_ompt_callback_task_create(
       taskData->isExplicitTask = true; // mark current task as explicit task
       auto mutatedParentLabel = mutateParentTaskCreate(parentLabel); 
       parentTaskData->label = std::move(mutatedParentLabel);
-      parentTaskData->childExpTaskData.push_back(static_cast<void*>(taskData));
+      parentTaskData->childrenExplicitTasksData.push_back(static_cast<void*>(taskData));
       // get parallel region info, atomic fetch and add the explicit task id
       auto teamSize = 0;
       void* parallelDataPtr = nullptr;   
