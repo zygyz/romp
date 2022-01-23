@@ -38,13 +38,11 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel,
   }
   auto records = accessHistory->getRecords();
   if (accessHistory->dataRaceFound()) {
-    /* 
-     * data race has already been found on this memory location, romp only 
-     * reports one data race on any memory location in one run. Once the data 
-     * race is reported, romp clears the access history with respect to this
-     * memory location and mark this memory location as found. Future access 
-     * to this memory location does not go through data race checking.
-     */
+    //  data race has already been found on this memory location, romp only 
+    //  reports one data race on any memory location in one run. Once the data 
+    //  race is reported, romp clears the access history with respect to this
+    //  memory location and mark this memory location as found. Future access 
+    //  to this memory location does not go through data race checking.
     if (!records->empty()) {
       LOG(INFO) << "clearing records since we have found data race on this access history" << accessHistory;
       records->clear();
@@ -52,10 +50,8 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel,
     return;
   }
   if (accessHistory->memIsRecycled()) {
-    /*
-     * The memory slot is recycled because of the end of explicit task. 
-     * reset the memory state flag and clear the access records.
-     */
+    //  The memory slot is recycled because of the end of explicit task. 
+    //  reset the memory state flag and clear the access records.
      accessHistory->clearFlags();
      records->clear();
      return;
