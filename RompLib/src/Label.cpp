@@ -87,7 +87,7 @@ int compareLabels(Label* left, Label* right) {
   return static_cast<int>(eRightIsPrefix);
 }
 
-std::shared_ptr<Label> genImpTaskLabel(
+std::shared_ptr<Label> generateImplicitTaskLabel(
                            Label* parentLabel,
                            unsigned int index,
                            unsigned int actualParallelism) {
@@ -101,7 +101,7 @@ std::shared_ptr<Label> genImpTaskLabel(
   return newLabel;
 }
 
-std::shared_ptr<Label> genInitTaskLabel() {
+std::shared_ptr<Label> generateInitialTaskLabel() {
   auto label = std::make_shared<Label>();
   auto segment = std::make_shared<BaseSegment>(eImplicit, 0, 1);
   label->appendSegment(segment);
@@ -111,7 +111,7 @@ std::shared_ptr<Label> genInitTaskLabel() {
 /*
  * Given the parent task label, generate the label for the explicit task.
  */
-std::shared_ptr<Label> genExpTaskLabel(Label* parentLabel) {
+std::shared_ptr<Label> generateExplicitTaskLabel(Label* parentLabel) {
   auto newLabel = std::make_shared<Label>(*parentLabel);
   auto segment = std::make_shared<BaseSegment>(eExplicit, 0, 1); 
   newLabel->appendSegment(segment);

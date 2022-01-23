@@ -30,7 +30,7 @@ void on_ompt_callback_implicit_task(
   if (flags == ompt_task_initial) {
     RAW_DLOG(INFO, "generating initial task: %lx", taskData);
     auto initTaskData = new TaskData();
-    auto newTaskLabel = genInitTaskLabel();
+    auto newTaskLabel = generateInitialTaskLabel();
     initTaskData->label = std::move(newTaskLabel);
     taskData->ptr = static_cast<void*>(initTaskData);
     return;
@@ -43,7 +43,7 @@ void on_ompt_callback_implicit_task(
     // We have to do it here before getting parent task because somehow 
     // the runtime library won't be able to get parent task for this case.
     if (!taskDataPtr) {
-      RAW_LOG(FATAL, "task data pointer is null");
+      RAW_LOG(FATAL, "on_ompt_callback_implicit_task task data pointer is null");
     }
     delete taskDataPtr; 
     taskData->ptr = nullptr;
@@ -58,7 +58,7 @@ void on_ompt_callback_implicit_task(
   auto parentTaskData = static_cast<TaskData*>(parentDataPtr);
   if (endPoint == ompt_scope_begin) {
     // begin of implcit task, create the label for this new task
-    auto newTaskLabel = genImpTaskLabel((parentTaskData->label).get(), index, 
+    auto newTaskLabel = generateImplicitTaskLabel((parentTaskData->label).get(), index, 
             actualParallelism); 
     // return value optimization should avoid the ref count mod
     auto newTaskDataPtr = new TaskData();
@@ -447,7 +447,7 @@ void on_ompt_callback_task_create(
       }
       auto taskData = new TaskData();
       auto parentLabel = (parentTaskData->label).get();
-      taskData->label = genExpTaskLabel(parentLabel);
+      taskData->label = generateExplicitTaskLabel(parentLabel);
       RAW_LOG(INFO, "parent task label: %s, new task label: %s", parentLabel->toString().c_str(), taskData->label->toString().c_str());
       taskData->isExplicitTask = true; // mark current task as explicit task
       auto mutatedParentLabel = mutateParentTaskCreate(parentLabel); 

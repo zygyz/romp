@@ -6,9 +6,9 @@
 namespace romp {
 
 enum LabelCompare {
-  eSameLabel = -3,
   eLeftIsPrefix = -1,
   eRightIsPrefix = -2, 
+  eSameLabel = -3,
 };
 /*
  * Label class implements the high level representation of task label.
@@ -35,13 +35,12 @@ private:
 
 int compareLabels(Label* left, Label* right);
 
-std::shared_ptr<Label> genImpTaskLabel(
+std::shared_ptr<Label> generateImplicitTaskLabel(
                           Label* parentLabel, 
                           unsigned int index,
                           unsigned int actualParallelism);
-
-std::shared_ptr<Label> genInitTaskLabel();
-std::shared_ptr<Label> genExpTaskLabel(Label* parentLabel);
+std::shared_ptr<Label> generateInitialTaskLabel();
+std::shared_ptr<Label> generateExplicitTaskLabel(Label* parentLabel);
 
 std::shared_ptr<Label> mutateParentImpEnd(Label* childLabel);
 std::shared_ptr<Label> mutateParentTaskCreate(Label* parentLabel);
