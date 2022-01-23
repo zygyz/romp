@@ -55,16 +55,16 @@ public:
 /*
  * Base segment is for representing implicit task with no 
  * worksharing construct attached to it.
- * _value records most of the information wrt. openmp synchronization
- * _taskGroup records the taskgroup information
- * _orderSecVal records ordered section phase when taskwait/taskgroup
+ * m_value records most of the information wrt. openmp synchronization
+ * m_taskGroup records the taskgroup information
+ * m_orderSecVal records ordered section phase when taskwait/taskgroup
  * sync happens
  */
 class BaseSegment : public Segment {
 public:
-  BaseSegment(): _value(0), _taskGroup(0), _orderSecVal(0) {}
-  BaseSegment(const BaseSegment& segment): _value(segment._value), 
-             _taskGroup(segment._taskGroup), _orderSecVal(segment._orderSecVal) {}
+  BaseSegment(): m_value(0), m_taskGroup(0), m_orderSecVal(0) {}
+  BaseSegment(const BaseSegment& segment): m_value(segment.m_value), 
+             m_taskGroup(segment.m_taskGroup), m_orderSecVal(segment.m_orderSecVal) {}
   BaseSegment(SegmentType type, uint64_t offset, uint64_t span);
   std::string toString() const override;
   void setType(SegmentType type) override;
@@ -96,9 +96,9 @@ public:
   bool operator!=(const Segment& rhs) const override;
   uint64_t getValue() const;
 protected:
-  uint64_t _value;
-  uint32_t _taskGroup;
-  uint32_t _orderSecVal; 
+  uint64_t m_value;
+  uint32_t m_taskGroup;
+  uint32_t m_orderSecVal; 
 };
 
 /*
@@ -107,15 +107,15 @@ protected:
  */
 class WorkShareSegment: public BaseSegment {
 public:
-  WorkShareSegment() : _workShareId(0) { setType(eLogical); 
+  WorkShareSegment() : m_workShareId(0) { setType(eLogical); 
       setOffsetSpan(0, 1); }
-  WorkShareSegment(uint64_t id, bool isSection): _workShareId(id) { 
+  WorkShareSegment(uint64_t id, bool isSection): m_workShareId(id) { 
     setType(eLogical); 
     setWorkShareType(isSection);
     setOffsetSpan(0, 1);
   } 
   WorkShareSegment(const WorkShareSegment& segment): BaseSegment(segment), 
-     _workShareId(segment._workShareId) { }                       
+     m_workShareId(segment.m_workShareId) { }                       
   void setPlaceHolderFlag(bool toggle);
   bool isPlaceHolder() const;
   void setWorkShareType(bool isSection);
@@ -129,7 +129,7 @@ public:
   bool operator==(const Segment& rhs) const override;
   bool operator!=(const Segment& rhs) const override;
 private: 
-  uint64_t _workShareId; 
+  uint64_t m_workShareId; 
 };
 
 

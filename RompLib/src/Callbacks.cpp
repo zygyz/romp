@@ -447,10 +447,11 @@ void on_ompt_callback_task_create(
       }
       auto taskData = new TaskData();
       auto parentLabel = (parentTaskData->label).get();
-      auto newTaskLabel = genExpTaskLabel(parentLabel);
-      taskData->label = std::move(newTaskLabel);
+      taskData->label = genExpTaskLabel(parentLabel);
+      RAW_LOG(INFO, "parent task label: %s, new task label: %s", parentLabel->toString().c_str(), taskData->label->toString().c_str());
       taskData->isExplicitTask = true; // mark current task as explicit task
       auto mutatedParentLabel = mutateParentTaskCreate(parentLabel); 
+      RAW_LOG(INFO, "mutated parent label: %s", mutatedParentLabel->toString().c_str());
       parentTaskData->label = std::move(mutatedParentLabel);
       parentTaskData->childrenExplicitTasksData.push_back(static_cast<void*>(taskData));
       // get parallel region info, atomic fetch and add the explicit task id
