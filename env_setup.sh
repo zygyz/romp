@@ -8,6 +8,7 @@ module load gflags-2.2.2-gcc-11.2.0-waocagj
 module load boost-1.78.0-gcc-11.2.0-hyzaot3
 module load intel-tbb-2020.3-gcc-11.2.0-elgwscs
 module load llvm-openmp-12.0.1-gcc-11.2.0-jkvfg3u
+module load hwloc-2.7.0-gcc-11.2.0-tghphgv
 echo "modules loaded"
 
 
