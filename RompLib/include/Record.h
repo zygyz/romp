@@ -37,7 +37,7 @@ private:
   std::shared_ptr<Label> m_label; // task label associated with the record
   std::shared_ptr<LockSet> m_lockSet; // lock set associated with the record
   void* m_taskPtr; // pointer to data of encountering task
-  void* m_instructionAddress;
+  void* m_instructionAddress;  
 };
 
 

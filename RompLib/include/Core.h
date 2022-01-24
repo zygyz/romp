@@ -40,13 +40,10 @@ bool analyzeOrderedDescendants(Label* histLabel, int index, uint64_t histPhase);
 bool analyzeSyncChain(Label* label, int index);
 bool analyzeMutualExclusion(const Record& histRecord, const Record& curRecord);
 bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, 
-                          bool& isHistBeforeCur, int& diffIndex);
+                          bool& isHistBeforeCur, int& diffIndex, const uint64_t checkedByteAddress);
 bool analyzeTaskGroupSync(Label* histLabel, Label* curLabel, int index);
-
-bool dispatchAnalysis(CheckCase checkCase, Label* hist, Label* cur, int index);
 uint64_t computeExitRank(uint64_t phase);
 uint64_t computeEnterRank(uint64_t phase);
-inline CheckCase buildCheckCase(SegmentType histType, SegmentType curType);
 
 RecordManagement manageAccessRecord(const Record& histRecord,
                                     const Record& curRecord, 

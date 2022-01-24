@@ -467,8 +467,12 @@ void on_ompt_callback_task_create(
  * It mutates the label of the encountering task and set the stored label
  * to the mutated one.
  */
-void handleTaskComplete(void* ptr) {
-  auto taskDataPtr = static_cast<TaskData*>(ptr);
+void handleTaskComplete(void* taskPtr) {
+  if (taskPtr == nullptr) {
+    RAW_LOG(WARNING, "handleTaskComplete: task ptr is null");
+    return;
+  }
+  auto taskDataPtr = static_cast<TaskData*>(taskPtr);
   auto label = (taskDataPtr->label).get();
   auto mutatedLabel = mutateTaskComplete(label);
   taskDataPtr->label = std::move(mutatedLabel);
@@ -479,37 +483,26 @@ void on_ompt_callback_task_schedule(
         ompt_task_status_t priorTaskStatus,
         ompt_data_t *nextTaskData) {
   RAW_DLOG(INFO, "ompt_callback_task_schedule"); 
-  auto taskPtr = priorTaskData->ptr;
+  auto priorTaskPtr = priorTaskData->ptr;
   incrementLabelId();
-  if (!taskPtr) {
-    RAW_LOG(FATAL, "prior task data pointer is null"); 
-  }
   switch(priorTaskStatus) {
     case ompt_task_complete:
-      RAW_DLOG(INFO, "task complete encountered");
-      handleTaskComplete(taskPtr);
-      recycleTaskThreadStackMemory(taskPtr);
-      recycleTaskPrivateMemory();
-      break;
-    case ompt_task_yield:
-      RAW_DLOG(INFO, "taskyield construct encountered");
-      break;
-    case ompt_task_cancel:
-      RAW_LOG(INFO, "task cancel encountered");
-      break;
-    case ompt_task_detach:
-      RAW_LOG(INFO, "task detach encountered"); 
-      break;
-    case ompt_task_early_fulfill:
-      RAW_LOG(INFO, "task early fulfill encountered");
-      break;
-    case ompt_task_late_fulfill:
-      RAW_LOG(INFO, "task late fulfill encountered");
+     // handleTaskComplete(priorTaskPtr);
+     // recycleTaskThreadStackMemory(priorTaskPtr);
+     // recycleTaskPrivateMemory();
       break;
     case ompt_task_switch:
-      RAW_DLOG(INFO, "task switch encountered");
-      recycleTaskThreadStackMemory(taskPtr);
-      recycleTaskPrivateMemory();
+     // recycleTaskThreadStackMemory(priorTaskPtr);
+     // recycleTaskPrivateMemory();
+      break;
+    case ompt_task_yield:
+    case ompt_task_cancel:
+    case ompt_task_detach:
+    case ompt_task_early_fulfill:
+    case ompt_task_late_fulfill:
+      break;
+    default:
+      RAW_LOG(WARNING, "unknown prior task status: %d", priorTaskStatus); 
       break;
   } 
 }
@@ -546,7 +539,6 @@ void on_ompt_callback_dependences(
     maintainTaskDeps(deps[i], taskPtr, parallelRegionData);
   }
 }
-
 
 void on_ompt_callback_thread_begin(
        ompt_thread_t threadType,

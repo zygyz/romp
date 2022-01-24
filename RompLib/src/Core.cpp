@@ -10,9 +10,11 @@
 namespace romp {
 
 bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, 
-        bool& isHistBeforeCur, int& diffIndex) {
+        bool& isHistBeforeCur, int& diffIndex, const uint64_t checkedByteAddress) {
   auto histLabel = histRecord.getLabel(); 
   auto curLabel = curRecord.getLabel(); 
+  RAW_LOG(INFO, "checked byte address: %lx hist label: %s cur label: %s", checkedByteAddress, 
+              histLabel->toString().c_str(), curLabel->toString().c_str());
   if (analyzeMutualExclusion(histRecord, curRecord)) {
     return false;
   }  

@@ -56,51 +56,48 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel,
      records->clear();
      return;
   }
-  if (isDuplicateMemoryAccess(checkInfo)) {
-    return;
-  }
+
   auto curRecord = Record(checkInfo.isWrite, curLabel, curLockSet, 
           checkInfo.taskPtr, checkInfo.instnAddr, checkInfo.hardwareLock);
   if (records->empty()) {
     // no access record, add current access to the record
     records->push_back(curRecord);
-  } else {
-    // check previous access records with current access
-    auto isHistBeforeCurrent = false;
-    auto it = records->begin();
-    std::vector<Record>::const_iterator cit;
-    auto skipAddCur = false;
-    int diffIndex;
-    while (it != records->end()) {
-      cit = it; 
-      auto histRecord = *cit;
-      if (analyzeRaceCondition(histRecord, curRecord, isHistBeforeCurrent, 
-                  diffIndex)) {
-        gDataRaceFound = true;
-        gNumDataRace++;
-        if (gReportLineInfo) {
-          McsNode node;	
-          LockGuard recordGuard(&gDataRaceLock, &node);
-          gDataRaceRecords.push_back(DataRaceInfo(histRecord.getInstructionAddress(),
-                                                  curRecord.getInstructionAddress(),
-                                                  checkInfo.byteAddress));
-        } else if (gReportAtRuntime) {
-          reportDataRace(histRecord.getInstructionAddress(), curRecord.getInstructionAddress(),
-                         checkInfo.byteAddress);
-        }
-        accessHistory->setFlag(eDataRaceFound);  
-	break;
+    return;
+  }
+  // check previous access records with current access
+  auto isHistBeforeCurrent = false;
+  auto it = records->begin();
+  std::vector<Record>::const_iterator cit;
+  auto skipAddCur = false;
+  int diffIndex;
+  while (it != records->end()) {
+    cit = it; 
+    auto histRecord = *cit;
+    if (analyzeRaceCondition(histRecord, curRecord, isHistBeforeCurrent, diffIndex, checkInfo.byteAddress)) {
+      gDataRaceFound = true;
+      gNumDataRace++;
+      if (gReportLineInfo) {
+        McsNode node;	
+        LockGuard recordGuard(&gDataRaceLock, &node);
+        gDataRaceRecords.push_back(DataRaceInfo(histRecord.getInstructionAddress(),
+                                                curRecord.getInstructionAddress(),
+                                                checkInfo.byteAddress));
+      } else if (gReportAtRuntime) {
+        reportDataRace(histRecord.getInstructionAddress(), curRecord.getInstructionAddress(),
+                       checkInfo.byteAddress);
       }
-      auto decision = manageAccessRecord(histRecord, curRecord, 
-              isHistBeforeCurrent, diffIndex);
-      if (decision == eSkipAddCur) {
-        skipAddCur = true;
-      }
-      modifyAccessHistory(decision, records, it);
+      accessHistory->setFlag(eDataRaceFound);
+      break;
     }
-    if (!skipAddCur) {
-      records->push_back(curRecord); 
+    auto decision = manageAccessRecord(histRecord, curRecord, 
+            isHistBeforeCurrent, diffIndex);
+    if (decision == eSkipAddCur) {
+      skipAddCur = true;
     }
+    modifyAccessHistory(decision, records, it);
+  }
+  if (!skipAddCur) {
+    records->push_back(curRecord); 
   }
 }
 
