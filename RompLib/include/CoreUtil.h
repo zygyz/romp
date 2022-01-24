@@ -29,36 +29,33 @@ typedef struct DataRaceInfo {
  * Wrap all necessary information for data race checking.
  */
 typedef struct CheckInfo {
-  CheckInfo(AllTaskInfo& allTaskInfo, 
+  CheckInfo(TaskInfo& taskInfo, 
             void* instnAddr,
             void* taskPtr,
-            int taskType,
+            int flags,
             bool isWrite,
-            bool hwLock,
+            bool hardwareLock,
             DataSharingType dataSharingType): 
-                          allTaskInfo(std::move(allTaskInfo)), 
+                          taskInfo(std::move(taskInfo)), 
                           instnAddr(instnAddr),
                           taskPtr(taskPtr),
-                          taskType(taskType),
+                          taskType(flags),
                           isWrite(isWrite),
-                          hwLock(hwLock),
+                          hardwareLock(hardwareLock),
                           dataSharingType(dataSharingType){}
-  AllTaskInfo allTaskInfo;
+  TaskInfo taskInfo;
   void* instnAddr;
   void* taskPtr;
   int taskType;
   bool isWrite;
-  bool hwLock; 
+  bool hardwareLock; 
   uint64_t byteAddress;
   DataSharingType dataSharingType;
 } CheckInfo; 
 
-bool prepareAllInfo(int& taskType, 
-                    int& teamSize, 
-                    int& threadNum, 
-                    void*& curParRegionData,
-                    void*& curThreadData,
-                    AllTaskInfo& allTaskInfo);
+bool queryRuntimeInfo(void*& curThreadData,
+                    ParallelRegionInfo& parallelRegionInfo,
+                    TaskInfo& taskInfo);
 
 void reportDataRaceWithLineInfo(const DataRaceInfo& dataRaceInfo,
                                 Dyninst::SymtabAPI::Symtab* symtabHandle);

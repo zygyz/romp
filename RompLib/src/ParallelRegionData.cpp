@@ -11,7 +11,7 @@ namespace romp {
  */
 void maintainTaskDeps(const ompt_dependence_t& dependence, 
 		      void* taskPtr,
-		      ParRegionData* parRegionData) {
+		      ParallelRegionData* parRegionData) {
   parRegionData->taskDepGraph.addDeps(dependence, taskPtr);   
 }
 

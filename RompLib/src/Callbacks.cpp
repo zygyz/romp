@@ -28,7 +28,6 @@ void on_ompt_callback_implicit_task(
           endPoint, parallelData, taskData, actualParallelism, index, flags);
   incrementLabelId();
   if (flags == ompt_task_initial) {
-    RAW_DLOG(INFO, "generating initial task: %lx", taskData);
     auto initTaskData = new TaskData();
     auto newTaskLabel = generateInitialTaskLabel();
     initTaskData->label = std::move(newTaskLabel);
@@ -43,51 +42,49 @@ void on_ompt_callback_implicit_task(
     // We have to do it here before getting parent task because somehow 
     // the runtime library won't be able to get parent task for this case.
     if (!taskDataPtr) {
-      RAW_LOG(FATAL, "on_ompt_callback_implicit_task task data pointer is null");
+      RAW_LOG(FATAL, "task data pointer is null");
     }
     delete taskDataPtr; 
     taskData->ptr = nullptr;
     return;
   }
-  int parentTaskType, parentThreadNum;
-  void* parentDataPtr = nullptr;
-  if (!queryTaskInfo(1, parentTaskType, parentThreadNum, parentDataPtr)) {
+  TaskInfo parentTaskInfo;
+  if (!queryTaskInfo(1, parentTaskInfo)) {
     RAW_LOG(FATAL, "cannot get parent task info");     
     return;
   }   
-  auto parentTaskData = static_cast<TaskData*>(parentDataPtr);
-  if (endPoint == ompt_scope_begin) {
-    // begin of implcit task, create the label for this new task
-    auto newTaskLabel = generateImplicitTaskLabel((parentTaskData->label).get(), index, 
+  auto parentTaskData = static_cast<TaskData*>(parentTaskInfo.taskData->ptr);
+  switch(endPoint) {
+    case ompt_scope_begin:
+    {
+      // begin of implcit task, create the label for this new task
+      auto newTaskLabel = generateImplicitTaskLabel((parentTaskData->label).get(), index, 
             actualParallelism); 
-    // return value optimization should avoid the ref count mod
-    auto newTaskDataPtr = new TaskData();
-    RAW_DLOG(INFO, "created task data ptr: %p stored at %p",
-            newTaskDataPtr, taskData);
-    // cast to rvalue and avoid atomic ref count modification
-    newTaskDataPtr->label = std::move(newTaskLabel); 
-    RAW_DLOG(INFO, "%p label is: %p", newTaskDataPtr, newTaskDataPtr->label.get());
-    taskData->ptr = static_cast<void*>(newTaskDataPtr);
-  } else if (endPoint == ompt_scope_end) {
-    // End of the current implicit task, modify parent task's label
-    // only one worker thread with index 0 is responsible for mutating
-    // the parent task label. The mutated label should be created separately
-    // because access history referred to labels by pointer.
-    // At this point, only one implicit task should reach here.
-    if (!taskDataPtr) { 
-      RAW_LOG(FATAL, "task data pointer is null");
+      // return value optimization should avoid the ref count mod
+      auto newTaskDataPtr = new TaskData();
+      // cast to rvalue and avoid atomic ref count modification
+      newTaskDataPtr->label = std::move(newTaskLabel); 
+      taskData->ptr = static_cast<void*>(newTaskDataPtr);
+      return;
     }
-    if (taskDataPtr->label == nullptr) {
-      RAW_LOG(FATAL, "%p, %p label is nullptr", taskData, taskDataPtr);; 
+    case ompt_scope_end:
+    {
+      // End of the current implicit task, modify parent task's label
+      // only one worker thread with index 0 is responsible for mutating
+      // the parent task label. The mutated label should be created separately
+      // because access history referred to labels by pointer.
+      // At this point, only one implicit task should reach here.
+      if (!taskDataPtr) { 
+        RAW_LOG(FATAL, "task data pointer is null");
+      }
+      auto mutatedLabel = mutateParentImpEnd(taskDataPtr->label.get());
+      parentTaskData->label = std::move(mutatedLabel);
+      delete taskDataPtr; 
+      taskData->ptr = nullptr;
+      return;
     }
-    auto mutatedLabel = mutateParentImpEnd(taskDataPtr->label.get());
-    parentTaskData->label = std::move(mutatedLabel);
-    RAW_DLOG(INFO, "modifying parent label: %p %p", parentTaskData);
-    delete taskDataPtr; 
-    taskData->ptr = nullptr;
   }
 }
-
 
 inline Segment* getLastSegment(Label* label) {
   auto lenLabel = label->getLabelLength();
@@ -210,13 +207,12 @@ void on_ompt_callback_mutex_acquired(
         const void *codePtrRa) {
   RAW_DLOG(INFO, "on_ompt_callback_mutex_acquired called");
   incrementLabelId();
-  int taskType, threadNum;
-  void* dataPtr;
-  if (!queryTaskInfo(0, taskType, threadNum, dataPtr)) {
+  TaskInfo taskInfo;
+  if (!queryTaskInfo(0, taskInfo)) {
     RAW_LOG(FATAL, "task data pointer is null");
     return;
   }
-  auto taskDataPtr = static_cast<TaskData*>(dataPtr);
+  auto taskDataPtr = static_cast<TaskData*>(taskInfo.taskData->ptr);
   auto label = taskDataPtr->label;
   std::shared_ptr<Label> mutatedLabel = nullptr;
   if (kind == ompt_mutex_ordered) {
@@ -245,13 +241,13 @@ void on_ompt_callback_mutex_released(
         const void *codePtrRa) {
   RAW_DLOG(INFO, "on_ompt_callback_mutex_released called");
   incrementLabelId();
-  int taskType, threadNum;
   void* dataPtr;
-  if (!queryTaskInfo(0, taskType, threadNum, dataPtr)) {
-    RAW_LOG(FATAL, "task data pointer is null");
+  TaskInfo taskInfo;
+  if (!queryTaskInfo(0, taskInfo)) {
+    RAW_LOG(FATAL, "failed to fetch task info");
     return;
   } 
-  auto taskDataPtr = static_cast<TaskData*>(dataPtr);
+  auto taskDataPtr = static_cast<TaskData*>(taskInfo.taskData->ptr);
   auto label = taskDataPtr->label;
   std::shared_ptr<Label> mutatedLabel = nullptr; 
   if (kind == ompt_mutex_ordered) {
@@ -406,8 +402,8 @@ void on_ompt_callback_parallel_begin(
   RAW_DLOG(INFO, "parallel begin et:%lx p:%lx %u %d", encounteringTaskData, 
            parallelData, requestedParallelism, flags);
   incrementLabelId();
-  auto parRegionData = new ParRegionData(requestedParallelism, flags);
-  parallelData->ptr = static_cast<void*>(parRegionData);  
+  auto parallelRegionData = new ParallelRegionData(requestedParallelism, flags);
+  parallelData->ptr = static_cast<void*>(parallelRegionData);  
 }
 
 void on_ompt_callback_parallel_end( 
@@ -422,7 +418,7 @@ void on_ompt_callback_parallel_end(
                   flags);
   incrementLabelId();
   auto parRegionData = parallelData->ptr;
-  delete static_cast<ParRegionData*>(parRegionData);
+  delete static_cast<ParallelRegionData*>(parRegionData);
 }  
 
 void on_ompt_callback_task_create(
@@ -448,22 +444,18 @@ void on_ompt_callback_task_create(
       auto taskData = new TaskData();
       auto parentLabel = (parentTaskData->label).get();
       taskData->label = generateExplicitTaskLabel(parentLabel);
-      RAW_LOG(INFO, "parent task label: %s, new task label: %s", parentLabel->toString().c_str(), taskData->label->toString().c_str());
       taskData->isExplicitTask = true; // mark current task as explicit task
       auto mutatedParentLabel = mutateParentTaskCreate(parentLabel); 
-      RAW_LOG(INFO, "mutated parent label: %s", mutatedParentLabel->toString().c_str());
       parentTaskData->label = std::move(mutatedParentLabel);
       parentTaskData->childrenExplicitTasksData.push_back(static_cast<void*>(taskData));
       // get parallel region info, atomic fetch and add the explicit task id
-      auto teamSize = 0;
-      void* parallelDataPtr = nullptr;   
-      const auto querySuccess = queryParallelInfo(0, teamSize, parallelDataPtr);
-      if (!querySuccess) {
+      ParallelRegionInfo parallelRegionInfo;
+      if (!queryParallelRegionInfo(0, parallelRegionInfo)) {
         RAW_LOG(FATAL, "cannot get parallel region data");
         return;
       }
-      auto parallelData = static_cast<ParRegionData*>(parallelDataPtr);
-      auto taskId = parallelData->expTaskCount.fetch_add(1,std::memory_order_relaxed);
+      auto parallelRegionData  = static_cast<ParallelRegionData*>(parallelRegionInfo.parallelData->ptr);
+      auto taskId = parallelRegionData->expTaskCount.fetch_add(1,std::memory_order_relaxed);
         RAW_DLOG(INFO, "explicit task create, local id: %d", taskId);
       taskData->expLocalId = taskId;        
       newTaskData->ptr = static_cast<void*>(taskData);
@@ -527,31 +519,31 @@ void on_ompt_callback_dependences(
         const ompt_dependence_t *deps,
         int ndeps) {
   RAW_DLOG(INFO, "callback dependencies -- num deps: %lu", ndeps);
-  incrementLabelId();
-  auto teamSize = 0;
-  void* parallelDataPtr = nullptr;
-  if (!queryParallelInfo(0, teamSize, parallelDataPtr)) {
-    RAW_LOG(WARNING, "cannot get parallel region data");
-    return;
-  }	  
-  // get pointer parallel region data structure
-  auto parallelData = static_cast<ParRegionData*>(parallelDataPtr);
-  if (!parallelData) {
-    RAW_LOG(WARNING, "callback dependences: current parallel data ptr is null");
-    return;
-  }
+  RAW_LOG(INFO, "callback dependences -- num deps: %lu", ndeps);
   auto taskPtr = taskData->ptr;
   if (!taskPtr) {
     RAW_LOG(WARNING, "callback dependences: current task data ptr is null");
     return;
   }
+  incrementLabelId();
+  ParallelRegionInfo parallelRegionInfo;
+  if (!queryParallelRegionInfo(0, parallelRegionInfo)) {
+    RAW_LOG(WARNING, "cannot get parallel region data");
+    return;
+  }	  
+  // get pointer parallel region data structure
+  auto parallelRegionData = static_cast<ParallelRegionData*>(parallelRegionInfo.parallelData->ptr);
+  if (!parallelRegionData) {
+    RAW_LOG(FATAL, "callback dependences: current parallel data ptr is null");
+    return;
+  }
   McsNode node;      
-  LockGuard guard(&(parallelData->lock), &node);
+  LockGuard guard(&(parallelRegionData->lock), &node);
   // while in mutual exculsion, maintain explicit task dependencies
   for (int i = 0; i < ndeps; ++i) {
     auto variable = deps[i].variable; 
     auto depType = deps[i].dependence_type;
-    maintainTaskDeps(deps[i], taskPtr, parallelData);
+    maintainTaskDeps(deps[i], taskPtr, parallelRegionData);
   }
 }
 

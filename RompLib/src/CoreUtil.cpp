@@ -11,28 +11,19 @@ using namespace SymtabAPI;
 
 namespace romp {
 
-/*
- * Called by `checkAccess`. This function prepares all information 
- * for data race detection algorithm. This function does best effort to 
- * retrieve all necessary info. But consumer is still responsible for checking 
- * if the data is actually set. Return false if core information such as 
- * task data is not available.
- */
-bool prepareAllInfo(int& taskType, 
-                    int& teamSize, 
-                    int& threadNum, 
-                    void*& curParRegionData,
-                    void*& curThreadData,
-                    AllTaskInfo& allTaskInfo) {
-  if (!queryParallelInfo(0, teamSize, curParRegionData)) {
+bool queryRuntimeInfo(void*& currentThreadData,
+                      ParallelRegionInfo& parallelRegionInfo,              
+                      TaskInfo& taskInfo) {
+  if (!queryParallelRegionInfo(0, parallelRegionInfo)) {
     return false;
   }
-  if (!queryAllTaskInfo(0, taskType, threadNum, allTaskInfo)) {
-    RAW_DLOG(INFO, "task data info is not available");
-    // it is necessary to have parallel region set up 
+  if (!queryTaskInfo(0, taskInfo)) {
     return false;
   }
-  queryOmpThreadInfo(curThreadData);
+  currentThreadData = queryOmpThreadInfo();
+  if (currentThreadData == nullptr) {
+    return false;
+  }
   return true;
 }
 
@@ -97,8 +88,9 @@ void* computeAddressRangeEnd(void* baseAddr, size_t chunkSize) {
 }
 
 void incrementLabelId() {
-  void* threadDataPtr = nullptr;
-  if (!queryOmpThreadInfo(threadDataPtr)) {
+  auto threadDataPtr = queryOmpThreadInfo();
+  if (threadDataPtr == nullptr) {
+    RAW_LOG(FATAL, "failed to get thread data");
     return;
   }
   auto threadData = static_cast<ThreadData*>(threadDataPtr);

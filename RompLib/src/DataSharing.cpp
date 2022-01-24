@@ -97,12 +97,12 @@ void recycleTaskThreadStackMemory(void* taskData) {
   }
   auto taskDataPtr = static_cast<TaskData*>(taskData);
   auto exitFrameAddr = taskDataPtr->exitFrame;
-  void* threadInfo = nullptr;
-  if (!queryOmpThreadInfo(threadInfo)) {
+  auto threadData = queryOmpThreadInfo();
+  if (threadData == nullptr) {
     RAW_LOG(FATAL, "cannot get thread info");
     return;
   }
-  auto threadInfoPtr = static_cast<ThreadData*>(threadInfo);
+  auto threadInfoPtr = static_cast<ThreadData*>(threadData);
   auto threadStackBase = threadInfoPtr->stackBaseAddr; 
   auto lowerBound = threadStackBase; 
   auto upperBound = exitFrameAddr;

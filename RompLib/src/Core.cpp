@@ -37,20 +37,18 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord,
         return false; // mutex task does not form race condition
       }
       // have to get the associated parallel region
-      auto teamSize = 0;
-      void* parallelDataPtr = nullptr;
-      if (!queryParallelInfo(0, teamSize, parallelDataPtr)) {
-        RAW_LOG(WARNING, "cannot get parallel region data");
-      } else {
-        auto parallelData = static_cast<ParRegionData*>(parallelDataPtr); 
-        // have to lock the task dep graph before graph traversal
-	McsNode node;
-	LockGuard guard(&(parallelData->lock), &node);
-        if (parallelData->taskDepGraph.hasPath((void*)histTaskData, 
+      ParallelRegionInfo parallelRegionInfo;
+      if (!queryParallelRegionInfo(0, parallelRegionInfo)) {
+        RAW_LOG(FATAL, "cannot get parallel region data");
+      } 
+      auto parallelRegionData= static_cast<ParallelRegionData*>(parallelRegionInfo.parallelData->ptr); 
+      // have to lock the task dep graph before graph traversal
+      McsNode node;
+      LockGuard guard(&(parallelRegionData->lock), &node);
+      if (parallelRegionData->taskDepGraph.hasPath((void*)histTaskData, 
 				 (void*)curTaskData)) {
-          isHistBeforeCur = true;
+         isHistBeforeCur = true;
 	}
-      }
     }
   }
   return !isHistBeforeCur && (histRecord.isWrite() || curRecord.isWrite());
@@ -380,8 +378,8 @@ void modifyAccessHistory(RecordManagement decision,
 }
 
 bool isDuplicateMemoryAccess(const CheckInfo& checkInfo) {
-  void* threadDataPtr = nullptr;
-  if (!queryOmpThreadInfo(threadDataPtr)) {
+  auto threadDataPtr = queryOmpThreadInfo();
+  if (threadDataPtr == nullptr) {
     RAW_LOG(INFO, "cannot query omp thread info");
     return false;
   } 

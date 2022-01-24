@@ -60,7 +60,7 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel,
     return;
   }
   auto curRecord = Record(checkInfo.isWrite, curLabel, curLockSet, 
-          checkInfo.taskPtr, checkInfo.instnAddr, checkInfo.hwLock);
+          checkInfo.taskPtr, checkInfo.instnAddr, checkInfo.hardwareLock);
   if (records->empty()) {
     // no access record, add current access to the record
     records->push_back(curRecord);
@@ -129,45 +129,36 @@ ompt_start_tool_result_t* ompt_start_tool(
 void checkAccess(void* baseAddress,
                  uint32_t bytesAccessed,
                  void* instnAddr,
-                 bool hwLock,
+                 bool hardwareLock,
                  bool isWrite) {
-  if (!gOmptInitialized) {
+  if (!gOmptInitialized || bytesAccessed == 0) {
     return;
   }
-  AllTaskInfo allTaskInfo;
-  int threadNum = -1;
-  int taskType = -1;
-  int teamSize = -1;
-  void* curThreadData = nullptr;
-  void* curParRegionData = nullptr;
-  if (bytesAccessed == 0) {
-    return;
+  TaskInfo taskInfo;
+  ParallelRegionInfo parallelRegionInfo;
+  void* currentThreadData = nullptr;
+  if (!queryRuntimeInfo(currentThreadData, parallelRegionInfo, taskInfo)) {
+    RAW_LOG(FATAL, "failed to fetch openmp runtime information");
   }
-  if (!prepareAllInfo(taskType, teamSize, threadNum, curParRegionData, 
-              curThreadData, allTaskInfo)) {
-    return;
-  }
-  if (taskType == ompt_task_initial) { 
-    // don't check data race for initial task
-    return;
-  }
-  // query data  
-  auto dataSharingType = analyzeDataSharing(curThreadData, baseAddress, 
-                                           allTaskInfo.taskFrame);
-  if (!allTaskInfo.taskData->ptr) {
+  if (!taskInfo.taskData->ptr) {
     RAW_LOG(WARNING, "pointer to current task data is null");
     return;
   }
-  auto curTaskData = static_cast<TaskData*>(allTaskInfo.taskData->ptr);
-  curTaskData->exitFrame = allTaskInfo.taskFrame->exit_frame.ptr;
-  auto& curLabel = curTaskData->label;
-  auto& curLockSet = curTaskData->lockSet;
+  if (taskInfo.flags == ompt_task_initial) { 
+    // don't check data race for initial task
+    return;
+  }
+  auto currentTaskData = static_cast<TaskData*>(taskInfo.taskData->ptr);
+  currentTaskData->exitFrame = taskInfo.taskFrame->exit_frame.ptr;
+
+  auto& curLabel = currentTaskData->label;
+  auto& curLockSet = currentTaskData->lockSet;
   auto memUnitAccessed = gUseWordLevelCheck ? (1 + ((bytesAccessed - 1) / 4)) : // implementation of ceil(bytesAccessed / 4)
                          bytesAccessed; 
-
-  CheckInfo checkInfo(allTaskInfo,  instnAddr, 
-          static_cast<void*>(curTaskData), taskType, isWrite, hwLock, 
-          dataSharingType);
+  auto dataSharingType = analyzeDataSharing(currentThreadData, baseAddress, 
+                                           taskInfo.taskFrame);
+  CheckInfo checkInfo(taskInfo,  instnAddr, 
+          static_cast<void*>(currentTaskData), taskInfo.flags, isWrite, hardwareLock, dataSharingType);
   for (uint64_t i = 0; i < memUnitAccessed; ++i) {
     auto curAddress = gUseWordLevelCheck ? reinterpret_cast<uint64_t>(baseAddress) + i * 4 :
                                            reinterpret_cast<uint64_t>(baseAddress) + i;      

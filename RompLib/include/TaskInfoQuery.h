@@ -12,22 +12,24 @@ extern ompt_get_parallel_info_t omptGetParallelInfo;
 extern ompt_get_thread_data_t omptGetThreadData;
 extern ompt_get_task_memory_t omptGetTaskMemory;
 
-typedef struct AllTaskInfo {
+typedef struct TaskInfo {
+  int flags;
   ompt_data_t* taskData;
   ompt_frame_t* taskFrame;
   ompt_data_t* parallelData;
-} AllTaskInfo;
+  int threadNum;
+} TaskInfo;
 
-bool infoIsAvailable(const int retVal);
+typedef struct ParallelRegionInfo {
+  int teamSize;
+  ompt_data_t* parallelData;
+} ParallelRegionInfo;
 
-bool queryAllTaskInfo(const int ancestorLevel,
-                      int& taskType,
-                      int& threadNum,
-                      AllTaskInfo& allTaskInfo);
-bool queryTaskInfo(const int level,int& taskType,int& threadNum,void*& dataPtr); 
-bool queryParallelInfo(const int level, int& teamSize, void*& dataPtr);
+bool queryIsSuccessful(const int queryResult);
+bool queryTaskInfo(const int ancestorLevel, TaskInfo& taskInfo);
+bool queryParallelRegionInfo(const int level, ParallelRegionInfo& parallelRegionInfo);
 bool queryFrameInfo(const int level, int& taskType, ompt_frame_t* framePtr);
-bool queryOmpThreadInfo(void*& dataPtr);
+void* queryOmpThreadInfo();
 bool queryThreadStackInfo(void*& stackAddr, size_t& stackSize);
 bool queryTaskMemoryInfo(void** addr, size_t* size);
 
