@@ -81,7 +81,7 @@ DataSharingType analyzeDataSharingType(const ThreadInfo& threadInfo,
   }
   if (enterFrame.ptr && enterFrameFlags == ompt_frame_application && 
       memoryAddressValue == reinterpret_cast<const uint64_t>(enterFrame.ptr)) {
-    // we don't know how larege the stack frame for enterFrame is. 
+    // we don't know how large the stack frame for enterFrame is. We can only use the frame base address.
     return eThreadPrivateAccessCurrentTask; 
   }
   return eUndefined;  
@@ -146,8 +146,6 @@ void recycleTaskPrivateMemory() {
     RAW_LOG(INFO, "cannot get task private data memory info");
     return;
   }
-  RAW_DLOG(INFO, "task private mem base: %lx, task private data size: %lu",
-           taskPrivateDataBase, taskPrivateDataSize); 
   auto taskPrivateDataEnd = computeAddressRangeEnd(taskPrivateDataBase, 
           taskPrivateDataSize);
   recycleMemRange(taskPrivateDataBase, taskPrivateDataEnd);
