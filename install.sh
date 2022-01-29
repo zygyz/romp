@@ -10,7 +10,7 @@ if [ -z "${build_type}" ]; then
   build_type="relwithdeb"
 fi
 
-echo "building and installing libromp with " $build_type
+echo "building and installing libromp with "$build_type
 
 if [ $build_type == "debug" ]; then
   cmake -DCMAKE_CXX_FLAGS="-std=c++17 -g" -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=`pwd`/../install ..
