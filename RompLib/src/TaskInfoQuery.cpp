@@ -92,4 +92,8 @@ bool queryRuntimeInfo(ThreadInfo& threadInfo,
   return true;
 }
 
+bool queryTaskMemoryInfo(TaskMemoryInfo& taskMemoryInfo) {  
+  return omptGetTaskMemory(&taskMemoryInfo.blockAddress, &taskMemoryInfo.blockSize) == 1;
+}
+
 }

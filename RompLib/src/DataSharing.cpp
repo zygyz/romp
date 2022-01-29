@@ -18,9 +18,10 @@
 namespace romp {
  
 bool shouldCheckMemoryAccess(const ThreadInfo& threadInfo, 
+                             const TaskMemoryInfo& taskMemoryInfo,
                              const void* memoryAddress,
                              const ompt_frame_t* taskFrame) {
-  const auto dataSharingType = analyzeDataSharingType(threadInfo, memoryAddress, taskFrame);
+  const auto dataSharingType = analyzeDataSharingType(threadInfo, taskMemoryInfo, memoryAddress, taskFrame);
   switch(dataSharingType) {
     case eNonThreadPrivate:
     case eThreadPrivateAccessOtherTask:
@@ -36,11 +37,10 @@ bool shouldCheckMemoryAccess(const ThreadInfo& threadInfo,
 }
 
 DataSharingType analyzeDataSharingType(const ThreadInfo& threadInfo, 
+                                       const TaskMemoryInfo& taskMemoryInfo,
                                        const void* memoryAddress,
                                        const ompt_frame_t* taskFrame) {
   // This function tries to infer data sharing property of the memory access to memoryAddress. 
-  // TODO: implement logic for checking if the memory access is for a 
-  // task private data stored in explicit task's runtime data structure.
   if (threadInfo.threadType == ompt_thread_other || threadInfo.threadType == ompt_thread_unknown) {
     // not worker thread that executes the program.
     return eNonWorkerThread;
@@ -83,6 +83,13 @@ DataSharingType analyzeDataSharingType(const ThreadInfo& threadInfo,
       memoryAddressValue == reinterpret_cast<const uint64_t>(enterFrame.ptr)) {
     // we don't know how large the stack frame for enterFrame is. We can only use the frame base address.
     return eThreadPrivateAccessCurrentTask; 
+  }
+  if (taskMemoryInfo.blockAddress != nullptr) {
+    const auto taskPrivateMemoryBaseAddress = reinterpret_cast<const uint64_t>(taskMemoryInfo.blockAddress);
+    const auto taskPrivateMemorySize = reinterpret_cast<const uint64_t>(taskMemoryInfo.blockSize);
+    if (memoryAddressValue >= taskPrivateMemoryBaseAddress && memoryAddressValue <= taskPrivateMemoryBaseAddress + taskPrivateMemorySize) {
+      return eTaskPrivate;
+    }
   }
   return eUndefined;  
 }

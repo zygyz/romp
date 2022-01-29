@@ -27,10 +27,19 @@ typedef struct ParallelRegionInfo {
   ompt_data_t* parallelData;
 } ParallelRegionInfo;
 
-typedef struct ThreadInfo{
+typedef struct ThreadInfo {
   ompt_thread_t threadType;
   ThreadData* threadData;
 } ThreadInfo;
+
+typedef struct TaskMemoryInfo {
+  void* blockAddress;
+  size_t blockSize; 
+  TaskMemoryInfo() {
+    blockAddress = nullptr;
+    blockSize = 0;
+  }
+} TaskMemoryInfo;
 
 bool queryIsSuccessful(const int queryResult);
 bool queryTaskInfo(const int ancestorLevel, TaskInfo& taskInfo);
@@ -39,5 +48,6 @@ bool queryOmpThreadInfo(ThreadInfo& threadInfo);
 bool queryThreadStackInfo(void*& stackBaseAddress, size_t& stackSize);
 bool queryTaskMemoryInfo(void** addr, size_t* size);
 bool queryRuntimeInfo(ThreadInfo& threadInfo, ParallelRegionInfo& parallelRegionInfo, TaskInfo& taskInfo);
+bool queryTaskMemoryInfo(TaskMemoryInfo& taskMemoryInfo);
 
 }
