@@ -36,7 +36,7 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
     //  memory location and mark this memory location as found. Future access 
     //  to this memory location does not go through data race checking.
     if (!records->empty()) {
-      RAW_LOG(INFO) << "clearing records since we have found data race on this access history" << accessHistory;
+      RAW_LOG(INFO, "clearing records since we have found data race on this access history: %lx", accessHistory);
       records->clear();
     }
     return;
@@ -139,7 +139,7 @@ void checkAccess(void* baseAddress,
   for (uint64_t i = 0; i < memUnitAccessed; ++i) {
     auto checkedAddress = gUseWordLevelCheck ? reinterpret_cast<uint64_t>(baseAddress) + i * 4 :
                                            reinterpret_cast<uint64_t>(baseAddress) + i;      
-    if (shouldCheckMemoryAccess(threadInfo, baseAddress, taskInfo.taskFrame, taskMemoryInfo)) {
+    if (shouldCheckMemoryAccess(threadInfo, taskMemoryInfo, baseAddress, taskInfo.taskFrame)) {
       auto accessHistory = shadowMemory.getShadowMemorySlot(checkedAddress);
       checkDataRace(accessHistory, curLabel, curLockSet, instnAddr, static_cast<void*>(currentTaskData), taskInfo.flags, isWrite, hasHardwareLock, checkedAddress);
     }

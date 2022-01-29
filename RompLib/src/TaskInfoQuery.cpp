@@ -93,7 +93,8 @@ bool queryRuntimeInfo(ThreadInfo& threadInfo,
 }
 
 bool queryTaskMemoryInfo(TaskMemoryInfo& taskMemoryInfo) {  
-  return omptGetTaskMemory(&taskMemoryInfo.blockAddress, &taskMemoryInfo.blockSize) == 1;
+  // ompt_get_task_memory only supports blockNum = 0 in current implementation.
+  return omptGetTaskMemory(&taskMemoryInfo.blockAddress, &taskMemoryInfo.blockSize, 0) == 1;
 }
 
 }
