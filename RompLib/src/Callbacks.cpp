@@ -26,7 +26,6 @@ void on_ompt_callback_implicit_task(
        int flags) {
   RAW_DLOG(INFO, "on_ompt_callback_implicit_task called:%u p:%lx t:%lx %u %u %d",
           endPoint, parallelData, taskData, actualParallelism, index, flags);
-  incrementLabelId();
   if (flags == ompt_task_initial) {
     auto initTaskData = new TaskData();
     auto newTaskLabel = generateInitialTaskLabel();
@@ -149,7 +148,6 @@ void on_ompt_callback_sync_region(
        const void* codePtrRa) {
   RAW_DLOG(INFO,  "on_ompt_callback_sync_region called %p %d %d", 
           taskData, kind, endPoint);
-  incrementLabelId();
   if (!taskData || !taskData->ptr) {
     RAW_LOG(FATAL, "task data pointer is null");  
     return;
@@ -159,6 +157,11 @@ void on_ompt_callback_sync_region(
   std::shared_ptr<Label> mutatedLabel = nullptr;
   if (endPoint == ompt_scope_begin) {
     switch(kind) {
+      case ompt_sync_region_taskwait:
+        mutatedLabel = mutateTaskWait(labelPtr);
+        markExpChildSyncTaskwait(taskDataPtr, labelPtr);
+        RAW_LOG(INFO, "task wait begin %s", mutatedLabel->toString().c_str());
+        break;
       case ompt_sync_region_reduction:
         RAW_LOG(INFO, "reduction begin sync region");
         taskDataPtr->inReduction = true;
@@ -173,8 +176,9 @@ void on_ompt_callback_sync_region(
   } else if (endPoint == ompt_scope_end) {
     switch(kind) {
       case ompt_sync_region_taskwait:
-        mutatedLabel = mutateTaskWait(labelPtr);
-        markExpChildSyncTaskwait(taskDataPtr, labelPtr);
+        RAW_LOG(INFO, "task wait end");
+        //mutatedLabel = mutateTaskWait(labelPtr);
+        //markExpChildSyncTaskwait(taskDataPtr, labelPtr);
         break;
       case ompt_sync_region_taskgroup:
         mutatedLabel = mutateTaskGroupEnd(labelPtr);
@@ -206,7 +210,6 @@ void on_ompt_callback_mutex_acquired(
         ompt_wait_id_t waitId,
         const void *codePtrRa) {
   RAW_DLOG(INFO, "on_ompt_callback_mutex_acquired called");
-  incrementLabelId();
   TaskInfo taskInfo;
   if (!queryTaskInfo(0, taskInfo)) {
     RAW_LOG(FATAL, "task data pointer is null");
@@ -240,7 +243,6 @@ void on_ompt_callback_mutex_released(
         ompt_wait_id_t waitId,
         const void *codePtrRa) {
   RAW_DLOG(INFO, "on_ompt_callback_mutex_released called");
-  incrementLabelId();
   void* dataPtr;
   TaskInfo taskInfo;
   if (!queryTaskInfo(0, taskInfo)) {
@@ -350,7 +352,6 @@ void on_ompt_callback_work(
       uint64_t count,
       const void *codePtrRa) {
   RAW_DLOG(INFO, "on_ompt_callback_work called");
-  incrementLabelId();
   if (!taskData || !taskData->ptr) {
     RAW_LOG(FATAL, "task data pointer is null");
   }
@@ -401,7 +402,6 @@ void on_ompt_callback_parallel_begin(
        const void *codePtrRa) {
   RAW_DLOG(INFO, "parallel begin et:%lx p:%lx %u %d", encounteringTaskData, 
            parallelData, requestedParallelism, flags);
-  incrementLabelId();
   auto parallelRegionData = new ParallelRegionData(requestedParallelism, flags);
   parallelData->ptr = static_cast<void*>(parallelRegionData);  
 }
@@ -416,7 +416,6 @@ void on_ompt_callback_parallel_end(
 		  parallelData,
 		  parallelData->ptr,
                   flags);
-  incrementLabelId();
   auto parRegionData = parallelData->ptr;
   delete static_cast<ParallelRegionData*>(parRegionData);
 }  
@@ -428,7 +427,6 @@ void on_ompt_callback_task_create(
         int flags,
         int hasDependences,
         const void *codePtrRa) {
-  incrementLabelId();
   switch(flags) {
     case ompt_task_target:
       RAW_LOG(FATAL, "ompt_task_target is not supported yet");
@@ -447,6 +445,8 @@ void on_ompt_callback_task_create(
       taskData->isExplicitTask = true; // mark current task as explicit task
       auto mutatedParentLabel = mutateParentTaskCreate(parentLabel); 
       parentTaskData->label = std::move(mutatedParentLabel);
+      RAW_LOG(INFO, "parent task data: %lx new task data: %lx explicit task create, parent label: %s new task label: %s mutated parent task label: %s", 
+           parentTaskData, taskData, parentLabel->toString().c_str(), taskData->label->toString().c_str(), parentTaskData->label->toString().c_str());
       parentTaskData->childrenExplicitTasksData.push_back(static_cast<void*>(taskData));
       // get parallel region info, atomic fetch and add the explicit task id
       ParallelRegionInfo parallelRegionInfo;
@@ -484,16 +484,15 @@ void on_ompt_callback_task_schedule(
         ompt_data_t *nextTaskData) {
   RAW_DLOG(INFO, "ompt_callback_task_schedule"); 
   auto priorTaskPtr = priorTaskData->ptr;
-  incrementLabelId();
   switch(priorTaskStatus) {
     case ompt_task_complete:
-     // handleTaskComplete(priorTaskPtr);
-     // recycleTaskThreadStackMemory(priorTaskPtr);
-     // recycleTaskPrivateMemory();
+      handleTaskComplete(priorTaskPtr);
+      recycleTaskThreadStackMemory(priorTaskPtr);
+      recycleTaskPrivateMemory();
       break;
     case ompt_task_switch:
-     // recycleTaskThreadStackMemory(priorTaskPtr);
-     // recycleTaskPrivateMemory();
+      recycleTaskThreadStackMemory(priorTaskPtr);
+      recycleTaskPrivateMemory();
       break;
     case ompt_task_yield:
     case ompt_task_cancel:
@@ -518,7 +517,6 @@ void on_ompt_callback_dependences(
     RAW_LOG(WARNING, "callback dependences: current task data ptr is null");
     return;
   }
-  incrementLabelId();
   ParallelRegionInfo parallelRegionInfo;
   if (!queryParallelRegionInfo(0, parallelRegionInfo)) {
     RAW_LOG(WARNING, "cannot get parallel region data");
@@ -544,27 +542,30 @@ void on_ompt_callback_thread_begin(
        ompt_thread_t threadType,
        ompt_data_t *threadData) {
   if (!threadData) {
-    RAW_LOG(WARNING, "thread data is null");
+    RAW_LOG(FATAL, "thread data is null");
     return;
   }
-  auto newThreadData = new ThreadData();
-  if (!newThreadData) {
-    RAW_LOG(FATAL, "failed to create thread data");
-    return;
+  threadData->value = (uint64_t)threadType;
+  switch(threadType) {
+    case ompt_thread_initial:
+    case ompt_thread_worker:
+    {
+      threadData->ptr = static_cast<void*>(new ThreadData());
+      void* stackBaseAddress = nullptr;
+      uint64_t stackSize = 0;
+      if (!queryThreadStackInfo(stackBaseAddress, stackSize)) {
+        RAW_LOG(FATAL, "failed to get thread stack info");
+        return;
+      }
+      static_cast<ThreadData*>(threadData->ptr)->stackBaseAddress = stackBaseAddress;
+      static_cast<ThreadData*>(threadData->ptr)->stackTopAddress = reinterpret_cast<void*>(reinterpret_cast<uint64_t>(stackBaseAddress) + stackSize); 
+      return;
+    }
+    case ompt_thread_other:
+    case ompt_thread_unknown:
+      threadData->ptr = nullptr;
+      return;
   }
-  threadData->ptr = static_cast<void*>(newThreadData);
-  incrementLabelId();
-  void* stackAddr = nullptr;
-  uint64_t stackSize = 0;
-  if (!queryThreadStackInfo(stackAddr, stackSize)) {
-    RAW_LOG(WARNING, "failed to get thread stack info");
-    return;
-  }
-  newThreadData->stackBaseAddr = stackAddr;
-  auto stackTopAddr = reinterpret_cast<void*>(
-           reinterpret_cast<uint64_t>(stackAddr) +
-           static_cast<uint64_t>(stackSize));             
-  newThreadData->stackTopAddr = stackTopAddr;    
 }
 
 void on_ompt_callback_thread_end(
@@ -572,10 +573,8 @@ void on_ompt_callback_thread_end(
   if (!threadData) {
     return;
   }
-  incrementLabelId();
-  auto dataPtr = threadData->ptr;
-  if (!dataPtr) {
-    delete static_cast<ThreadData*>(dataPtr);
+  if (!threadData->ptr) {
+    delete static_cast<ThreadData*>(threadData->ptr);
   }
   threadData->ptr = nullptr;
 }
@@ -589,7 +588,6 @@ void on_ompt_callback_dispatch(
     RAW_LOG(FATAL, "cannot get task data info");
     return;
   }
-  incrementLabelId();
   auto taskDataPtr = static_cast<TaskData*>(taskData->ptr);
   auto parentLabel = (taskDataPtr->label).get();
   std::shared_ptr<Label> mutatedLabel = nullptr;
@@ -614,7 +612,6 @@ void on_ompt_callback_reduction(
     RAW_LOG(FATAL, "task data pointer is null");
     return;
   }  
-  incrementLabelId();
   auto taskDataPtr = static_cast<TaskData*>(taskData->ptr);
   switch(endPoint) {
     case ompt_scope_begin:

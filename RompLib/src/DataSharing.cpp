@@ -3,6 +3,7 @@
 #include <glog/logging.h>
 #include <glog/raw_logging.h>
 #include <memory>
+#include <omp-tools.h>
 
 #include "AccessHistory.h"
 #include "CoreUtil.h"
@@ -11,54 +12,79 @@
 #include "TaskData.h"
 #include "ThreadData.h"
 
-#define STATIC_THREAD_PRIVATE_LOWER_BOUND  0xfff8000000000000
+#define USER_SPACE_VIRTUAL_MEMORY_BOUND 0x00007fffffffffff //canonical form x86-64 VM layout 
+#define MINIMUM_STACK_FRAME_SIZE 32
+
 namespace romp {
-  
-/*
- * Analayze data sharing property of current memory access. 
- * Return the type of data sharing if the analysis is successful, 
- * otherwise return eUndefined. We assert threadDataPtr is not nullptr;
- * TODO: implement logic for checking if the memory access is for a 
- * task private data stored in explicit task's runtime data structure.
- */
-DataSharingType analyzeDataSharing(const void* threadDataPtr, 
-                                   const void* address,
-                                   const ompt_frame_t* taskFrame) {
-  if (!threadDataPtr) {
-    RAW_LOG(ERROR, "thread data pointer is null");
-    return eUndefined;
+ 
+bool shouldCheckMemoryAccess(const ThreadInfo& threadInfo, 
+                             const void* memoryAddress,
+                             const ompt_frame_t* taskFrame) {
+  const auto dataSharingType = analyzeDataSharingType(threadInfo, memoryAddress, taskFrame);
+  switch(dataSharingType) {
+    case eNonThreadPrivate:
+    case eThreadPrivateAccessOtherTask:
+    case eThreadMetaDataNotSet: 
+    case eTaskExitFrameNotSet:
+    case eUndefined:
+      return true;
+    case eThreadPrivateAccessCurrentTask:
+    case eTaskPrivate:
+    case eNonWorkerThread:
+      return false; 
   }
-  if (!taskFrame->exit_frame.ptr) {
-    // note that exit_frame is a union
-    RAW_LOG(WARNING, "exit frame is not set");      
-    return eUndefined;
+}
+
+DataSharingType analyzeDataSharingType(const ThreadInfo& threadInfo, 
+                                       const void* memoryAddress,
+                                       const ompt_frame_t* taskFrame) {
+  // This function tries to infer data sharing property of the memory access to memoryAddress. 
+  // TODO: implement logic for checking if the memory access is for a 
+  // task private data stored in explicit task's runtime data structure.
+  if (threadInfo.threadType == ompt_thread_other || threadInfo.threadType == ompt_thread_unknown) {
+    // not worker thread that executes the program.
+    return eNonWorkerThread;
   }
-  const auto curExitFrameAddr = taskFrame->exit_frame.ptr;
-  const auto threadData = reinterpret_cast<const ThreadData*>(threadDataPtr);
-  const auto stackTopAddr = threadData->stackTopAddr;
-  const auto stackBaseAddr = threadData->stackBaseAddr;
-  if (!stackTopAddr || !stackBaseAddr) {
-    RAW_LOG(INFO, "thread stack bound is not completely set");
-    return eUndefined;
-  }
-  const auto addressValue = reinterpret_cast<const uint64_t>(address);
-  if (addressValue >= static_cast<const uint64_t>(
-                  STATIC_THREAD_PRIVATE_LOWER_BOUND)) {
-    return eStaticThreadPrivate;  
-  }
-  if (addressValue < reinterpret_cast<const uint64_t>(stackBaseAddr) || 
-      addressValue > reinterpret_cast<const uint64_t>(stackTopAddr)) {
-    // Current memory access falls out of the thread stack's 
-    // top and bottom boundary. Then the memory access is a 
-    // non thread private access.
-    return eNonThreadPrivate;
+  if (!taskFrame || taskFrame->exit_frame.ptr == nullptr) {
+    return eTaskExitFrameNotSet;
   } 
-  if (addressValue < reinterpret_cast<const uint64_t>(curExitFrameAddr)) {
-    return eThreadPrivateBelowExit;
-  } else {
-    return eThreadPrivateAboveExit;
+
+  const auto threadData = threadInfo.threadData;
+  if (threadData == nullptr || 
+      threadData->stackBaseAddress == nullptr || 
+      threadData->stackTopAddress == nullptr) {
+    // memory access is checked when thread has not called the thread begin callback yet.
+    return eThreadMetaDataNotSet;  
   }
-  return eUndefined;
+
+  const auto memoryAddressValue = reinterpret_cast<const uint64_t>(memoryAddress);
+  if (memoryAddressValue > reinterpret_cast<const uint64_t>(threadData->stackTopAddress) ||
+      memoryAddressValue < reinterpret_cast<const uint64_t>(threadData->stackBaseAddress)) {
+    // memory address does not fall in current thread stack range, must not be thread private access.
+    return eNonThreadPrivate;
+  }
+  // now the memory access is within current thread's stack range.
+  const auto enterFrame = taskFrame->enter_frame;
+  const auto enterFrameFlags = taskFrame->enter_frame_flags;
+  const auto exitFrame = taskFrame->exit_frame;
+  const auto exitFrameFlags = taskFrame->exit_frame_flags;
+  // note: definition of exit_frame and enter_frame from OpenMP spec doc.
+  // The exit_frame field of an ompt_frame_t object contains information to identify the first procedure 
+  // frame executing the task region.   
+  // The enter_frame field of an ompt_frame_t object contains information to identify the latest still active 
+  // procedure frame executing the task region before entering the OpenMP runtime implementation or before 
+  // executing a different task.
+  if (exitFrame.ptr && exitFrameFlags == ompt_frame_application && 
+      memoryAddressValue > reinterpret_cast<const uint64_t>(exitFrame.ptr)) {
+    // memory address is above the first procedure frame executing current task region. 
+    return eThreadPrivateAccessOtherTask; 
+  }
+  if (enterFrame.ptr && enterFrameFlags == ompt_frame_application && 
+      memoryAddressValue == reinterpret_cast<const uint64_t>(enterFrame.ptr)) {
+    // we don't know how larege the stack frame for enterFrame is. 
+    return eThreadPrivateAccessCurrentTask; 
+  }
+  return eUndefined;  
 }
 
 /*
@@ -89,21 +115,20 @@ void recycleMemRange(void* lowerBound, void* upperBound) {
  * locations as deallocated. The lower bound is the base of thread stack.
  */
 void recycleTaskThreadStackMemory(void* taskData) {
-  ompt_frame_t omptFrame;
-  int taskType = 0;
-  if (!queryFrameInfo(0, taskType, &omptFrame)) {
-    RAW_LOG(FATAL, "cannot get frame info");
-    return;
-  }
   auto taskDataPtr = static_cast<TaskData*>(taskData);
   auto exitFrameAddr = taskDataPtr->exitFrame;
-  auto threadData = queryOmpThreadInfo();
-  if (threadData == nullptr) {
+  ThreadInfo threadInfo; 
+  if (!queryOmpThreadInfo(threadInfo)) {
     RAW_LOG(FATAL, "cannot get thread info");
     return;
   }
+  auto threadData = threadInfo.threadData;
+  if (threadData == nullptr) {
+    RAW_LOG(FATAL, "cannot get thread data");
+    return;
+  }
   auto threadInfoPtr = static_cast<ThreadData*>(threadData);
-  auto threadStackBase = threadInfoPtr->stackBaseAddr; 
+  auto threadStackBase = threadInfoPtr->stackBaseAddress; 
   auto lowerBound = threadStackBase; 
   auto upperBound = exitFrameAddr;
   recycleMemRange(lowerBound, upperBound);

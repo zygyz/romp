@@ -39,21 +39,10 @@ bool analyzeExplicitTask(Label* histLabel, Label* curLabel, int index);
 bool analyzeOrderedDescendants(Label* histLabel, int index, uint64_t histPhase);
 bool analyzeSyncChain(Label* label, int index);
 bool analyzeMutualExclusion(const Record& histRecord, const Record& curRecord);
-bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, 
-                          bool& isHistBeforeCur, int& diffIndex, const uint64_t checkedByteAddress);
+bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, bool& isHistBeforeCur, int& diffIndex, const uint64_t checkedByteAddress);
 bool analyzeTaskGroupSync(Label* histLabel, Label* curLabel, int index);
 uint64_t computeExitRank(uint64_t phase);
 uint64_t computeEnterRank(uint64_t phase);
-
-RecordManagement manageAccessRecord(const Record& histRecord,
-                                    const Record& curRecord, 
-                                    bool isHistBeforeCur,
-                                    int diffIndex);
-
-void modifyAccessHistory(RecordManagement decision,
-                         std::vector<Record>* records,
-                         std::vector<Record>::iterator& cit);
-
-bool isDuplicateMemoryAccess(const CheckInfo& checkInfo);
-
+RecordManagement manageAccessRecord(const Record& histRecord, const Record& curRecord, bool isHistBeforeCur, int diffIndex);
+void modifyAccessHistory(RecordManagement decision, std::vector<Record>* records, std::vector<Record>::iterator& cit);
 }

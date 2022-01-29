@@ -6,7 +6,7 @@
 namespace romp {
 
 /*
- * `Record` class stores a sync info associated with a single memory access.
+ * `Record` class stores a metadata associated with a single memory access.
  */
 class Record {
 public:

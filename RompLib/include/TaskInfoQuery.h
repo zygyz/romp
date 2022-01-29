@@ -2,6 +2,8 @@
 #include <cstddef>
 #include <omp-tools.h>
 
+#include "ThreadData.h"
+
 /*
  * This header file defines a set of wrapper for ompt query functions.
  */
@@ -25,12 +27,17 @@ typedef struct ParallelRegionInfo {
   ompt_data_t* parallelData;
 } ParallelRegionInfo;
 
+typedef struct ThreadInfo{
+  ompt_thread_t threadType;
+  ThreadData* threadData;
+} ThreadInfo;
+
 bool queryIsSuccessful(const int queryResult);
 bool queryTaskInfo(const int ancestorLevel, TaskInfo& taskInfo);
 bool queryParallelRegionInfo(const int level, ParallelRegionInfo& parallelRegionInfo);
-bool queryFrameInfo(const int level, int& taskType, ompt_frame_t* framePtr);
-void* queryOmpThreadInfo();
-bool queryThreadStackInfo(void*& stackAddr, size_t& stackSize);
+bool queryOmpThreadInfo(ThreadInfo& threadInfo);
+bool queryThreadStackInfo(void*& stackBaseAddress, size_t& stackSize);
 bool queryTaskMemoryInfo(void** addr, size_t* size);
+bool queryRuntimeInfo(ThreadInfo& threadInfo, ParallelRegionInfo& parallelRegionInfo, TaskInfo& taskInfo);
 
 }

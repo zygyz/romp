@@ -10,23 +10,6 @@ using namespace Dyninst;
 using namespace SymtabAPI;
 
 namespace romp {
-
-bool queryRuntimeInfo(void*& currentThreadData,
-                      ParallelRegionInfo& parallelRegionInfo,              
-                      TaskInfo& taskInfo) {
-  if (!queryParallelRegionInfo(0, parallelRegionInfo)) {
-    return false;
-  }
-  if (!queryTaskInfo(0, taskInfo)) {
-    return false;
-  }
-  currentThreadData = queryOmpThreadInfo();
-  if (currentThreadData == nullptr) {
-    return false;
-  }
-  return true;
-}
-
 /*
  * Report data race with line information. The function uses symtabAPI's 
  * api to get line information. It incurs quite large overhead because of 
@@ -87,14 +70,5 @@ void* computeAddressRangeEnd(void* baseAddr, size_t chunkSize) {
   return reinterpret_cast<void*>(rangeEnd);
 }
 
-void incrementLabelId() {
-  auto threadDataPtr = queryOmpThreadInfo();
-  if (threadDataPtr == nullptr) {
-    RAW_LOG(FATAL, "failed to get thread data");
-    return;
-  }
-  auto threadData = static_cast<ThreadData*>(threadDataPtr);
-  threadData->labelId++;
-}
 
 }

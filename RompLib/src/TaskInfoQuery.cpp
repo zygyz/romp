@@ -32,17 +32,6 @@ bool queryTaskInfo(const int ancestorLevel, TaskInfo& taskInfo) {
   return queryIsSuccessful(queryResult);
 }
 
-
-bool queryFrameInfo(const int ancestorLevel, 
-                    int& taskType,
-                    ompt_frame_t* omptFramePtr) {
-  int retVal = -1;
-  auto omptFramePtrPtr = &omptFramePtr;
-  auto queryResult = omptGetTaskInfo(ancestorLevel, &taskType, NULL, omptFramePtrPtr,
-          NULL, NULL);
-  return queryIsSuccessful(queryResult);
-} 
-
 bool queryParallelRegionInfo(
         const int ancestorLevel,
         ParallelRegionInfo& info) {
@@ -50,23 +39,29 @@ bool queryParallelRegionInfo(
   return queryIsSuccessful(queryResult);
 }
 
-void* queryOmpThreadInfo() {
-  auto threadData = omptGetThreadData();
-  return threadData? threadData->ptr : nullptr; 
+bool queryOmpThreadInfo(ThreadInfo& threadInfo) {
+  auto omptData = omptGetThreadData();
+  if (omptData == nullptr) {
+    RAW_LOG(FATAL, "cannot get thread data");
+    return false;
+  }
+  threadInfo.threadType = (ompt_thread_t)(omptData->value);
+  threadInfo.threadData = reinterpret_cast<ThreadData*>(omptData->ptr);
+  return true;
 }
 
 /*
  * Query the stack base address and the stack size of the current thread.
- * On success, return true. Otherwise, return false and set stackAddr to 
- * nullptr and staskSize to 0.
  */
-bool queryThreadStackInfo(void*& stackAddr, size_t& stackSize) {
+bool queryThreadStackInfo(void*& stackBaseAddress, size_t& stackSize) {
+  stackBaseAddress = nullptr;
+  stackSize = 0;
   pthread_attr_t attr; 
   if (pthread_getattr_np(pthread_self(), &attr) != 0) {
     RAW_LOG(WARNING, "cannot get pthread attribute");
     return false;
   }
-  if (pthread_attr_getstack(&attr, &stackAddr, &stackSize) != 0) {
+  if (pthread_attr_getstack(&attr, &stackBaseAddress, &stackSize) != 0) {
     RAW_LOG(WARNING, "cannot get thread stack info");
     return false; 
   } 
@@ -80,6 +75,21 @@ bool queryThreadStackInfo(void*& stackAddr, size_t& stackSize) {
  */
 bool queryTaskMemoryInfo(void** addr, size_t* size) {
   return omptGetTaskMemory(addr, size, 0) == 1; 
+}
+
+bool queryRuntimeInfo(ThreadInfo& threadInfo, 
+                      ParallelRegionInfo& parallelRegionInfo,              
+                      TaskInfo& taskInfo) {
+  if (!queryParallelRegionInfo(0, parallelRegionInfo)) {
+    return false;
+  }
+  if (!queryTaskInfo(0, taskInfo)) {
+    return false;
+  }
+  if (!queryOmpThreadInfo(threadInfo)) {
+    return false;
+  }
+  return true;
 }
 
 }

@@ -1,20 +1,23 @@
 #pragma once
 #include <omp-tools.h>
 
+#include "TaskInfoQuery.h"
+
 namespace romp {
 
 enum DataSharingType { 
-    eStaticThreadPrivate, 
-    eNonThreadPrivate,
-    eThreadPrivateBelowExit, 
-    eThreadPrivateAboveExit,
-    eUndefined,
+  eNonThreadPrivate,
+  eThreadPrivateAccessOtherTask,
+  eThreadPrivateAccessCurrentTask,
+  eTaskExitFrameNotSet,
+  eTaskPrivate,
+  eNonWorkerThread,
+  eThreadMetaDataNotSet, 
+  eUndefined,
 };
 
-DataSharingType analyzeDataSharing(const void* threadDataPtr, 
-                                   const void* address,
-                                   const ompt_frame_t* taskFrame);
-
+bool shouldCheckMemoryAccess(const ThreadInfo& threadInfo, const void* memoryAddress, const ompt_frame_t* taskFrame);
+DataSharingType analyzeDataSharingType(const ThreadInfo& threadInfo, const void* memoryAddress, const ompt_frame_t* taskFrame);
 void recycleTaskThreadStackMemory(void* taskData);
 void recycleTaskPrivateMemory();
 void recycleMemRange(void* lowerBound, void* higherBound);

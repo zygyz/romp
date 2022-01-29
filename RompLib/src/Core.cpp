@@ -10,11 +10,11 @@
 namespace romp {
 
 bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, 
-        bool& isHistBeforeCur, int& diffIndex, const uint64_t checkedByteAddress) {
+        bool& isHistBeforeCur, int& diffIndex, const uint64_t checkedAddress) {
   auto histLabel = histRecord.getLabel(); 
   auto curLabel = curRecord.getLabel(); 
-  RAW_LOG(INFO, "checked byte address: %lx hist label: %s cur label: %s", checkedByteAddress, 
-              histLabel->toString().c_str(), curLabel->toString().c_str());
+  //RAW_LOG(INFO, "checked byte address: %lx hist label: %s cur label: %s", checkedAddress, 
+  //            histLabel->toString().c_str(), curLabel->toString().c_str());
   if (analyzeMutualExclusion(histRecord, curRecord)) {
     return false;
   }  
@@ -378,21 +378,4 @@ void modifyAccessHistory(RecordManagement decision,
     it++;
   }
 }
-
-bool isDuplicateMemoryAccess(const CheckInfo& checkInfo) {
-  auto threadDataPtr = queryOmpThreadInfo();
-  if (threadDataPtr == nullptr) {
-    RAW_LOG(INFO, "cannot query omp thread info");
-    return false;
-  } 
-  auto threadData = static_cast<ThreadData*>(threadDataPtr);
-  auto curLabelId = threadData->labelId.load();
-  auto memAddr = checkInfo.byteAddress;
-  if (checkInfo.isWrite) {
-    return threadData->isDupWrite(memAddr, curLabelId);
-  } else {
-    return threadData->isDupRead(memAddr, curLabelId);   
-  }
-}
-
 }
