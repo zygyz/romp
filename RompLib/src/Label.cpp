@@ -229,58 +229,22 @@ std::shared_ptr<Label> mutateSectionEnd(Label* label) {
   return mutateLoopEnd(label);
 }
 
-/*
- * Mutate the label upon entering the single contruct and the task is the 
- * executor. Append a workshare segment to the current label and set the 
- * single executor bit.
- */
-std::shared_ptr<Label> mutateSingleExecBegin(Label* label) {
+std::shared_ptr<Label> mutateSingleExecutor(Label* label) {
   auto newLabel = std::make_shared<Label>(*label); 
-  auto newSegment = std::make_shared<WorkShareSegment>(); 
-  newSegment->setSingleFlag(true);
-  newLabel->appendSegment(newSegment);   
+  auto segment = newLabel->getLastKthSegment(1); 
+  auto newSegment = segment->clone(); 
+  newSegment->toggleSingleExecutor(); 
+  newLabel->setLastKthSegment(1, newSegment); 
   return newLabel;
 }
 
-/*
- * Mutate the label upon exiting the single construct and the task is the 
- * executor. Pop the workshare segment.
- */
-std::shared_ptr<Label> mutateSingleEnd(Label* label) {
-  auto newLabel = std::make_shared<Label>(*label);
-  newLabel->popSegment();
-  return newLabel;
-}
-
-/*
- * Mutate the label upon entering the single construct and the task is other. 
- * If nowait is specified, it does not wait for the single executor to finish.
- * If no nowait, these 'other' tasks wait on an implicit barrier for the single
- * executor to finish. Here we append a workshare segment and mark the single
- * other bit.
- */
-std::shared_ptr<Label> mutateSingleOtherBegin(Label* label) {
+std::shared_ptr<Label> mutateSingleOther(Label* label) {
   auto newLabel = std::make_shared<Label>(*label); 
-  auto newSegment = std::make_shared<WorkShareSegment>(); 
-  newSegment->setSingleFlag(false);
-  newLabel->appendSegment(newSegment);   
+  auto segment = newLabel->getLastKthSegment(1); 
+  auto newSegment = segment->clone(); 
+  newSegment->toggleSingleOther(); 
+  newLabel->setLastKthSegment(1, newSegment); 
   return newLabel;
-}
-
-/*
- * Mutate the label upon entering the taskloop construct. If nogroup is not 
- * specified, an implicit taskgroup is generated. If nogroup is specified,
- * no implicit taskgroup is generated. This callback happens before any actual
- * execution of logical iteration and creation of explicit tasks
- */
-std::shared_ptr<Label> mutateTaskLoopBegin(Label* label) {
-  //TODO 
-  return nullptr;
-}
-
-std::shared_ptr<Label> mutateTaskLoopEnd(Label* label) {
-  //TODO
-  return nullptr;
 }
 
 /*

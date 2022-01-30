@@ -32,7 +32,7 @@ enum RecordManagement{
 };
 
 bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex);
-bool analyzeSiblingImpTask(Label* histLabel, Label* curLabel, int index);
+bool analyzeSiblingImplicitTask(Label* histLabel, Label* curLabel, int index);
 bool analyzeSameTask(Label* histLabel, Label* curLabel, int index);
 bool analyzeOrderedSection(Label* histLabel, Label* curLabel, int index);
 bool analyzeExplicitTask(Label* histLabel, Label* curLabel, int index);

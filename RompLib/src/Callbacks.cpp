@@ -255,7 +255,7 @@ void on_ompt_callback_mutex_released(
   }
 }
 
-inline std::shared_ptr<Label> handleOmpWorkLoop(
+inline std::shared_ptr<Label> mutateTaskLabelOnWorkLoopCallback(
                              ompt_scope_endpoint_t endPoint, 
                              const std::shared_ptr<Label>& label) {
   std::shared_ptr<Label> mutatedLabel = nullptr;
@@ -268,7 +268,7 @@ inline std::shared_ptr<Label> handleOmpWorkLoop(
   return mutatedLabel;
 }
 
-inline std::shared_ptr<Label> handleOmpWorkSections(
+inline std::shared_ptr<Label> mutateTaskLabelOnWorkSectionsCallback(
         ompt_scope_endpoint_t endPoint, 
         const std::shared_ptr<Label>& label,
         uint64_t count) {
@@ -282,58 +282,22 @@ inline std::shared_ptr<Label> handleOmpWorkSections(
   return mutatedLabel;
 }
 
-inline std::shared_ptr<Label> handleOmpWorkSingleExecutor(
+inline std::shared_ptr<Label> mutateTaskLabelOnWorkSingleExecutorCallback(
         ompt_scope_endpoint_t endPoint, 
         const std::shared_ptr<Label>& label) {
-  std::shared_ptr<Label> mutatedLabel = nullptr;
   auto labelPtr = label.get();
-  if (endPoint == ompt_scope_begin) {
-    mutatedLabel = mutateSingleExecBegin(labelPtr);
-  } else if (endPoint == ompt_scope_end) {
-    mutatedLabel = mutateSingleEnd(labelPtr);  
-  }
+  std::shared_ptr<Label> mutatedLabel = mutateSingleExecutor(labelPtr);
   return mutatedLabel;
 }
 
-inline std::shared_ptr<Label> handleOmpWorkSingleOther(
+inline std::shared_ptr<Label> mutateTaskLabelOnWorkSingleOtherCallback(
         ompt_scope_endpoint_t endPoint, 
         const std::shared_ptr<Label>& label) {
-  std::shared_ptr<Label> mutatedLabel = nullptr;
   auto labelPtr = label.get();
-  if (endPoint == ompt_scope_begin) {
-    mutatedLabel = mutateSingleOtherBegin(labelPtr);
-  } else if (endPoint == ompt_scope_end) {
-    mutatedLabel = mutateSingleEnd(labelPtr);
-  }
+  std::shared_ptr<Label> mutatedLabel =  mutateSingleOther(labelPtr);
   return mutatedLabel;
 }
     
-inline std::shared_ptr<Label> handleOmpWorkWorkShare(
-        ompt_scope_endpoint_t endPoint, 
-        const std::shared_ptr<Label>& label, 
-        uint64_t count) {
-  RAW_LOG(FATAL, "c++ openmp does not support workshare construct");
-  return nullptr;
-}
-
-inline std::shared_ptr<Label> handleOmpWorkDistribute(
-        ompt_scope_endpoint_t endPoint, 
-        const std::shared_ptr<Label>& label, 
-        uint64_t count) {
-  //TODO: This is assoicated with target and team construct
-  RAW_LOG(FATAL, "not implemented yet");
-  return nullptr;
-}
-
-inline std::shared_ptr<Label> handleOmpWorkTaskLoop(
-        ompt_scope_endpoint_t endPoint, 
-        const std::shared_ptr<Label>& label, 
-        uint64_t count) {
-  // TODO: determine label mutation rule for taskloop begin
-  RAW_LOG(FATAL, "task loop is not supported yet", count);
-  return nullptr;
-}
-
 void on_ompt_callback_work(
       ompt_work_t workType,
       ompt_scope_endpoint_t endPoint,
@@ -349,25 +313,27 @@ void on_ompt_callback_work(
   std::shared_ptr<Label> mutatedLabel = nullptr;
   switch(workType) {
     case ompt_work_loop: 
-      mutatedLabel = handleOmpWorkLoop(endPoint, label);
+      mutatedLabel = mutateTaskLabelOnWorkLoopCallback(endPoint, label);
       break;
     case ompt_work_sections:
-      mutatedLabel = handleOmpWorkSections(endPoint, label, count);
+      mutatedLabel = mutateTaskLabelOnWorkSectionsCallback(endPoint, label, count);
       break;
     case ompt_work_single_executor:
-      mutatedLabel = handleOmpWorkSingleExecutor(endPoint, label);
+      RAW_DLOG(INFO, "ompt_work_single_executor");
+      mutatedLabel = mutateTaskLabelOnWorkSingleExecutorCallback(endPoint, label);
       break;
     case ompt_work_single_other:
-      mutatedLabel = handleOmpWorkSingleOther(endPoint, label);
+      RAW_DLOG(INFO, "ompt_work_single_other");
+      mutatedLabel = mutateTaskLabelOnWorkSingleOtherCallback(endPoint, label);
       break;
     case ompt_work_workshare:
-      mutatedLabel = handleOmpWorkWorkShare(endPoint, label, count);
+      RAW_LOG(FATAL, "ompt_work_workshare is not supported yet");
       break;
     case ompt_work_distribute:
-      mutatedLabel = handleOmpWorkDistribute(endPoint, label, count);
+      RAW_LOG(FATAL, "ompt_work_distribute is not supported yet");
       break;
     case ompt_work_taskloop:
-      mutatedLabel = handleOmpWorkTaskLoop(endPoint, label, count);
+      RAW_LOG(FATAL, "ompt_work_taskloop is not supported yet :(");
       break;
     default:
       break;

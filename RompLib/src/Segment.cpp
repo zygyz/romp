@@ -12,16 +12,15 @@
 #define PHASE_MASK           0x000000000f000000
 #define WS_PLACE_HOLDER_MASK 0xfffffffffffffffb
 #define LOOP_CNT_MASK        0x0000000000f00000
-#define TASK_CREATE_MASK     0x00000000000fffe0
-#define SINGLE_MASK          0xc000000000000000
+#define TASK_CREATE_MASK     0x00000000000fffc0
 #define WORKSHARE_TYPE_MASK  0x0000000000000004
 #define TASKWAIT_SYNC_MASK   0x0000000000000008
 #define TASKGROUP_SYNC_MASK  0x0000000000000010
-
 #define TASKGROUP_ID_MASK    0x00000000ffff0000
 #define TASKGROUP_LEVEL_MASK 0x000000000000ffff
 #define TASKGROUP_PHASE_MASK 0x00000000ffff0000
 #define TASKWAIT_PHASE_MASK  0x000000000000ffff
+#define SINGLE_MASK          0x0000000000000030
 
 #define OFFSET_SPAN_WIDTH 16
 
@@ -30,11 +29,10 @@
 #define TASKWAIT_SHIFT 28
 #define PHASE_SHIFT 24
 #define LOOP_CNT_SHIFT 20
-#define TASK_CREATE_SHIFT 5 // can handle spawn <= 2^15 exp tasks
+#define TASK_CREATE_SHIFT 6
 #define WS_PLACE_HOLDER_POS 2  // least significant bit index is 0
-#define SINGLE_EXEC_SHIFT 63
-#define SINGLE_OTHER_SHIFT 62
-
+#define SINGLE_EXECUTOR_SHIFT 4
+#define SINGLE_OTHER_SHIFT 5
 
 namespace romp {
 
@@ -46,15 +44,16 @@ namespace romp {
  * [28, 31]: taskwait count
  * [24, 27]: phase count
  * [20, 23]: loop count
- * [5, 19]: task create count
+ * [7, 19]: task create count
+ * [5, 6]: bit 5 set: is single executable; bit 6 set: is single other
  * [4]: mark if current task sync by taskgroup with its parent task
  * [3]: mark if current task (must be explicit) syncs with taskwait 
  * [2]: mark if current workshare semgent is section, bit set: yes. 
  *      otherwise, sgment is iteration
  *
  * For workshare segment, we use the extra m_workShareId to store information
- * [0,31]: work share id
- * [62,63]: single construct flag bits 
+ * [0,31]: work share id // DEPRECATED 
+ * [62,63]: single construct flag bits // DEPRECATED 
  */
 std::string BaseSegment::toString() const {
   std::stringstream stream;
@@ -168,6 +167,22 @@ void BaseSegment::setTaskwaited() {
 
 bool BaseSegment::isTaskwaited() const {
   return (m_value & TASKWAIT_SYNC_MASK) != 0;
+}
+
+bool BaseSegment::isSingleExecutor() const {
+  return (m_value & SINGLE_MASK) >>  SINGLE_EXECUTOR_SHIFT;
+}
+
+bool BaseSegment::isSingleOther() const {
+  return (m_value & SINGLE_MASK) >> SINGLE_OTHER_SHIFT;
+}
+
+void BaseSegment::toggleSingleExecutor() {
+  m_value ^= 1UL << SINGLE_EXECUTOR_SHIFT;   
+}
+
+void BaseSegment::toggleSingleOther() {
+  m_value ^= 1UL << SINGLE_OTHER_SHIFT;
 }
 
 void BaseSegment::setTaskGroupSync() { 
@@ -301,7 +316,7 @@ bool WorkShareSegment::isPlaceHolder() const {
 }
 
 bool WorkShareSegment::isSingleExecutor() const {
-  return ((m_workShareId & SINGLE_MASK) >> SINGLE_EXEC_SHIFT) == 1;
+  return ((m_workShareId & SINGLE_MASK) >> SINGLE_EXECUTOR_SHIFT) == 1;
 }
 
 bool WorkShareSegment::isSingleOther() const {
@@ -317,7 +332,7 @@ void WorkShareSegment::setSingleFlag(bool isExecutor) {
   uint64_t b = 1;
   if (isExecutor) {
     // toggle the higher bit to 1
-    m_workShareId |= (b << SINGLE_EXEC_SHIFT);
+    m_workShareId |= (b << SINGLE_EXECUTOR_SHIFT);
   } else {
     // single other, toggle the lower bit to 1
     m_workShareId |= (b << SINGLE_OTHER_SHIFT);

@@ -34,6 +34,8 @@ public:
   virtual void setTaskGroupLevel(uint16_t taskGroupLevel) = 0;
   virtual void setTaskGroupPhase(uint16_t phase) = 0;
   virtual void setTaskwaitPhase(uint16_t phase) = 0;
+  virtual void toggleSingleExecutor() = 0;
+  virtual void toggleSingleOther() = 0;
   virtual void getOffsetSpan(uint64_t& offset, uint64_t& span) const = 0;
   virtual void setTaskwaited() = 0;
   virtual void setTaskGroupSync() = 0;
@@ -45,6 +47,8 @@ public:
   virtual uint16_t getTaskGroupLevel() const = 0;
   virtual uint16_t getTaskGroupPhase() const = 0;
   virtual uint16_t getTaskwaitPhase() const = 0;
+  virtual bool isSingleExecutor() const = 0;
+  virtual bool isSingleOther() const = 0; 
   virtual bool isTaskwaited() const = 0;
   virtual bool isTaskGroupSync() const = 0;
   virtual bool operator==(const Segment& rhs) const = 0;
@@ -81,6 +85,8 @@ public:
   void setTaskwaitPhase(uint16_t phase) override;
   void setTaskwaited() override;
   void setTaskGroupSync() override; 
+  void toggleSingleExecutor();
+  void toggleSingleOther();
   void getOffsetSpan(uint64_t& offset, uint64_t& span) const override;
   uint64_t getTaskwait() const override;
   uint64_t getTaskcreate() const override;
@@ -92,6 +98,8 @@ public:
   uint16_t getTaskwaitPhase() const override;
   bool isTaskwaited() const override;
   bool isTaskGroupSync() const override;
+  bool isSingleExecutor() const override;
+  bool isSingleOther() const override; 
   bool operator==(const Segment& rhs) const override; 
   bool operator!=(const Segment& rhs) const override;
   uint64_t getValue() const;

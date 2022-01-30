@@ -96,18 +96,9 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex) {
             != cur seg type");
     switch(histType) {
       case eImplicit:
-      //  if (diffIndex == 0) {
-      //    return true;
-      //}
-      //  return analyzeSameTask(histLabel, curLabel, diffIndex);
         return true;
       case eLogical:
-        if (static_cast<WorkShareSegment*>(histSegment)->isSingleExecutor() && 
-            static_cast<WorkShareSegment*>(curSegment)->isSingleExecutor()) { 
-          return analyzeSameTask(histLabel, curLabel, diffIndex);
-        } else {
-          return analyzeOrderedSection(histLabel, curLabel,  diffIndex);
-        }
+        return analyzeOrderedSection(histLabel, curLabel,  diffIndex);
       case eExplicit:
         return analyzeSameTask(histLabel, curLabel, diffIndex);
       default:
@@ -119,20 +110,20 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex) {
     auto span = histSpan;
     if (histOffset % span == curOffset % span) {
       RAW_CHECK(histOffset < curOffset, "not expecting history access joined \
-                before current access");
+               before current access");
       return true; 
     } 
-     return analyzeSiblingImpTask(histLabel, curLabel, diffIndex);
-   } 
-   return analyzeSameTask(histLabel, curLabel, diffIndex); 
+    return analyzeSiblingImplicitTask(histLabel, curLabel, diffIndex);
+  } 
+  return analyzeSameTask(histLabel, curLabel, diffIndex); 
 }
 
-bool analyzeSiblingImpTask(Label* histLabel, Label* curLabel, int diffIndex) { 
+bool analyzeSiblingImplicitTask(Label* histLabel, Label* curLabel, int diffIndex) { 
   auto lenHistLabel = histLabel->getLabelLength();
   auto lenCurLabel = curLabel->getLabelLength();
   if (diffIndex == (lenHistLabel - 1) || diffIndex == (lenCurLabel - 1)) {
     // if any one if T(histLabel) and T(curLabel) is leaf implicit task, 
-    // we are sure there is happens-beofre relationship
+    // we are sure there is no happens-beofre relationship
     return false;
   }
   // now diffIndex + 1 must not be out of boundary
