@@ -24,8 +24,6 @@ void on_ompt_callback_implicit_task(
        unsigned int actualParallelism,
        unsigned int index,
        int flags) {
-  RAW_DLOG(INFO, "on_ompt_callback_implicit_task called:%u p:%lx t:%lx %u %u %d",
-          endPoint, parallelData, taskData, actualParallelism, index, flags);
   if (flags == ompt_task_initial) {
     auto initTaskData = new TaskData();
     auto newTaskLabel = generateInitialTaskLabel();
@@ -146,8 +144,6 @@ void on_ompt_callback_sync_region(
        ompt_data_t *parallelData,
        ompt_data_t *taskData,
        const void* codePtrRa) {
-  RAW_DLOG(INFO,  "on_ompt_callback_sync_region called %p %d %d", 
-          taskData, kind, endPoint);
   if (!taskData || !taskData->ptr) {
     RAW_LOG(FATAL, "task data pointer is null");  
     return;
@@ -206,7 +202,6 @@ void on_ompt_callback_mutex_acquired(
         ompt_mutex_t kind,
         ompt_wait_id_t waitId,
         const void *codePtrRa) {
-  RAW_DLOG(INFO, "on_ompt_callback_mutex_acquired called");
   TaskInfo taskInfo;
   if (!queryTaskInfo(0, taskInfo)) {
     RAW_LOG(FATAL, "task data pointer is null");
@@ -218,7 +213,6 @@ void on_ompt_callback_mutex_acquired(
   if (kind == ompt_mutex_ordered) {
     mutatedLabel = mutateOrderSection(label.get()); 
   } else {
-    RAW_DLOG(INFO, "mutex acquired on wait id: %lu", waitId);
     if (taskDataPtr->lockSet == nullptr) {
       auto lockSet = std::make_shared<SmallLockSet>();
       taskDataPtr->lockSet = std::move(lockSet);
@@ -239,7 +233,6 @@ void on_ompt_callback_mutex_released(
         ompt_mutex_t kind,
         ompt_wait_id_t waitId,
         const void *codePtrRa) {
-  RAW_DLOG(INFO, "on_ompt_callback_mutex_released called");
   void* dataPtr;
   TaskInfo taskInfo;
   if (!queryTaskInfo(0, taskInfo)) {
@@ -348,7 +341,6 @@ void on_ompt_callback_work(
       ompt_data_t *taskData,
       uint64_t count,
       const void *codePtrRa) {
-  RAW_DLOG(INFO, "on_ompt_callback_work called");
   if (!taskData || !taskData->ptr) {
     RAW_LOG(FATAL, "task data pointer is null");
   }
@@ -357,31 +349,24 @@ void on_ompt_callback_work(
   std::shared_ptr<Label> mutatedLabel = nullptr;
   switch(workType) {
     case ompt_work_loop: 
-      RAW_DLOG(INFO, "ompt_work_loop");
       mutatedLabel = handleOmpWorkLoop(endPoint, label);
       break;
     case ompt_work_sections:
-      RAW_DLOG(INFO, "ompt_work_sections");
       mutatedLabel = handleOmpWorkSections(endPoint, label, count);
       break;
     case ompt_work_single_executor:
-      RAW_DLOG(INFO, "ompt_work_single_executor");
       mutatedLabel = handleOmpWorkSingleExecutor(endPoint, label);
       break;
     case ompt_work_single_other:
-      RAW_DLOG(INFO, "ompt_work_single_other");
       mutatedLabel = handleOmpWorkSingleOther(endPoint, label);
       break;
     case ompt_work_workshare:
-      RAW_DLOG(INFO, "ompt_work_workshare");
       mutatedLabel = handleOmpWorkWorkShare(endPoint, label, count);
       break;
     case ompt_work_distribute:
-      RAW_DLOG(INFO, "ompt_work_distribute");
       mutatedLabel = handleOmpWorkDistribute(endPoint, label, count);
       break;
     case ompt_work_taskloop:
-      RAW_DLOG(INFO, "ompt_work_taskloop");
       mutatedLabel = handleOmpWorkTaskLoop(endPoint, label, count);
       break;
     default:
@@ -397,8 +382,6 @@ void on_ompt_callback_parallel_begin(
        unsigned int requestedParallelism,
        int flags,
        const void *codePtrRa) {
-  RAW_DLOG(INFO, "parallel begin et:%lx p:%lx %u %d", encounteringTaskData, 
-           parallelData, requestedParallelism, flags);
   auto parallelRegionData = new ParallelRegionData(requestedParallelism, flags);
   parallelData->ptr = static_cast<void*>(parallelRegionData);  
 }
@@ -408,11 +391,6 @@ void on_ompt_callback_parallel_end(
        ompt_data_t *encounteringTaskData,
        int flags,
        const void *codePtrRa) {
-  RAW_DLOG(INFO, "parallel end et:%lx p:%lx par data: %lx flag:%lx", 
-		  encounteringTaskData, 
-		  parallelData,
-		  parallelData->ptr,
-                  flags);
   auto parRegionData = parallelData->ptr;
   delete static_cast<ParallelRegionData*>(parRegionData);
 }  
@@ -429,7 +407,6 @@ void on_ompt_callback_task_create(
       RAW_LOG(FATAL, "ompt_task_target is not supported yet");
       return;
     case ompt_task_explicit:
-      RAW_DLOG(INFO, "task create callback");
       // create label for explicit task
       auto parentTaskData = static_cast<TaskData*>(encounteringTaskData->ptr);
       if (!parentTaskData || !parentTaskData->label) {
@@ -442,8 +419,6 @@ void on_ompt_callback_task_create(
       taskData->isExplicitTask = true; // mark current task as explicit task
       auto mutatedParentLabel = mutateParentTaskCreate(parentLabel); 
       parentTaskData->label = std::move(mutatedParentLabel);
-      RAW_DLOG(INFO, "parent task data: %lx new task data: %lx explicit task create, parent label: %s new task label: %s mutated parent task label: %s", 
-           parentTaskData, taskData, parentLabel->toString().c_str(), taskData->label->toString().c_str(), parentTaskData->label->toString().c_str());
       parentTaskData->childrenExplicitTasksData.push_back(static_cast<void*>(taskData));
       // get parallel region info, atomic fetch and add the explicit task id
       ParallelRegionInfo parallelRegionInfo;
@@ -453,7 +428,6 @@ void on_ompt_callback_task_create(
       }
       auto parallelRegionData  = static_cast<ParallelRegionData*>(parallelRegionInfo.parallelData->ptr);
       auto taskId = parallelRegionData->expTaskCount.fetch_add(1,std::memory_order_relaxed);
-        RAW_DLOG(INFO, "explicit task create, local id: %d", taskId);
       taskData->expLocalId = taskId;        
       newTaskData->ptr = static_cast<void*>(taskData);
    }
@@ -479,7 +453,6 @@ void on_ompt_callback_task_schedule(
         ompt_data_t *priorTaskData,
         ompt_task_status_t priorTaskStatus,
         ompt_data_t *nextTaskData) {
-  RAW_DLOG(INFO, "ompt_callback_task_schedule"); 
   auto priorTaskPtr = priorTaskData->ptr;
   switch(priorTaskStatus) {
     case ompt_task_complete:
@@ -507,7 +480,6 @@ void on_ompt_callback_dependences(
         ompt_data_t *taskData,
         const ompt_dependence_t *deps,
         int ndeps) {
-  RAW_DLOG(INFO, "callback dependencies -- num deps: %lu", ndeps);
   auto taskPtr = taskData->ptr;
   if (!taskPtr) {
     RAW_LOG(WARNING, "callback dependences: current task data ptr is null");

@@ -52,8 +52,6 @@ void TaskDependenceGraph::addDeps(const ompt_dependence_t& deps,  void* taskPtr)
     for (const auto& pair : _deps[variable]) {
       auto otherTaskData = static_cast<TaskData*>(pair.first);
       auto otherTaskId = otherTaskData->expLocalId;
-      RAW_DLOG(INFO, "variable: %lx task ptr: %lx exp id: %d", 
-		      variable, otherTaskData, otherTaskId);
       auto curTaskId = curTaskData->expLocalId;   
       if (curTaskId > otherTaskId) {
         auto otherDepType = pair.second;          

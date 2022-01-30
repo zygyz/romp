@@ -27,7 +27,6 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord,
     return false;
   }
   if (!isHistBeforeCur) {
-    RAW_DLOG(INFO, "no happens before relation histLabel: %s curLabel: %s", histLabel->toString().c_str(), curLabel->toString().c_str()); 
     // further check explicit task dependence if current task and history task 
     // are both explicit tasks. If no task dependence, return true
     auto histTaskData = static_cast<TaskData*>(histRecord.getTaskPtr()); 
