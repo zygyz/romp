@@ -160,10 +160,8 @@ void on_ompt_callback_sync_region(
       case ompt_sync_region_taskwait:
         mutatedLabel = mutateTaskWait(labelPtr);
         markExpChildSyncTaskwait(taskDataPtr, labelPtr);
-        RAW_LOG(INFO, "task wait begin %s", mutatedLabel->toString().c_str());
         break;
       case ompt_sync_region_reduction:
-        RAW_LOG(INFO, "reduction begin sync region");
         taskDataPtr->inReduction = true;
         break;
       case ompt_sync_region_taskgroup:
@@ -176,9 +174,6 @@ void on_ompt_callback_sync_region(
   } else if (endPoint == ompt_scope_end) {
     switch(kind) {
       case ompt_sync_region_taskwait:
-        RAW_LOG(INFO, "task wait end");
-        //mutatedLabel = mutateTaskWait(labelPtr);
-        //markExpChildSyncTaskwait(taskDataPtr, labelPtr);
         break;
       case ompt_sync_region_taskgroup:
         mutatedLabel = mutateTaskGroupEnd(labelPtr);
@@ -191,7 +186,6 @@ void on_ompt_callback_sync_region(
         mutatedLabel = mutateBarrierEnd(labelPtr);
         break;
       case ompt_sync_region_reduction:
-        RAW_LOG(INFO, "reduction end sync region");
         taskDataPtr->inReduction = false;
         break;
       default:
@@ -432,7 +426,7 @@ void on_ompt_callback_task_create(
       RAW_LOG(FATAL, "ompt_task_target is not supported yet");
       return;
     case ompt_task_explicit:
-      RAW_LOG(INFO, "task create callback");
+      RAW_DLOG(INFO, "task create callback");
       // create label for explicit task
       auto parentTaskData = static_cast<TaskData*>(encounteringTaskData->ptr);
       if (!parentTaskData || !parentTaskData->label) {
@@ -445,7 +439,7 @@ void on_ompt_callback_task_create(
       taskData->isExplicitTask = true; // mark current task as explicit task
       auto mutatedParentLabel = mutateParentTaskCreate(parentLabel); 
       parentTaskData->label = std::move(mutatedParentLabel);
-      RAW_LOG(INFO, "parent task data: %lx new task data: %lx explicit task create, parent label: %s new task label: %s mutated parent task label: %s", 
+      RAW_DLOG(INFO, "parent task data: %lx new task data: %lx explicit task create, parent label: %s new task label: %s mutated parent task label: %s", 
            parentTaskData, taskData, parentLabel->toString().c_str(), taskData->label->toString().c_str(), parentTaskData->label->toString().c_str());
       parentTaskData->childrenExplicitTasksData.push_back(static_cast<void*>(taskData));
       // get parallel region info, atomic fetch and add the explicit task id
@@ -511,7 +505,6 @@ void on_ompt_callback_dependences(
         const ompt_dependence_t *deps,
         int ndeps) {
   RAW_DLOG(INFO, "callback dependencies -- num deps: %lu", ndeps);
-  RAW_LOG(INFO, "callback dependences -- num deps: %lu", ndeps);
   auto taskPtr = taskData->ptr;
   if (!taskPtr) {
     RAW_LOG(WARNING, "callback dependences: current task data ptr is null");

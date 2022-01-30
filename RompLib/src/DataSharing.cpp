@@ -150,7 +150,7 @@ void recycleTaskPrivateMemory() {
   void* taskPrivateDataBase = nullptr;
   size_t taskPrivateDataSize = 0;
   if (!queryTaskMemoryInfo(&taskPrivateDataBase, &taskPrivateDataSize)) {
-    RAW_LOG(INFO, "cannot get task private data memory info");
+    RAW_DLOG(INFO, "cannot get task private data memory info");
     return;
   }
   auto taskPrivateDataEnd = computeAddressRangeEnd(taskPrivateDataBase, 

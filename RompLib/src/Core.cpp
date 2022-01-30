@@ -13,8 +13,6 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord,
         bool& isHistBeforeCur, int& diffIndex, const uint64_t checkedAddress) {
   auto histLabel = histRecord.getLabel(); 
   auto curLabel = curRecord.getLabel(); 
-  //RAW_LOG(INFO, "checked byte address: %lx hist label: %s cur label: %s", checkedAddress, 
-  //            histLabel->toString().c_str(), curLabel->toString().c_str());
   if (analyzeMutualExclusion(histRecord, curRecord)) {
     return false;
   }  
@@ -29,7 +27,7 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord,
     return false;
   }
   if (!isHistBeforeCur) {
-    RAW_LOG(INFO, "no happens before relation histLabel: %s curLabel: %s", histLabel->toString().c_str(), curLabel->toString().c_str()); 
+    RAW_DLOG(INFO, "no happens before relation histLabel: %s curLabel: %s", histLabel->toString().c_str(), curLabel->toString().c_str()); 
     // further check explicit task dependence if current task and history task 
     // are both explicit tasks. If no task dependence, return true
     auto histTaskData = static_cast<TaskData*>(histRecord.getTaskPtr()); 
@@ -77,7 +75,7 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex) {
         return true;
       case static_cast<int>(eRightIsPrefix):
 	// current record -> hist record
-	RAW_LOG(FATAL, "current access happens before history access");
+	RAW_LOG(FATAL, "cur -> hist, cur: %s hist: %s", curLabel->toString().c_str(), histLabel->toString().c_str());
         return false;
       default:
         RAW_LOG(FATAL, "unknown label compare result");

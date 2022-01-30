@@ -44,21 +44,21 @@ void reportDataRaceWithLineInfo(const DataRaceInfo& info, Symtab* symtab) {
     curColumn = linesCur[0].getColumn();
   }
   if (!linesCur.empty() && !linesPrev.empty()) {
-    RAW_LOG(INFO, "data race found at mem addr: \
+    RAW_DLOG(INFO, "data race found at mem addr: \
       %lx\n %s@[%lx]line:%d col:%d vs %s@[%lx]line:%d col:%d ", info.memAddr, 
           prevFileName.c_str(), instnPrev, prevLine, prevColumn, 
           curFileName.c_str(), instnCur, curLine, curColumn);
   } else if (!linesCur.empty()) {
-    RAW_LOG(INFO, "data race found at mem addr: %lx\n %s@[%lx]line:%d col:%d", 
+    RAW_DLOG(INFO, "data race found at mem addr: %lx\n %s@[%lx]line:%d col:%d", 
             info.memAddr, curFileName.c_str(), instnCur, curLine, curColumn);
   } else {
-    RAW_LOG(INFO, "data race found at mem addr: %lx\n %s@[%lx]line:%d col:%d", 
+    RAW_DLOG(INFO, "data race found at mem addr: %lx\n %s@[%lx]line:%d col:%d", 
             info.memAddr, prevFileName.c_str(), instnPrev, prevLine, prevColumn);
   }
 }
 
 void reportDataRace(void* instnAddrPrev, void* instnAddrCur, uint64_t memAddr) {
-  RAW_LOG(INFO, "instn addr: %p vs instn addr: %p @ %p", 
+  RAW_DLOG(INFO, "instn addr: %p vs instn addr: %p @ %p", 
           instnAddrPrev, instnAddrCur, (void*)memAddr);
 } 
 
