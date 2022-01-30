@@ -155,43 +155,46 @@ void on_ompt_callback_sync_region(
   auto taskDataPtr = static_cast<TaskData*>(taskData->ptr);
   auto labelPtr = (taskDataPtr->label).get();  // never std::move here!
   std::shared_ptr<Label> mutatedLabel = nullptr;
-  if (endPoint == ompt_scope_begin) {
-    switch(kind) {
-      case ompt_sync_region_taskwait:
+  switch(kind) {
+    case ompt_sync_region_barrier:
+    case ompt_sync_region_barrier_implicit:
+    case ompt_sync_region_barrier_explicit:
+    case ompt_sync_region_barrier_implementation:
+    {
+      if (endPoint == ompt_scope_end) {
+        mutatedLabel = mutateBarrierEnd(labelPtr);
+      }   
+      break;
+    }
+    case ompt_sync_region_taskwait:
+    {
+      if (endPoint == ompt_scope_begin) {
         mutatedLabel = mutateTaskWait(labelPtr);
         markExpChildSyncTaskwait(taskDataPtr, labelPtr);
-        break;
-      case ompt_sync_region_reduction:
-        taskDataPtr->inReduction = true;
-        break;
-      case ompt_sync_region_taskgroup:
+      }
+      break;
+    }
+    case ompt_sync_region_taskgroup:
+    {
+      if (endPoint == ompt_scope_begin) {
         mutatedLabel = mutateTaskGroupBegin(labelPtr);
-        break;
-      default:
-        RAW_DLOG(WARNING, "ignoring endpoint type %d", kind);
-        break;
-    } 
-  } else if (endPoint == ompt_scope_end) {
-    switch(kind) {
-      case ompt_sync_region_taskwait:
-        break;
-      case ompt_sync_region_taskgroup:
+      } else if (endPoint == ompt_scope_end) {
         mutatedLabel = mutateTaskGroupEnd(labelPtr);
         markExpChildSyncTaskGroupEnd(taskDataPtr, labelPtr);
-        break;
-      case ompt_sync_region_barrier:
-      case ompt_sync_region_barrier_explicit:
-      case ompt_sync_region_barrier_implementation:
-      case ompt_sync_region_barrier_implicit:
-        mutatedLabel = mutateBarrierEnd(labelPtr);
-        break;
-      case ompt_sync_region_reduction:
-        taskDataPtr->inReduction = false;
-        break;
-      default:
-        RAW_DLOG(WARNING, "ignoring endpoint type %d", kind);
-        break;
+      }
+      break;
     }
+    case ompt_sync_region_reduction:
+    {
+      if (endPoint == ompt_scope_begin) { 
+        taskDataPtr->inReduction = true;
+      } else if (endPoint == ompt_scope_end) {
+        taskDataPtr->inReduction = false;
+      } 
+    }
+    default:
+      RAW_LOG(FATAL, "unknown ompt_sync_region_t type: %d", kind);
+      break;
   }
   if (mutatedLabel != nullptr) { // for default case, don't modify
     taskDataPtr->label = std::move(mutatedLabel);
