@@ -188,7 +188,6 @@ T* ShadowMemory<T>::_getOrCreatePageForMemAddr(const uint64_t address) {
     auto success = __sync_bool_compare_and_swap(&_pageTable[l1Index], 
                                                 0, freshL1Page);
     if (!success) { // someone has already allocated this slot
-      RAW_DLOG(INFO, "saving l1 page to cache");
       _saveL1Page(freshL1Page);
     }
   }

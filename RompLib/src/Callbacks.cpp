@@ -415,9 +415,11 @@ void on_ompt_callback_task_create(
       }
       auto taskData = new TaskData();
       auto parentLabel = (parentTaskData->label).get();
+      RAW_DLOG(INFO,"task create parent label: %s ", parentLabel->toString().c_str());
       taskData->label = generateExplicitTaskLabel(parentLabel);
       taskData->isExplicitTask = true; // mark current task as explicit task
       auto mutatedParentLabel = mutateParentTaskCreate(parentLabel); 
+      RAW_DLOG(INFO,"task create mutated parent label: %s ", mutatedParentLabel->toString().c_str());
       parentTaskData->label = std::move(mutatedParentLabel);
       parentTaskData->childrenExplicitTasksData.push_back(static_cast<void*>(taskData));
       // get parallel region info, atomic fetch and add the explicit task id
@@ -433,11 +435,6 @@ void on_ompt_callback_task_create(
    }
 }
 
-/*
- * This helper function is called when task status is ompt_task_complete.
- * It mutates the label of the encountering task and set the stored label
- * to the mutated one.
- */
 void handleTaskComplete(void* taskPtr) {
   if (taskPtr == nullptr) {
     RAW_LOG(WARNING, "handleTaskComplete: task ptr is null");
