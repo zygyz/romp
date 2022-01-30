@@ -235,7 +235,6 @@ std::shared_ptr<Label> mutateSectionEnd(Label* label) {
  * single executor bit.
  */
 std::shared_ptr<Label> mutateSingleExecBegin(Label* label) {
-  RAW_DLOG(INFO, "mutateSingleExecBegin");
   auto newLabel = std::make_shared<Label>(*label); 
   auto newSegment = std::make_shared<WorkShareSegment>(); 
   newSegment->setSingleFlag(true);
@@ -248,7 +247,6 @@ std::shared_ptr<Label> mutateSingleExecBegin(Label* label) {
  * executor. Pop the workshare segment.
  */
 std::shared_ptr<Label> mutateSingleEnd(Label* label) {
-  RAW_DLOG(INFO, "mutate single end ", newLabel->toString().c_str());
   auto newLabel = std::make_shared<Label>(*label);
   newLabel->popSegment();
   return newLabel;
