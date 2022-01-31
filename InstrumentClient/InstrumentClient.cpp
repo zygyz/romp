@@ -195,8 +195,8 @@ InstrumentClient::insertSnippet(
 
     auto addrSpec = memoryAccess->getStartAddr(0);
     if (addrSpec->getReg(0) == 0xffffffff && 
-        addrSpec->getReg(1) == 0xffffffff && 
-        addrSpec->getReg(2) == 0) {
+      addrSpec->getReg(1) == 0xffffffff && 
+      addrSpec->getReg(2) == 0) {
       // the memory access is a thread private one: uses fs register
       continue;
     }

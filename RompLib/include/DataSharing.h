@@ -16,8 +16,8 @@ enum DataSharingType {
   eUndefined,
 };
 
-bool shouldCheckMemoryAccess(const ThreadInfo& threadInfo, const TaskMemoryInfo& taskMemoryInfo, const void* memoryAddress, const ompt_frame_t* taskFrame);
-DataSharingType analyzeDataSharingType(const ThreadInfo& threadInfo, const TaskMemoryInfo& taskMemoryInfo, const void* memoryAddress, const ompt_frame_t* taskFrame);
+bool shouldCheckMemoryAccess(const ThreadInfo& threadInfo, const TaskMemoryInfo& taskMemoryInfo, const uint64_t memoryAddress, const ompt_frame_t* taskFrame);
+DataSharingType analyzeDataSharingType(const ThreadInfo& threadInfo, const TaskMemoryInfo& taskMemoryInfo, const uint64_t memoryAddress, const ompt_frame_t* taskFrame);
 void recycleTaskThreadStackMemory(void* taskData);
 void recycleTaskPrivateMemory();
 void recycleMemRange(void* lowerBound, void* higherBound);

@@ -19,7 +19,7 @@ namespace romp {
  
 bool shouldCheckMemoryAccess(const ThreadInfo& threadInfo, 
                              const TaskMemoryInfo& taskMemoryInfo,
-                             const void* memoryAddress,
+                             const uint64_t memoryAddress,
                              const ompt_frame_t* taskFrame) {
   const auto dataSharingType = analyzeDataSharingType(threadInfo, taskMemoryInfo, memoryAddress, taskFrame);
   switch(dataSharingType) {
@@ -38,7 +38,7 @@ bool shouldCheckMemoryAccess(const ThreadInfo& threadInfo,
 
 DataSharingType analyzeDataSharingType(const ThreadInfo& threadInfo, 
                                        const TaskMemoryInfo& taskMemoryInfo,
-                                       const void* memoryAddress,
+                                       const uint64_t memoryAddress,
                                        const ompt_frame_t* taskFrame) {
   // This function tries to infer data sharing property of the memory access to memoryAddress. 
   if (threadInfo.threadType == ompt_thread_other || threadInfo.threadType == ompt_thread_unknown) {
@@ -57,9 +57,8 @@ DataSharingType analyzeDataSharingType(const ThreadInfo& threadInfo,
     return eThreadMetaDataNotSet;  
   }
 
-  const auto memoryAddressValue = reinterpret_cast<const uint64_t>(memoryAddress);
-  if (memoryAddressValue > reinterpret_cast<const uint64_t>(threadData->stackTopAddress) ||
-      memoryAddressValue < reinterpret_cast<const uint64_t>(threadData->stackBaseAddress)) {
+  if (memoryAddress > reinterpret_cast<const uint64_t>(threadData->stackTopAddress) ||
+      memoryAddress < reinterpret_cast<const uint64_t>(threadData->stackBaseAddress)) {
     // memory address does not fall in current thread stack range, must not be thread private access.
     return eNonThreadPrivate;
   }
@@ -75,19 +74,19 @@ DataSharingType analyzeDataSharingType(const ThreadInfo& threadInfo,
   // procedure frame executing the task region before entering the OpenMP runtime implementation or before 
   // executing a different task.
   if (exitFrame.ptr && exitFrameFlags == ompt_frame_application && 
-      memoryAddressValue > reinterpret_cast<const uint64_t>(exitFrame.ptr)) {
+      memoryAddress > reinterpret_cast<const uint64_t>(exitFrame.ptr)) {
     // memory address is above the first procedure frame executing current task region. 
     return eThreadPrivateAccessOtherTask; 
   }
   if (enterFrame.ptr && enterFrameFlags == ompt_frame_application && 
-      memoryAddressValue == reinterpret_cast<const uint64_t>(enterFrame.ptr)) {
+      memoryAddress == reinterpret_cast<const uint64_t>(enterFrame.ptr)) {
     // we don't know how large the stack frame for enterFrame is. We can only use the frame base address.
     return eThreadPrivateAccessCurrentTask; 
   }
   if (taskMemoryInfo.blockAddress != nullptr) {
     const auto taskPrivateMemoryBaseAddress = reinterpret_cast<const uint64_t>(taskMemoryInfo.blockAddress);
     const auto taskPrivateMemorySize = reinterpret_cast<const uint64_t>(taskMemoryInfo.blockSize);
-    if (memoryAddressValue >= taskPrivateMemoryBaseAddress && memoryAddressValue <= taskPrivateMemoryBaseAddress + taskPrivateMemorySize) {
+    if (memoryAddress >= taskPrivateMemoryBaseAddress && memoryAddress <= taskPrivateMemoryBaseAddress + taskPrivateMemorySize) {
       return eTaskPrivate;
     }
   }
