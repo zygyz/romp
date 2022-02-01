@@ -65,6 +65,7 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
     cit = it; 
     auto histRecord = *cit;
     if (analyzeRaceCondition(histRecord, curRecord, isHistBeforeCurrent, diffIndex, checkedAddress)) {
+      RAW_DLOG(INFO, "FOUND data race: hist: %s cur: %s", histRecord.getLabel()->toString().c_str(), curLabel->toString().c_str());
       gDataRaceFound = true;
       gNumDataRace++;
       accessHistory->setFlag(eDataRaceFound);

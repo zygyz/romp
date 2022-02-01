@@ -319,11 +319,9 @@ void on_ompt_callback_work(
       mutatedLabel = mutateTaskLabelOnWorkSectionsCallback(endPoint, label, count);
       break;
     case ompt_work_single_executor:
-      RAW_DLOG(INFO, "ompt_work_single_executor");
       mutatedLabel = mutateTaskLabelOnWorkSingleExecutorCallback(endPoint, label);
       break;
     case ompt_work_single_other:
-      RAW_DLOG(INFO, "ompt_work_single_other");
       mutatedLabel = mutateTaskLabelOnWorkSingleOtherCallback(endPoint, label);
       break;
     case ompt_work_workshare:
@@ -381,7 +379,7 @@ void on_ompt_callback_task_create(
       }
       auto taskData = new TaskData();
       auto parentLabel = (parentTaskData->label).get();
-      RAW_DLOG(INFO,"task create parent label: %s ", parentLabel->toString().c_str());
+      RAW_DLOG(INFO,"explicit task create parent label: %s ", parentLabel->toString().c_str());
       taskData->label = generateExplicitTaskLabel(parentLabel);
       taskData->isExplicitTask = true; // mark current task as explicit task
       auto mutatedParentLabel = mutateParentTaskCreate(parentLabel); 

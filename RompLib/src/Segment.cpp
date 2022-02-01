@@ -12,7 +12,7 @@
 #define PHASE_MASK           0x000000000f000000
 #define WS_PLACE_HOLDER_MASK 0xfffffffffffffffb
 #define LOOP_CNT_MASK        0x0000000000f00000
-#define TASK_CREATE_MASK     0x00000000000fffc0
+#define TASK_CREATE_MASK     0x00000000000fff80
 #define WORKSHARE_TYPE_MASK  0x0000000000000004
 #define TASKWAIT_SYNC_MASK   0x0000000000000008
 #define TASKGROUP_SYNC_MASK  0x0000000000000010
@@ -29,16 +29,15 @@
 #define TASKWAIT_SHIFT 28
 #define PHASE_SHIFT 24
 #define LOOP_CNT_SHIFT 20
-#define TASK_CREATE_SHIFT 6
+#define TASK_CREATE_SHIFT 7
 #define WS_PLACE_HOLDER_POS 2  // least significant bit index is 0
-#define SINGLE_EXECUTOR_SHIFT 4
-#define SINGLE_OTHER_SHIFT 5
+#define SINGLE_EXECUTOR_SHIFT 5
+#define SINGLE_OTHER_SHIFT 6
 
 namespace romp {
 
 /*
  * Each segment contains a 64 bit value. From low to high, assign index 0-63
- * [0,1]: segment type 
  * [48, 63]: offset 
  * [32, 47]: span 
  * [28, 31]: taskwait count
@@ -50,6 +49,7 @@ namespace romp {
  * [3]: mark if current task (must be explicit) syncs with taskwait 
  * [2]: mark if current workshare semgent is section, bit set: yes. 
  *      otherwise, sgment is iteration
+ * [0,1]: segment type 
  *
  * For workshare segment, we use the extra m_workShareId to store information
  * [0,31]: work share id // DEPRECATED 
