@@ -13,6 +13,8 @@ enum DataSharingType {
   eTaskPrivate,
   eNonWorkerThread,
   eThreadMetaDataNotSet, 
+  eInitialThread,
+  eOmpRuntime,
   eUndefined,
 };
 

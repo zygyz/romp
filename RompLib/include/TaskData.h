@@ -16,8 +16,8 @@ typedef struct TaskData {
   std::shared_ptr<Label> label;
   std::shared_ptr<LockSet> lockSet;
   bool inReduction;
+  void* exitFrame;
   std::vector<void*> childrenExplicitTasksData;
-  void* exitFrame; 
   int expLocalId; // if the task is explicit, store its local id in par region
   bool isMutexTask;
   bool isExplicitTask; 

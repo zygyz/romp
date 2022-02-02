@@ -32,6 +32,8 @@ bool shouldCheckMemoryAccess(const ThreadInfo& threadInfo,
     case eThreadPrivateAccessCurrentTask:
     case eTaskPrivate:
     case eNonWorkerThread:
+    case eOmpRuntime:
+    case eInitialThread:
       return false; 
   }
 }
@@ -44,6 +46,9 @@ DataSharingType analyzeDataSharingType(const ThreadInfo& threadInfo,
   if (threadInfo.threadType == ompt_thread_other || threadInfo.threadType == ompt_thread_unknown) {
     // not worker thread that executes the program.
     return eNonWorkerThread;
+  }
+  if (threadInfo.threadType == ompt_thread_initial) {
+    return eInitialThread;
   }
   if (!taskFrame || taskFrame->exit_frame.ptr == nullptr) {
     return eTaskExitFrameNotSet;
@@ -73,12 +78,16 @@ DataSharingType analyzeDataSharingType(const ThreadInfo& threadInfo,
   // The enter_frame field of an ompt_frame_t object contains information to identify the latest still active 
   // procedure frame executing the task region before entering the OpenMP runtime implementation or before 
   // executing a different task.
-  if (exitFrame.ptr && exitFrameFlags == ompt_frame_application && 
+  if (exitFrameFlags == (ompt_frame_runtime | ompt_frame_framepointer) || 
+      enterFrameFlags == (ompt_frame_runtime | ompt_frame_framepointer)) {
+    return eOmpRuntime;
+  }
+  if (exitFrame.ptr && exitFrameFlags == (ompt_frame_application | ompt_frame_framepointer) && 
       memoryAddress > reinterpret_cast<const uint64_t>(exitFrame.ptr)) {
     // memory address is above the first procedure frame executing current task region. 
     return eThreadPrivateAccessOtherTask; 
   }
-  if (enterFrame.ptr && enterFrameFlags == ompt_frame_application && 
+  if (enterFrame.ptr && enterFrameFlags == (ompt_frame_application | ompt_frame_framepointer)  && 
       memoryAddress == reinterpret_cast<const uint64_t>(enterFrame.ptr)) {
     // we don't know how large the stack frame for enterFrame is. We can only use the frame base address.
     return eThreadPrivateAccessCurrentTask; 
@@ -87,6 +96,7 @@ DataSharingType analyzeDataSharingType(const ThreadInfo& threadInfo,
     const auto taskPrivateMemoryBaseAddress = reinterpret_cast<const uint64_t>(taskMemoryInfo.blockAddress);
     const auto taskPrivateMemorySize = reinterpret_cast<const uint64_t>(taskMemoryInfo.blockSize);
     if (memoryAddress >= taskPrivateMemoryBaseAddress && memoryAddress <= taskPrivateMemoryBaseAddress + taskPrivateMemorySize) {
+      // filter explicit task private memory locations. Memory accesses to these locations should be exclusive to the task. 
       return eTaskPrivate;
     }
   }
@@ -125,7 +135,6 @@ void recycleTaskThreadStackMemory(void* taskData) {
   auto exitFrameAddr = taskDataPtr->exitFrame;
   ThreadInfo threadInfo; 
   if (!queryOmpThreadInfo(threadInfo)) {
-    RAW_LOG(FATAL, "cannot get thread info");
     return;
   }
   auto threadData = threadInfo.threadData;
