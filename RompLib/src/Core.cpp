@@ -56,11 +56,8 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord,
 bool analyzeMutualExclusion(const Record& histRecord, const Record& curRecord) {
   auto histLockSet = histRecord.getLockSet(); 
   auto curLockSet = curRecord.getLockSet();  
-  if (histLockSet == nullptr || curLockSet == nullptr) {
-    return false;
-  }
-  return histLockSet->hasCommonLock(*curLockSet) || 
-           (histRecord.hasHardwareLock() && curRecord.hasHardwareLock());
+  return histRecord.hasHardwareLock() && curRecord.hasHardwareLock() || 
+         (histLockSet && curLockSet && histLockSet->hasCommonLock(*curLockSet));  
 }
 
 

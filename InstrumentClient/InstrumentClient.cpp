@@ -153,8 +153,7 @@ InstrumentClient::hasHardwareLock(
         const std::string& arch) {
   if (arch == "x86") { 
       // check first byte of the instruction for x86 arch
-    auto firstByte = reinterpret_cast<uint8_t>(instruction.rawByte(0));
-    return firstByte == 0xf0;
+    return reinterpret_cast<uint8_t>(instruction.rawByte(0)) == 0xf0;
   } 
   LOG(FATAL) << "unexpected architecture: " << arch;
   return false;
