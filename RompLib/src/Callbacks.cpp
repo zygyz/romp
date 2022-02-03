@@ -418,12 +418,12 @@ void on_ompt_callback_task_schedule(
   switch(priorTaskStatus) {
     case ompt_task_complete:
       handleTaskComplete(priorTaskPtr);
-      recycleTaskThreadStackMemory(priorTaskPtr);
-      recycleTaskPrivateMemory();
+      //recycleTaskThreadStackMemory(priorTaskPtr);
+      //recycleTaskPrivateMemory();
       break;
     case ompt_task_switch:
-      recycleTaskThreadStackMemory(priorTaskPtr);
-      recycleTaskPrivateMemory();
+     // recycleTaskThreadStackMemory(priorTaskPtr);
+     // recycleTaskPrivateMemory();
       break;
     case ompt_task_yield:
     case ompt_task_cancel:
