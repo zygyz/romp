@@ -12,6 +12,11 @@ enum SegmentType {
   eError = 0x4,
 };
 
+enum WorkShareType {
+  eIteration = 0,
+  eSection = 1,
+};
+
 enum TaskSyncType {
   eTaskwait,
   eTaskGroupEnd,
@@ -117,20 +122,17 @@ class WorkShareSegment: public BaseSegment {
 public:
   WorkShareSegment() : m_workShareId(0) { setType(eLogical); 
       setOffsetSpan(0, 1); }
-  WorkShareSegment(uint64_t id, bool isSection): m_workShareId(id) { 
+  WorkShareSegment(uint64_t id, WorkShareType workShareType): m_workShareId(id) { 
     setType(eLogical); 
-    setWorkShareType(isSection);
+    setWorkShareType(workShareType);
     setOffsetSpan(0, 1);
   } 
   WorkShareSegment(const WorkShareSegment& segment): BaseSegment(segment), 
      m_workShareId(segment.m_workShareId) { }                       
-  void setPlaceHolderFlag(bool toggle);
-  bool isPlaceHolder() const;
-  void setWorkShareType(bool isSection);
-  bool isSection() const;
-  void setSingleFlag(bool isExecutor);
-  bool isSingleExecutor() const;
-  bool isSingleOther() const;
+  void toggleWorkSharePlaceHolderFlag();
+  bool isWorkSharePlaceHolder() const;
+  void setWorkShareType(WorkShareType workShareType);
+  WorkShareType getWorkShareType() const;
   uint64_t getWorkShareId() const;
   std::string toString() const override;
   std::shared_ptr<Segment> clone() const override;

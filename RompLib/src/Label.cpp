@@ -195,7 +195,7 @@ std::shared_ptr<Label> mutateOrderSection(Label* label) {
 std::shared_ptr<Label> mutateLoopBegin(Label* label) {
   auto newLabel = std::make_shared<Label>(*label); 
   auto newSegment = std::make_shared<WorkShareSegment>(); 
-  newSegment->setPlaceHolderFlag(true);
+  newSegment->toggleWorkSharePlaceHolderFlag();
   newLabel->appendSegment(newSegment);   
   return newLabel;
 }
@@ -255,22 +255,22 @@ std::shared_ptr<Label> mutateSingleOther(Label* label) {
  * Depending on the type of workshare construct (iteration/section), create 
  * proper workshare segment.
  */
-std::shared_ptr<Label> mutateLogicalDispatch(
-        Label* label, uint64_t id, bool isSection) {
+std::shared_ptr<Label> mutateLogicalDispatch(Label* label, uint64_t id, WorkShareType workShareType) {
   auto newLabel = std::make_shared<Label>(*label); 
   auto segment = newLabel->popSegment();
+  auto phase = segment->getPhase();    
   RAW_DCHECK(segment->getType() == eLogical, "not a workshare segment");
-  auto newSegment = std::make_shared<WorkShareSegment>(id, isSection); 
+  auto newSegment = std::make_shared<WorkShareSegment>(id, workShareType); 
   newLabel->appendSegment(newSegment);   
   return newLabel;
 }
 
-std::shared_ptr<Label> mutateIterDispatch(Label* label, uint64_t id) {
-  return mutateLogicalDispatch(label, id, false);
+std::shared_ptr<Label> mutateWorkShareIterationDispatch(Label* label, uint64_t id) {
+  return mutateLogicalDispatch(label, id, eIteration);
 }
 
 std::shared_ptr<Label> mutateSectionDispatch(Label* label, void* id) {  
-  return mutateLogicalDispatch(label, reinterpret_cast<uint64_t>(id), true);
+  return mutateLogicalDispatch(label, reinterpret_cast<uint64_t>(id), eSection);
 }
 
 /*

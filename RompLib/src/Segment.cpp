@@ -10,10 +10,8 @@
 #define SPAN_MASK            0x0000ffff00000000
 #define TASKWAIT_MASK        0xffffffff0fffffff
 #define PHASE_MASK           0x000000000f000000
-#define WS_PLACE_HOLDER_MASK 0xfffffffffffffffb
 #define LOOP_CNT_MASK        0x0000000000f00000
 #define TASK_CREATE_MASK     0x00000000000fff80
-#define WORKSHARE_TYPE_MASK  0x0000000000000004
 #define TASKWAIT_SYNC_MASK   0x0000000000000008
 #define TASKGROUP_SYNC_MASK  0x0000000000000010
 #define TASKGROUP_ID_MASK    0x00000000ffff0000
@@ -21,7 +19,9 @@
 #define TASKGROUP_PHASE_MASK 0x00000000ffff0000
 #define TASKWAIT_PHASE_MASK  0x000000000000ffff
 #define SINGLE_MASK          0x0000000000000030
+#define WORK_SHARE_PLACEHOLDER_MASK 0xfffffffffffffffb
 
+#define WORK_SHARE_TYPE_MASK 0xc000000000000000
 #define OFFSET_SPAN_WIDTH 16
 
 #define OFFSET_SHIFT 48
@@ -30,9 +30,10 @@
 #define PHASE_SHIFT 24
 #define LOOP_CNT_SHIFT 20
 #define TASK_CREATE_SHIFT 7
-#define WS_PLACE_HOLDER_POS 2  // least significant bit index is 0
+#define WORK_SHARE_PLACE_HOLDER_SHIFT 2 
 #define SINGLE_EXECUTOR_SHIFT 5
 #define SINGLE_OTHER_SHIFT 6
+#define WORK_SHARE_TYPE_SHIFT 62
 
 namespace romp {
 
@@ -47,13 +48,12 @@ namespace romp {
  * [5, 6]: bit 5 set: is single executable; bit 6 set: is single other
  * [4]: mark if current task sync by taskgroup with its parent task
  * [3]: mark if current task (must be explicit) syncs with taskwait 
- * [2]: mark if current workshare semgent is section, bit set: yes. 
- *      otherwise, sgment is iteration
+ * [2]: mark work share placeholder bit 
  * [0,1]: segment type 
  *
  * For workshare segment, we use the extra m_workShareId to store information
- * [0,31]: work share id // DEPRECATED 
- * [62,63]: single construct flag bits // DEPRECATED 
+ * [0,31]: work share id 
+ * [62,63]: work share type: 00: iteartion 01: section, 
  */
 std::string BaseSegment::toString() const {
   std::stringstream stream;
@@ -286,16 +286,12 @@ std::shared_ptr<Segment> WorkShareSegment::clone() const {
   return std::make_shared<WorkShareSegment>(*this);
 }
 
-/*
- * Set place holder flag for the workshare segment. If toggle is true,
- * set the flag, otherwise, clear the flag.
- */
-void WorkShareSegment::setPlaceHolderFlag(bool toggle) {
-  if (toggle) {
-    m_value |= (1 << WS_PLACE_HOLDER_POS);
-  } else {
-    m_value &= WS_PLACE_HOLDER_MASK;
-  }
+void WorkShareSegment::toggleWorkSharePlaceHolderFlag() {
+  m_value ^= 1UL << WORK_SHARE_PLACE_HOLDER_SHIFT;   
+}
+
+bool WorkShareSegment::isWorkSharePlaceHolder() const {
+  return (m_value & WORK_SHARE_PLACEHOLDER_MASK) >>  WORK_SHARE_PLACE_HOLDER_SHIFT;
 }
 
 bool WorkShareSegment::operator==(const Segment& segment) const {
@@ -311,44 +307,17 @@ bool WorkShareSegment::operator!=(const Segment& segment) const {
   return !(*this == segment);
 }
 
-bool WorkShareSegment::isPlaceHolder() const {
-  return ((m_value & ~WS_PLACE_HOLDER_MASK) >> WS_PLACE_HOLDER_POS) == 1;
-}
-
-bool WorkShareSegment::isSingleExecutor() const {
-  return ((m_workShareId & SINGLE_MASK) >> SINGLE_EXECUTOR_SHIFT) == 1;
-}
-
-bool WorkShareSegment::isSingleOther() const {
-  return ((m_workShareId & SINGLE_MASK) >> SINGLE_OTHER_SHIFT) == 1;
-}
-
 uint64_t WorkShareSegment::getWorkShareId() const {
   return m_workShareId;
 }
 
-void WorkShareSegment::setSingleFlag(bool isExecutor) {
-  m_workShareId &= ~SINGLE_MASK;
-  uint64_t b = 1;
-  if (isExecutor) {
-    // toggle the higher bit to 1
-    m_workShareId |= (b << SINGLE_EXECUTOR_SHIFT);
-  } else {
-    // single other, toggle the lower bit to 1
-    m_workShareId |= (b << SINGLE_OTHER_SHIFT);
-  }
+void WorkShareSegment::setWorkShareType(WorkShareType type) {
+   m_workShareId &= ~WORK_SHARE_TYPE_MASK; // clear work share type 
+   m_workShareId |= (type << WORK_SHARE_TYPE_SHIFT); 
 }
 
-void WorkShareSegment::setWorkShareType(bool isSection) {
-  m_value &= ~WORKSHARE_TYPE_MASK; // clear the bit first
-  if (isSection) {
-    m_value |= WORKSHARE_TYPE_MASK;  // set the bit
-  } 
+WorkShareType WorkShareSegment::getWorkShareType() const {
+  return static_cast<WorkShareType>((m_workShareId & WORK_SHARE_TYPE_MASK) >> WORK_SHARE_TYPE_SHIFT);
 }
-
-bool WorkShareSegment::isSection() const {
-  return (m_value & WORKSHARE_TYPE_MASK) != 0;
-}
-
 
 }

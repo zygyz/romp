@@ -130,8 +130,9 @@ bool analyzeSiblingImplicitTask(Label* histLabel, Label* curLabel, int diffIndex
   auto curNextSegType = curNextSeg->getType();
   if (histNextSegType == eLogical && curNextSegType == eLogical) {
     // in this case, it is possible to be ordered with ordered section
-    if (static_cast<WorkShareSegment*>(histNextSeg)->isSection() || 
-            static_cast<WorkShareSegment*>(curNextSeg)->isSection()) {
+    auto histNextWorkShareType = static_cast<WorkShareSegment*>(histNextSeg)->getWorkShareType(); 
+    auto curNextWorkShareType = static_cast<WorkShareSegment*>(curNextSeg)->getWorkShareType();
+    if (histNextWorkShareType == eSection || curNextWorkShareType == eSection) {   
       // section construct does not have ordered section 
       return false;
     } 
@@ -152,7 +153,7 @@ bool analyzeOrderedSection(Label* histLabel, Label* curLabel, int startIndex) {
   auto curBaseSeg = curLabel->getKthSegment(startIndex);
   auto histSegment = static_cast<WorkShareSegment*>(histBaseSeg);
   auto curSegment = static_cast<WorkShareSegment*>(curBaseSeg);
-  if (histSegment->isPlaceHolder() || curSegment->isPlaceHolder()) {
+  if (histSegment->isWorkSharePlaceHolder() || curSegment->isWorkSharePlaceHolder()) {
     // have not entered the workshare construct yet.
     return false;
   } 
@@ -268,7 +269,7 @@ bool analyzeSameTask(Label* histLabel, Label* curLabel, int diffIndex) {
       return analyzeSyncChain(histLabel, diffIndex + 1); 
     } 
     if (histNextType == eLogical) {
-      if (static_cast<WorkShareSegment*>(histNextSeg)->isPlaceHolder()) {
+      if (static_cast<WorkShareSegment*>(histNextSeg)->isWorkSharePlaceHolder()) {
         return true;
       }
       return false; 
