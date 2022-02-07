@@ -1,5 +1,7 @@
 #pragma once
 #include <memory>
+#include <string>
+#include <unordered_map>
 #include <vector>
 
 class Label;
@@ -20,6 +22,7 @@ typedef struct TaskData {
   int expLocalId; // if the task is explicit, store its local id in par region
   bool isMutexTask;
   bool isExplicitTask; 
+  std::unordered_map<std::string, bool> duplicateMap;
   TaskData() {
     label = nullptr;
     lockSet = nullptr;
@@ -29,4 +32,5 @@ typedef struct TaskData {
     isMutexTask = false;
     isExplicitTask = false;
   }
+  
 } TaskData;

@@ -16,7 +16,7 @@ std::string Label::toString() const {
   auto result = std::string("");
   for (const auto& segment : _label) {
     result += segment->toString();
-    result += std::string(" | ");
+    result += std::string("|");
   }
   return result;
 }

@@ -21,9 +21,13 @@ extern PerformanceCounters gPerformanceCounters;
 
 bool shouldCheckMemoryAccess(const ThreadInfo& threadInfo, 
                              const TaskMemoryInfo& taskMemoryInfo,
+                             const TaskInfo& taskInfo,
                              const uint64_t memoryAddress,
-                             const ompt_frame_t* taskFrame) {
-  const auto dataSharingType = analyzeDataSharingType(threadInfo, taskMemoryInfo, memoryAddress, taskFrame);
+                             const bool isWrite) {
+  if (isDuplicateMemoryAccess(memoryAddress, taskInfo, isWrite)) {
+    return false;
+  }
+  const auto dataSharingType = analyzeDataSharingType(threadInfo, taskMemoryInfo, memoryAddress, taskInfo.taskFrame);
   switch(dataSharingType) {
     case eNonThreadPrivate:
     case eThreadPrivateAccessOtherTask:
@@ -42,6 +46,20 @@ bool shouldCheckMemoryAccess(const ThreadInfo& threadInfo,
   }
   RAW_LOG(FATAL, "unexpected data sharing type: %d", dataSharingType);
   return true;
+}
+
+bool isDuplicateMemoryAccess(const uint64_t memoryAddress, const TaskInfo& taskInfo, bool isWrite) {
+  const auto taskData = static_cast<TaskData*>(taskInfo.taskData->ptr);  
+  const auto key = std::to_string(memoryAddress) + taskData->label->toString();
+  if (taskData->duplicateMap.find(key) == taskData->duplicateMap.end()) {
+    taskData->duplicateMap[key] = isWrite;
+    return false;
+  } 
+  if (taskData->duplicateMap[key] == false && isWrite) {
+    taskData->duplicateMap[key] = true;
+    return false;
+  }  
+  return true;  
 }
 
 DataSharingType analyzeDataSharingType(const ThreadInfo& threadInfo, 
