@@ -11,6 +11,10 @@
 #include "McsLock.h"
 #include "TaskInfoQuery.h"
 
+#ifdef PERFORMANCE
+#include "PerformanceCounters.h"
+#define ACCESS_HISTORY_RECORDS_THRESHOLD 8
+#endif
 /* 
  * This header file defines functions that are used 
  * to initialize OMPT interface. 
@@ -27,6 +31,9 @@ Dyninst::SymtabAPI::Symtab* gSymtabHandle = nullptr;
 McsLock gDataRaceLock;
 std::atomic_int gNumDataRace = 0;
 std::vector<DataRaceInfo> gDataRaceRecords;
+#ifdef PERFORMANCE
+PerformanceCounters gPerformanceCounters(ACCESS_HISTORY_RECORDS_THRESHOLD); 
+#endif
 
 ompt_get_task_info_t omptGetTaskInfo;
 ompt_get_parallel_info_t omptGetParallelInfo;
@@ -101,6 +108,9 @@ void omptFinalize(ompt_data_t* toolData) {
   } else {
     LOG(INFO) << "no data race found";
   }
+#ifdef PERFORMANCE
+  gPerformanceCounters.printPerformanceCounters();
+#endif
 }
 
 }

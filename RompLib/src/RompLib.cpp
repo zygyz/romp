@@ -26,9 +26,15 @@ ShadowMemory<AccessHistory> shadowMemory;
 
 void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const LockSetPtr& curLockSet, void* instnAddr, 
                    void* currentTaskData, int taskFlags, bool isWrite, bool hasHardwareLock, uint64_t checkedAddress) {
+#ifdef PERFORMANCE
+  gPerformanceCounters.bumpNumCheckAccessFunctionCall();
+#endif
   McsNode node; // major bottleneck
   LockGuard guard(&(accessHistory->getLock()), &node);
   auto records = accessHistory->getRecords();
+#ifdef PERFORMANCE
+  gPerformanceCounters.bumpNumAccessHistoryOverflow(records->size());
+#endif
   if (accessHistory->dataRaceFound()) {
     //  data race has already been found on this memory location, romp only 
     //  reports one data race on any memory location in one run. Once the data 
