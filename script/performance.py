@@ -65,7 +65,7 @@ def aggregate_result(baseline_result: dict, optimize_result: dict) -> dict:
   for key in key_list:
     baseline_value = baseline_result[key];
     optimize_value = optimize_result[key];
-    result[key] = optimize_value / baseline_value;
+    result[key] = [baseline_value, optimize_value, baseline_value == 0 ? -1 : optimize_value / baseline_value];
   return result;
 
 def calculate_performance(benchmark_root_path: str, baseline_branch: str, optimize_branch: str) -> None:
