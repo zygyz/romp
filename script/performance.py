@@ -47,13 +47,23 @@ def run_benchmarks_for_branch(romp_root_path: str, benchmark_root_path: str, bra
   output_path = create_output_directory(benchmark_root_path, branch);
   run(benchmark_root_path, output_path);
 
+def process_output_file(output_file_path: str) -> dict:
+  result = {};
+  return result;
+  #with open(output_file_path) as file:
+  #  num_check_access_function_call = [line for line in file if ''
+      
 def calculate_performance(benchmark_root_path: str, baseline_branch: str, optimize_branch: str) -> None:
   baseline_output_path = get_output_directory_path(benchmark_root_path, baseline_branch);
   optimize_output_path = get_output_directory_path(benchmark_root_path, optimize_branch); 
-  baseline_output_files = os.listdir(baseline_output_path); 
+  baseline_output_files = os.listdir(baseline_output_path);
   optimize_output_files = os.listdir(optimize_output_path);
-  print('baseline: ', baseline_output_files);
-  print('optimize: ', optimize_output_files);
+  for baseline_output_file in baseline_output_files:
+    optimize_output_file = os.path.join(optimize_output_path, baseline_output_file);
+    if not os.path.exists(optimize_output_file):
+      print('WARNING: ', optimize_output_file , ' does not exist'); 
+      continue;
+    baseline_output_file = os.path.join(baseline_output_path, baseline_output_file); 
 
 def main() -> int:
   parser = argparse.ArgumentParser(description='Argument parsing for performance profiler');
