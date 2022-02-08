@@ -3,6 +3,7 @@
 import argparse
 import json
 import os
+import pprint
 import sys
 
 benchmark_relative_path='dataracebench/micro-benchmarks';
@@ -73,17 +74,19 @@ def calculate_performance(benchmark_root_path: str, baseline_branch: str, optimi
   optimize_output_files = os.listdir(optimize_output_path);
   summary = {};
   for baseline_output_file in baseline_output_files:
-    optimize_output_file = os.path.join(optimize_output_path, baseline_output_file);
-    if not os.path.exists(optimize_output_file):
-      print('WARNING: ', optimize_output_file , ' does not exist'); 
+    optimize_output_file_path = os.path.join(optimize_output_path, baseline_output_file);
+    if not os.path.exists(optimize_output_file_path):
+      print('WARNING: ', optimize_output_file_path , ' does not exist'); 
       continue;
-    baseline_output_file = os.path.join(baseline_output_path, baseline_output_file); 
-    baseline_result = process_output_file(baseline_output_file);
-    optimize_result = process_output_file(optimize_output_file); 
+    baseline_output_file_path = os.path.join(baseline_output_path, baseline_output_file); 
+    baseline_result = process_output_file(baseline_output_file_path);
+    optimize_result = process_output_file(optimize_output_file_path); 
     result = aggregate_result(baseline_result, optimize_result);     
     summary[baseline_output_file] = result;
   with open(os.path.join(benchmark_root_path, 'summary.json'), 'w') as json_file:
     json_file.write(json.dumps(summary));
+  pp = pprint.PrettyPrinter(indent=2);
+  pp.pprint(summary);
  
 def main() -> int:
   parser = argparse.ArgumentParser(description='Argument parsing for performance profiler');
