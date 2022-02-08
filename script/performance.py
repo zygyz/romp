@@ -44,6 +44,7 @@ def run(benchmark_root_path: str, output_path: str) -> None:
   for binary in instrumented_binaries:
     binary_path = os.path.join(benchmark_root_path, benchmark_relative_path, binary);
     output_file_path = os.path.join(output_path, binary + '.out');
+    print('running benchmark: ', binary_path);
     os.system(binary_path + ' &> ' +  output_file_path);
 
 def run_benchmarks_for_branch(romp_root_path: str, benchmark_root_path: str, branch: str) -> None:
