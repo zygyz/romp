@@ -7,7 +7,7 @@ import pprint
 import sys
 
 benchmark_relative_path='dataracebench/micro-benchmarks';
-skipped_benchmark_list = ['008', '024', '25', '137', '138', '031', '037', '038', '041', '042', 
+skipped_benchmark_list = ['008', '024', '025', '137', '138', '031', '037', '038', '041', '042', 
 '043', '044', '055', '056', '058', '062', '065', '180', '070', '105', '095', '096', '097', '098',
 '116','129','130','144','145','146','147','148','149','150','151','152','153','154','156','157',
 '160','161','162','163','164', '110','114','122','127','128', '131','132','133','134','135','139',
@@ -54,6 +54,8 @@ def run_benchmarks_for_branch(romp_root_path: str, benchmark_root_path: str, bra
 
 def process_output_file(output_file_path: str) -> dict:
   result = {};
+  if os.stat(output_file_path).st_size == 0:
+    return result;
   with open(output_file_path) as file:
     num_check_access_function_call = [line.strip().split()[-1] for line in file if 'Check Access Function Call' in line][0];
     result[KEY_NUM_CHECK_ACCESS_CALL] = float(num_check_access_function_call);
@@ -63,9 +65,9 @@ def aggregate_result(baseline_result: dict, optimize_result: dict) -> dict:
   key_list = [KEY_NUM_CHECK_ACCESS_CALL];  
   result = {}
   for key in key_list:
-    baseline_value = baseline_result[key];
-    optimize_value = optimize_result[key];
-    result[key] = [baseline_value, optimize_value, baseline_value == 0 ? -1 : optimize_value / baseline_value];
+    baseline_value = baseline_result.get(key);
+    optimize_value = optimize_result.get(key);
+    result[key] = [baseline_value, optimize_value,  -1.0 if baseline_value == 0.0 or baseline_value is None  else optimize_value / baseline_value];
   return result;
 
 def calculate_performance(benchmark_root_path: str, baseline_branch: str, optimize_branch: str) -> None:
