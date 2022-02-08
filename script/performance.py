@@ -40,7 +40,7 @@ def run(benchmark_root_path: str, output_path: str) -> None:
   benchmark_path = os.path.join(benchmark_root_path, benchmark_relative_path);
   instrumented_binaries = sorted([f for f in os.listdir(benchmark_path) if 
                                   f.endswith('.inst') and f[3:6] not in skipped_benchmark_list]);
-  for binary in instrumented_binaries[0:2]:
+  for binary in instrumented_binaries:
     binary_path = os.path.join(benchmark_root_path, benchmark_relative_path, binary);
     output_file_path = os.path.join(output_path, binary + '.out');
     os.system(binary_path + ' &> ' +  output_file_path);
