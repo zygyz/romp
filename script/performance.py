@@ -50,7 +50,10 @@ def run_benchmarks_for_branch(romp_root_path: str, benchmark_root_path: str, bra
 def calculate_performance(benchmark_root_path: str, baseline_branch: str, optimize_branch: str) -> None:
   baseline_output_path = get_output_directory_path(benchmark_root_path, baseline_branch);
   optimize_output_path = get_output_directory_path(benchmark_root_path, optimize_branch); 
-  print('baseline path: ', baseline_output_path, ' optimize path: ', optimize_output_path);
+  baseline_output_files = os.listdir(baseline_output_path); 
+  optimize_output_files = os.listdir(optimize_output_path);
+  print('baseline: ', baseline_output_files);
+  print('optimize: ', optimize_output_files);
 
 def main() -> int:
   parser = argparse.ArgumentParser(description='Argument parsing for performance profiler');
