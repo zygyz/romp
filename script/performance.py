@@ -1,6 +1,7 @@
 # performance.py
 
 import argparse
+import json
 import os
 import sys
 
@@ -10,6 +11,8 @@ skipped_benchmark_list = ['008', '024', '25', '137', '138', '031', '037', '038',
 '116','129','130','144','145','146','147','148','149','150','151','152','153','154','156','157',
 '160','161','162','163','164', '110','114','122','127','128', '131','132','133','134','135','139',
 '140','143','155','158','159','165','168','173','174','176','179','181'];
+
+KEY_NUM_CHECK_ACCESS_CALL="key_num_check_access_call";
 
 def get_output_directory_path(benchmark_root_path: str, branch: str) -> str:
   return os.path.join(benchmark_root_path, 'output-'+ branch);
@@ -49,22 +52,39 @@ def run_benchmarks_for_branch(romp_root_path: str, benchmark_root_path: str, bra
 
 def process_output_file(output_file_path: str) -> dict:
   result = {};
+  with open(output_file_path) as file:
+    num_check_access_function_call = [line.strip().split()[-1] for line in file if 'Check Access Function Call' in line][0];
+    result[KEY_NUM_CHECK_ACCESS_CALL] = float(num_check_access_function_call);
   return result;
-  #with open(output_file_path) as file:
-  #  num_check_access_function_call = [line for line in file if ''
-      
+   
+def aggregate_result(baseline_result: dict, optimize_result: dict) -> dict:
+  key_list = [KEY_NUM_CHECK_ACCESS_CALL];  
+  result = {}
+  for key in key_list:
+    baseline_value = baseline_result[key];
+    optimize_value = optimize_result[key];
+    result[key] = optimize_value / baseline_value;
+  return result;
+
 def calculate_performance(benchmark_root_path: str, baseline_branch: str, optimize_branch: str) -> None:
   baseline_output_path = get_output_directory_path(benchmark_root_path, baseline_branch);
   optimize_output_path = get_output_directory_path(benchmark_root_path, optimize_branch); 
   baseline_output_files = os.listdir(baseline_output_path);
   optimize_output_files = os.listdir(optimize_output_path);
+  summary = {};
   for baseline_output_file in baseline_output_files:
     optimize_output_file = os.path.join(optimize_output_path, baseline_output_file);
     if not os.path.exists(optimize_output_file):
       print('WARNING: ', optimize_output_file , ' does not exist'); 
       continue;
     baseline_output_file = os.path.join(baseline_output_path, baseline_output_file); 
-
+    baseline_result = process_output_file(baseline_output_file);
+    optimize_result = process_output_file(optimize_output_file); 
+    result = aggregate_result(baseline_result, optimize_result);     
+    summary[baseline_output_file] = result;
+  with open(os.path.join(benchmark_root_path, 'summary.json'), 'w') as json_file:
+    json_file.write(json.dumps(summary));
+ 
 def main() -> int:
   parser = argparse.ArgumentParser(description='Argument parsing for performance profiler');
   parser.add_argument('benchmark_root_path', type=str, help="root path to benchmark");
