@@ -14,6 +14,7 @@ skipped_benchmark_list = ['008', '024', '025', '137', '138', '031', '037', '038'
 '140','143','155','158','159','165','168','173','174','176','179','181'];
 
 KEY_NUM_CHECK_ACCESS_CALL="key_num_check_access_call";
+KEY_NUM_MEMORY_ACCESS_INSTRUMENTATION_CALL="key_num_memory_access_instrumentation_call";
 
 def get_output_directory_path(benchmark_root_path: str, branch: str) -> str:
   return os.path.join(benchmark_root_path, 'output-'+ branch);
@@ -57,12 +58,12 @@ def process_output_file(output_file_path: str) -> dict:
   if os.stat(output_file_path).st_size == 0:
     return result;
   with open(output_file_path) as file:
-    num_check_access_function_call = [line.strip().split()[-1] for line in file if 'Check Access Function Call' in line][0];
-    result[KEY_NUM_CHECK_ACCESS_CALL] = float(num_check_access_function_call);
+    result[KEY_NUM_CHECK_ACCESS_CALL] = float([line.strip().split()[-1] for line in file if 'Check Access Function Call' in line][0]);
+    result[KEY_NUM_MEMORY_ACCESS_INSTRUMENTATION_CALL] = float([line.strip().split()[-1] for line in file  if 'Memory Access Instrumentation Call' in line][0]);
   return result;
    
 def aggregate_result(baseline_result: dict, optimize_result: dict) -> dict:
-  key_list = [KEY_NUM_CHECK_ACCESS_CALL];  
+  key_list = [KEY_NUM_CHECK_ACCESS_CALL, KEY_NUM_MEMORY_ACCESS_INSTRUMENTATION_CALL];  
   result = {}
   for key in key_list:
     baseline_value = baseline_result.get(key);
