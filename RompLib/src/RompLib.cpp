@@ -116,6 +116,9 @@ void checkAccess(void* baseAddress,
                  void* instnAddr,
                  bool hasHardwareLock,
                  bool isWrite) {
+#ifdef PERFORMANCE
+  gPerformanceCounters.bumpNumMemoryAccessInstrumentationCall();
+#endif
   if (!gOmptInitialized || bytesAccessed == 0) {
     return;
   }
