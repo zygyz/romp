@@ -3,7 +3,7 @@
 #include <glog/logging.h>
 
 void PerformanceCounters::bumpNumCheckAccessFunctionCall() {
-  mNumCheckAccessFunctionCal.fetch_add(1, std::memory_order_relaxed);
+  mNumCheckAccessFunctionCall.fetch_add(1, std::memory_order_relaxed);
 }
 
 void PerformanceCounters::bumpNumAccessHistoryOverflow(int numRecords) {
