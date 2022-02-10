@@ -8,7 +8,7 @@
 
 #include "Callbacks.h"
 #include "CoreUtil.h"
-#include "McsLock.h"
+#include "mcs-lock.h"
 #include "TaskInfoQuery.h"
 
 #ifdef PERFORMANCE
@@ -28,7 +28,7 @@ bool gReportAtRuntime = false;
 bool gUseWordLevelCheck = false;
 Dyninst::SymtabAPI::Symtab* gSymtabHandle = nullptr;
 
-McsLock gDataRaceLock;
+mcs_lock_t gDataRaceLock;
 std::atomic_int gNumDataRace = 0;
 std::vector<DataRaceInfo> gDataRaceRecords;
 #ifdef PERFORMANCE

@@ -1,7 +1,7 @@
 #pragma once
 #include <omp-tools.h>
 
-#include "McsLock.h"
+#include "mcs-lock.h"
 #include "TaskDependenceGraph.h"
 
 namespace romp {
@@ -10,13 +10,13 @@ typedef struct ParallelRegionData {
   void* dataPtr;  
   unsigned int numParallelism;
   int parallelFlag;
-  McsLock lock;      
+  mcs_lock_t lock;      
   std::atomic_int expTaskCount; 
-  ParallelRegionData() { mcsInit(&lock); }
+  ParallelRegionData() { mcs_init(&lock); }
   ParallelRegionData(unsigned int n, int p): numParallelism(n), parallelFlag(p) {
     dataPtr = nullptr; 
     expTaskCount = 0;
-    mcsInit(&lock);
+    mcs_init(&lock);
   } 
   TaskDependenceGraph taskDepGraph;
 } ParallelRegionData;

@@ -3,7 +3,7 @@
 #include <memory>
 #include <vector>
 
-#include "McsLock.h"
+#include "mcs-lock.h"
 #include "Record.h"
 
 namespace romp {
@@ -16,8 +16,8 @@ enum AccessHistoryFlag {
 class AccessHistory {
 
 public: 
-  AccessHistory() : _state(0) { mcsInit(&_lock); }
-  McsLock& getLock();
+  AccessHistory() : _state(0) { mcs_init(&_lock); }
+  mcs_lock_t& getLock();
   std::vector<Record>* getRecords();
   void setFlag(AccessHistoryFlag flag);
   void clearFlags();
@@ -28,7 +28,7 @@ public:
 private:
   void _initRecords();
 private:
-  McsLock _lock; 
+  mcs_lock_t _lock; 
   uint64_t _state;  
   std::unique_ptr<std::vector<Record>> _records; 
 

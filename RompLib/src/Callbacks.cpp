@@ -455,7 +455,7 @@ void on_ompt_callback_dependences(
     RAW_LOG(FATAL, "callback dependences: current parallel data ptr is null");
     return;
   }
-  McsNode node;      
+  mcs_node_t node;      
   LockGuard guard(&(parallelRegionData->lock), &node);
   // while in mutual exculsion, maintain explicit task dependencies
   for (int i = 0; i < ndeps; ++i) {

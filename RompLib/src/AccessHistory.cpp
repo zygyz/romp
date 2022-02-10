@@ -9,7 +9,7 @@ void AccessHistory::_initRecords() {
   _records = std::make_unique<std::vector<Record>>();
 }
 
-McsLock& AccessHistory::getLock() {
+mcs_lock_t & AccessHistory::getLock() {
   return _lock;
 }
 

@@ -10,7 +10,7 @@
 // HPCToolkit is at 'hpctoolkit.org' and in 'README.Acknowledgments'.
 // --------------------------------------------------------------------------
 //
-// Copyright ((c)) 2002-2020, Rice University
+// Copyright ((c)) 2002-2021, Rice University
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -57,10 +57,10 @@
 //   http://doi.acm.org/10.1145/103727.103729
 //***************************************************************************
 
-// rename function/structure names to follow to romp code style 
 
-#ifndef _mcsLock_h_
-#define _mcsLock_h_
+
+#ifndef _mcs_lock_h_
+#define _mcs_lock_h_
 
 //******************************************************************************
 // global includes
@@ -74,15 +74,15 @@
 // types
 //******************************************************************************
 
-typedef struct McsNode {
-  std::atomic<struct McsNode*> next;
+typedef struct mcs_node_s {
+  std::atomic<struct mcs_node_s*> next;
   std::atomic_bool blocked;
-} McsNode;
+} mcs_node_t;
 
 
 typedef struct {
-  std::atomic<McsNode*> tail;
-} McsLock;
+  std::atomic<mcs_node_t *> tail;
+} mcs_lock_t;
 
 
 
@@ -90,43 +90,40 @@ typedef struct {
 // constants
 //******************************************************************************
 
-#define MCS_NIL (struct McsNode*) 0
+#define mcs_nil (struct mcs_node_s*) 0
 
 //******************************************************************************
 // interface functions
 //******************************************************************************
 
 static inline void
-mcsInit(McsLock *l)
+mcs_init(mcs_lock_t *l)
 {
-  std::atomic_init(&l->tail, MCS_NIL);
+  atomic_init(&l->tail, mcs_nil);
 }
 
 
 void
-mcsLock(McsLock *l, McsNode *me);
+mcs_lock(mcs_lock_t *l, mcs_node_t *me);
 
 
 bool
-mcsTryLock(McsLock *l, McsNode *me);
+mcs_trylock(mcs_lock_t *l, mcs_node_t *me);
 
 
 void
-mcsUnlock(McsLock *l, McsNode *me);
+mcs_unlock(mcs_lock_t *l, mcs_node_t *me);
 
-/*
- * A custom implementation of lock guard that wraps mcs locking/unlocking
- */
 class LockGuard {
 public:
-  LockGuard(McsLock* lock, McsNode* node): _lock(lock), _node(node) {
-    mcsLock(_lock,  _node);
+  LockGuard(mcs_lock_t* lock, mcs_node_t* node): mLock(lock), mNode(node) {
+   mcs_lock(mLock, mNode);
   }
   ~LockGuard() {
-    mcsUnlock(_lock, _node);   
+    mcs_unlock(mLock, mNode);
   }
 private:
-  McsLock* _lock;
-  McsNode* _node;
+  mcs_lock_t* mLock;
+  mcs_node_t* mNode;
 };
 #endif

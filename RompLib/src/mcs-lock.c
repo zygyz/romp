@@ -10,7 +10,7 @@
 // HPCToolkit is at 'hpctoolkit.org' and in 'README.Acknowledgments'.
 // --------------------------------------------------------------------------
 //
-// Copyright ((c)) 2002-2020, Rice University
+// Copyright ((c)) 2002-2021, Rice University
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -63,7 +63,7 @@
 // local includes
 //******************************************************************************
 
-#include "McsLock.h"
+#include "mcs-lock.h"
 
 //******************************************************************************
 // private operations
@@ -74,12 +74,12 @@
 //******************************************************************************
 
 void
-mcsLock(McsLock *l, McsNode *me)
+mcs_lock(mcs_lock_t *l, mcs_node_t *me)
 {
   //--------------------------------------------------------------------
   // initialize my queue node
   //--------------------------------------------------------------------
-  std::atomic_init(&me->next, MCS_NIL);
+  atomic_init(&me->next, mcs_nil);
 
   //--------------------------------------------------------------------
   // install my node at the tail of the lock queue.
@@ -88,25 +88,24 @@ mcsLock(McsLock *l, McsNode *me)
   // note: the rel aspect of the ordering below ensures that
   // initialization of me->next completes before anyone sees my node
   //--------------------------------------------------------------------
-  McsNode *predecessor =
-    std::atomic_exchange_explicit(&l->tail, me, std::memory_order_acq_rel);
+  mcs_node_t *predecessor =
+    atomic_exchange_explicit(&l->tail, me, memory_order_acq_rel);
 
   //--------------------------------------------------------------------
   // if I have a predecessor, wait until it signals me
   //--------------------------------------------------------------------
-  if (predecessor != MCS_NIL) {
+  if (predecessor != mcs_nil) {
     //------------------------------------------------------------------
     // prepare to block until signaled by my predecessor
     //------------------------------------------------------------------
-    std::atomic_init(&me->blocked, true);
+    atomic_init(&me->blocked, true);
 
     //------------------------------------------------------------------
     // link behind my predecessor
     // note: use release to ensure that prior assignment to blocked
     //       occurs first
     //------------------------------------------------------------------
-    std::atomic_store_explicit(&predecessor->next, me, 
-		    std::memory_order_release);
+    atomic_store_explicit(&predecessor->next, me, memory_order_release);
 
     //------------------------------------------------------------------
     // wait for my predecessor to clear my flag
@@ -114,18 +113,18 @@ mcsLock(McsLock *l, McsNode *me)
     //       critical section will not occur until after blocked is
     //       cleared
     //------------------------------------------------------------------
-    while (std::atomic_load_explicit(&me->blocked, std::memory_order_acquire));
+    while (atomic_load_explicit(&me->blocked, memory_order_acquire));
   }
 }
 
 
 bool
-mcsTryLock(McsLock *l, McsNode *me)
+mcs_trylock(mcs_lock_t *l, mcs_node_t *me)
 {
   //--------------------------------------------------------------------
   // initialize my queue node
   //--------------------------------------------------------------------
-  std::atomic_store_explicit(&me->next, MCS_NIL, std::memory_order_relaxed);
+  atomic_store_explicit(&me->next, mcs_nil, memory_order_relaxed);
 
   //--------------------------------------------------------------------
   // if the tail pointer is nil, swap it with a pointer to me, which
@@ -135,21 +134,20 @@ mcsTryLock(McsLock *l, McsNode *me)
   // (2) acq: any accesses after the exchange can't begin until after
   //     the exchange completes.
   //--------------------------------------------------------------------
-  McsNode *oldme = MCS_NIL;
+  mcs_node_t *oldme = mcs_nil;
   return
-    std::atomic_compare_exchange_strong_explicit(&l->tail, &oldme, me,
-					    std::memory_order_acq_rel,
-					    std::memory_order_relaxed);
+    atomic_compare_exchange_strong_explicit(&l->tail, &oldme, me,
+					    memory_order_acq_rel,
+					    memory_order_relaxed);
 }
 
 
 void
-mcsUnlock(McsLock *l, McsNode *me)
+mcs_unlock(mcs_lock_t *l, mcs_node_t *me)
 {
-  McsNode *successor = std::atomic_load_explicit(&me->next, 
-		  std::memory_order_acquire);
+  mcs_node_t *successor = atomic_load_explicit(&me->next, memory_order_acquire);
 
-  if (successor == MCS_NIL) {
+  if (successor == mcs_nil) {
     //--------------------------------------------------------------------
     // I don't currently have a successor, so I may be at the tail
     //--------------------------------------------------------------------
@@ -160,11 +158,11 @@ mcsUnlock(McsLock *l, McsNode *me)
     //       above the exchange must complete before the exchange if the
     //       exchange unlinks me from the tail of the queue
     //--------------------------------------------------------------------
-    McsNode *oldme = me;
+    mcs_node_t *oldme = me;
 
-    if (std::atomic_compare_exchange_strong_explicit(&l->tail, &oldme, MCS_NIL,
-						std::memory_order_release,
-						std::memory_order_relaxed)) {
+    if (atomic_compare_exchange_strong_explicit(&l->tail, &oldme, mcs_nil,
+						memory_order_release,
+						memory_order_relaxed)) {
       //------------------------------------------------------------------
       // I removed myself from the queue; I will never have a
       // successor, so I'm done
@@ -176,10 +174,8 @@ mcsUnlock(McsLock *l, McsNode *me)
     // another thread is writing me->next to define itself as our successor;
     // wait for it to finish that
     //------------------------------------------------------------------
-    while (MCS_NIL == (successor = std::atomic_load_explicit(&me->next, 
-				    std::memory_order_acquire)));
+    while (mcs_nil == (successor = atomic_load_explicit(&me->next, memory_order_acquire)));
   }
 
-  std::atomic_store_explicit(&successor->blocked, false, 
-		  std::memory_order_release);
+  atomic_store_explicit(&successor->blocked, false, memory_order_release);
 }

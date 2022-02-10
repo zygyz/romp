@@ -42,7 +42,7 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord,
       } 
       auto parallelRegionData= static_cast<ParallelRegionData*>(parallelRegionInfo.parallelData->ptr); 
       // have to lock the task dep graph before graph traversal
-      McsNode node;
+      mcs_node_t node;
       LockGuard guard(&(parallelRegionData->lock), &node);
       if (parallelRegionData->taskDepGraph.hasPath((void*)histTaskData, 
 				 (void*)curTaskData)) {

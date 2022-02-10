@@ -118,7 +118,7 @@ void recycleMemRange(void* lowerBound, void* upperBound) {
   ShadowMemory<AccessHistory> shadowMemory;
   for (auto addr = start; addr <= end; addr++) {
     auto accessHistory = shadowMemory.getShadowMemorySlot(addr);
-    McsNode node;
+    mcs_node_t node;
     LockGuard guard(&(accessHistory->getLock()), &node);
     accessHistory->setFlag(eMemoryRecycled);
   }
