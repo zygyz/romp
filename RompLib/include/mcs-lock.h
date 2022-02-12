@@ -99,7 +99,7 @@ typedef struct {
 static inline void
 mcs_init(mcs_lock_t *l)
 {
-  atomic_init(&l->tail, mcs_nil);
+  std::atomic_init(&l->tail, mcs_nil);
 }
 
 
