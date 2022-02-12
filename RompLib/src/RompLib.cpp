@@ -28,18 +28,48 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
 #ifdef PERFORMANCE
   gPerformanceCounters.bumpNumCheckAccessFunctionCall();
 #endif
+  auto lock = accessHistory->getLock();
+  pfq_rwlock_read_lock(&lock);
+  auto curRecord = Record(isWrite, curLabel, curLockSet, 
+		currentTaskData, instnAddr, hasHardwareLock);
+  pfq_rwlock_node_t me;
+rollback: // will refactor to remove the tag 
+  auto hasWriteLock = false;
   auto records = accessHistory->getRecords();
+  if (records == nullptr) {
+    // need to upgrade to write lock  
+    auto lockUpgradeResult = pfq_rwlock_upgrade_from_read_to_write_lock(&lock, &me);  
+    hasWriteLock = true;
+#ifdef PERFORMANCE
+    if (lockUpgradeResult == upgraded_has_other_writer) {
+      gPerformanceCounters.bumpNumAccessHistoryContention();
+    } 
+#endif
+    // recheck to see if records is still null 
+    records = accessHistory->getRecords(); 
+    if (records == nullptr) {
+      records = accessHistory->getRecords(); 
+    }
+  }
 #ifdef PERFORMANCE
   gPerformanceCounters.bumpNumAccessHistoryOverflow(accessHistory->getNumRecords());
 #endif
-  if (accessHistory->dataRaceFound()) {
+  if (accessHistory->dataRaceFound() && !records->empty()) {
     //  data race has already been found on this memory location, romp only 
     //  reports one data race on any memory location in one run. Once the data 
     //  race is reported, romp clears the access history with respect to this
     //  memory location and mark this memory location as found. Future access 
     //  to this memory location does not go through data race checking.
-    if (accessHistory->hasRecords()) {
-      accessHistory->clearRecords();
+    if (hasWriteLock) {
+      records->clearRecords();
+    } else {
+      auto lockUpgradeResult = pfq_rwlock_upgrade_from_read_to_write_lock(&lock, &me);  
+      hasWriteLock = true;
+#ifdef PERFORMANCE 
+      if (lockUpgradeResult == upgraded_has_other_writer) { 
+        gPerformanceCounters.bumpNumAccessHistoryContention();
+      }
+#endif
     }
     return;
   }
@@ -51,9 +81,7 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
      return;
   }
 
-  auto curRecord = Record(isWrite, curLabel, curLockSet, 
-		currentTaskData, instnAddr, hasHardwareLock);
-  if (!accessHistory->hasRecords()) {
+  if (records->empty()) {
     // no access record, add current access to the record
     accessHistory->addRecordToAccessHistory(curRecord);
     return;

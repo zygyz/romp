@@ -16,6 +16,10 @@ std::vector<Record>* AccessHistory::getRecords() {
   return mRecords.get();
 }
 
+std::vector<Record>* AccessHistory::peekRecords() {
+  return mRecords.get();  
+}
+
 void AccessHistory::setFlag(AccessHistoryFlag flag) {
   mState |= flag;
 }
