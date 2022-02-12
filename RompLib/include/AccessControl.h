@@ -6,12 +6,8 @@
 
 class LockGuard {
 public:
-  LockGuard(mcs_lock_t* lock, mcs_node_t* node): mLock(lock), mNode(node) {
-   mcs_lock(mLock, mNode);
-  }
-  ~LockGuard() {
-    mcs_unlock(mLock, mNode);
-  }
+  LockGuard(mcs_lock_t* lock, mcs_node_t* node);
+  ~LockGuard();
 private:
   mcs_lock_t* mLock;
   mcs_node_t* mNode;
@@ -20,16 +16,8 @@ private:
 #ifdef PERFORMANCE
 class LockGuardWithPerformanceCounters {
 public:
-  LockGuardWithPerformanceCounters(mcs_lock_t* lock, mcs_node_t* node, PerformanceCounters& performanceCounters): mLock(lock), mNode(node) {
-    if (mcs_trylock(mLock, mNode)) { 
-      return;
-    }
-    mcs_lock(mLock, mNode);
-    performanceCounters.bumpNumAccessHistoryContention();
-  }
-  ~LockGuardWithPerformanceCounters() {
-    mcs_unlock(mLock, mNode);
-  }
+  LockGuardWithPerformanceCounters(mcs_lock_t* lock, mcs_node_t* node, PerformanceCounters& performanceCounters);
+  ~LockGuardWithPerformanceCounters();
 private:
   mcs_lock_t* mLock;
   mcs_node_t* mNode;
