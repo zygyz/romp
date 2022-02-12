@@ -313,11 +313,11 @@ uint64_t WorkShareSegment::getWorkShareId() const {
 
 void WorkShareSegment::setWorkShareType(WorkShareType type) {
    m_workShareId &= ~WORK_SHARE_TYPE_MASK; // clear work share type 
-   m_workShareId |= (type << WORK_SHARE_TYPE_SHIFT); 
+   m_workShareId |= (static_cast<uint64_t>(type) << WORK_SHARE_TYPE_SHIFT); 
 }
 
 WorkShareType WorkShareSegment::getWorkShareType() const {
-  return static_cast<WorkShareType>((m_workShareId & WORK_SHARE_TYPE_MASK) >> WORK_SHARE_TYPE_SHIFT);
+  return static_cast<WorkShareType>((m_workShareId & static_cast<uint64_t>(WORK_SHARE_TYPE_MASK)) >> WORK_SHARE_TYPE_SHIFT);
 }
 
 }

@@ -36,6 +36,8 @@ bool shouldCheckMemoryAccess(const ThreadInfo& threadInfo,
     case eInitialThread:
       return false; 
   }
+  RAW_LOG(FATAL, "unexpected data sharing type: %d", dataSharingType);
+  return true;
 }
 
 DataSharingType analyzeDataSharingType(const ThreadInfo& threadInfo, 

@@ -43,10 +43,10 @@ ompt_get_task_memory_t omptGetTaskMemory;
 #define register_callback_t(name, type)                      \
 do {                                                         \
   type f_##name = &on_##name;                                \
-  printf("registering callback: '" #name "'\n");             \ 
+  printf("registering callback: '" #name "'\n");             \
   if (ompt_set_callback(name, (ompt_callback_t)f_##name) ==  \
       ompt_set_never)                                        \
-    printf("Could not register callback: '" #name "'\n");    \ 
+    printf("Could not register callback: '" #name "'\n");    \
 } while(0)
 
 #define register_callback(name) register_callback_t(name, name##_t)
