@@ -8,7 +8,7 @@ AccessHistory::AccessHistory() {
   mcs_init(&mLock);
 }
 
-mcs_lock_t & AccessHistory::getLock() {
+pfq_rwlock_t & AccessHistory::getLock() {
   return mLock;
 }
 

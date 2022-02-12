@@ -28,12 +28,8 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
 #ifdef PERFORMANCE
   gPerformanceCounters.bumpNumCheckAccessFunctionCall();
 #endif
-  mcs_node_t node; // major bottleneck
-#ifdef PERFORMANCE
-  LockGuard guard(&(accessHistory->getLock()), &node, &gPerformanceCounters);
-#else
-  LockGuard guard(&(accessHistory->getLock()), &node, nullptr);
-#endif
+  //mcs_node_t node; // major bottleneck
+  //LockGuard guard(&(accessHistory->getLock()), &node);
   auto records = accessHistory->getRecords();
 #ifdef PERFORMANCE
   gPerformanceCounters.bumpNumAccessHistoryOverflow(accessHistory->getNumRecords());

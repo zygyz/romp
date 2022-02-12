@@ -140,14 +140,10 @@ void recycleMemRange(void* lowerBound, void* upperBound) {
   ShadowMemory<AccessHistory> shadowMemory;
   for (auto addr = start; addr <= end; addr++) {
     auto accessHistory = shadowMemory.getShadowMemorySlot(addr);
-    mcs_node_t node;
-#ifdef PERFORMANCE
-    LockGuard guard(&(accessHistory->getLock()), &node, &gPerformanceCounters);
-#else
-    LockGuard guard(&(accessHistory->getLock()), &node, nullptr);
-#endif
-
+    pfq_rwlock_node_t node;
+    pfq_rwlock_write_lock(&(accessHistory->getLock()), &node);   
     accessHistory->setFlag(eMemoryRecycled);
+    pfq_rwlock_write_unlock(&(accessHistory->getLock()), &node);
   }
 }
 

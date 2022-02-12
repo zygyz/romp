@@ -72,7 +72,7 @@
 // global includes
 //******************************************************************************
 
-#include <inttypes.h>
+#include <atomic>
 #include <stdbool.h>
 
 
@@ -100,16 +100,16 @@
 typedef mcs_node_t pfq_rwlock_node_t;
 
 typedef struct bigbool {
-  atomic_bool bit cache_aligned;
+  std::atomic_bool bit cache_aligned;
 } bigbool;
 
 typedef struct {
   //----------------------------------------------------------------------------
   // reader management
   //----------------------------------------------------------------------------
-  atomic_uint_least32_t rin cache_aligned;  // = 0
-  atomic_uint_least32_t rout cache_aligned;  // = 0
-  atomic_uint_least32_t last cache_aligned;  // = WRITER_PRESENT
+  std::atomic_int_least32_t rin cache_aligned;  // = 0
+  std::atomic_int_least32_t rout cache_aligned;  // = 0
+  std::atomic_int_least32_t last cache_aligned;  // = WRITER_PRESENT
   bigbool writer_blocking_readers[2]; // false
 
   //----------------------------------------------------------------------------
@@ -120,7 +120,10 @@ typedef struct {
 
 } pfq_rwlock_t;
 
-
+enum lock_upgrade_result {
+  upgraded_no_other_writer,
+  upgraded_has_other_writer,
+};
 
 //******************************************************************************
 // interface operations
@@ -135,5 +138,7 @@ void pfq_rwlock_read_unlock(pfq_rwlock_t *l);
 void pfq_rwlock_write_lock(pfq_rwlock_t *l, pfq_rwlock_node_t *me);
 
 void pfq_rwlock_write_unlock(pfq_rwlock_t *l, pfq_rwlock_node_t *me);
+
+lock_upgrade_result pfq_rwlock_upgrade_from_read_to_write_lock(pfq_rwlock_t *l, pfq_rwlock_node_t *me);
 
 #endif

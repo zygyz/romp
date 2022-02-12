@@ -3,7 +3,7 @@
 #include <memory>
 #include <vector>
 
-#include "mcs-lock.h"
+#include "pfq-rwlock.h"
 #include "Record.h"
 
 enum AccessHistoryFlag {
@@ -14,7 +14,7 @@ enum AccessHistoryFlag {
 class AccessHistory {
 public: 
   AccessHistory(); 
-  mcs_lock_t& getLock();
+  pfq_rwlock_t& getLock();
   std::vector<Record>* getRecords();
   void setFlag(AccessHistoryFlag flag);
   void clearRecords();
@@ -26,7 +26,7 @@ public:
   bool hasRecords() const;
   uint64_t getNumRecords() const;
 private:
-  mcs_lock_t mLock; 
+  pfq_rwlock_t mLock; 
   std::unique_ptr<std::vector<Record>> mRecords; 
   uint8_t mState;
 };
