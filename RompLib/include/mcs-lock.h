@@ -114,16 +114,4 @@ mcs_trylock(mcs_lock_t *l, mcs_node_t *me);
 void
 mcs_unlock(mcs_lock_t *l, mcs_node_t *me);
 
-class LockGuard {
-public:
-  LockGuard(mcs_lock_t* lock, mcs_node_t* node): mLock(lock), mNode(node) {
-   mcs_lock(mLock, mNode);
-  }
-  ~LockGuard() {
-    mcs_unlock(mLock, mNode);
-  }
-private:
-  mcs_lock_t* mLock;
-  mcs_node_t* mNode;
-};
 #endif

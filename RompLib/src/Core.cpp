@@ -3,6 +3,7 @@
 #include <glog/logging.h>
 #include <glog/raw_logging.h>
 
+#include "AccessControl.h"
 #include "ParallelRegionData.h"
 #include "TaskInfoQuery.h"
 #include "ThreadData.h"

@@ -5,6 +5,7 @@
 #include <memory>
 #include <omp-tools.h>
 
+#include "AccessControl.h"
 #include "AccessHistory.h"
 #include "CoreUtil.h"
 #include "TaskInfoQuery.h"

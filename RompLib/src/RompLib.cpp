@@ -4,6 +4,7 @@
 #include <limits.h>
 #include <unistd.h>
 
+#include "AccessControl.h"
 #include "AccessHistory.h"
 #include "Core.h"
 #include "CoreUtil.h"
@@ -30,7 +31,11 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
   gPerformanceCounters.bumpNumCheckAccessFunctionCall();
 #endif
   mcs_node_t node; // major bottleneck
+#ifdef PERFORMANCE
+  LockGuardWithPerformanceCounters guard(&(accessHistory->getLock()), &node, gPerformanceCounters);
+#else
   LockGuard guard(&(accessHistory->getLock()), &node);
+#endif
   auto records = accessHistory->getRecords();
 #ifdef PERFORMANCE
   gPerformanceCounters.bumpNumAccessHistoryOverflow(records->size());

@@ -3,6 +3,7 @@
 #include <glog/logging.h>
 #include <glog/raw_logging.h>
 
+#include "AccessControl.h"
 #include "AccessHistory.h"
 #include "CoreUtil.h"
 #include "DataSharing.h"

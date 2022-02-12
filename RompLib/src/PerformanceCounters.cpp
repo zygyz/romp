@@ -16,9 +16,14 @@ void PerformanceCounters::bumpNumMemoryAccessInstrumentationCall() {
   mNumMemoryAccessInstrumentationCall.fetch_add(1, std::memory_order_relaxed);
 }
 
+void PerformanceCounters::bumpNumAccessHistoryContention() {
+  mNumAccessHistoryContention.fetch_add(1, std::memory_order_relaxed);
+}
+
 void PerformanceCounters::printPerformanceCounters() const {
   LOG(INFO) << "# Check Access Function Call: " << mNumCheckAccessFunctionCall.load();      
   LOG(INFO) << "# Access History Record Overflow (threshold=" << mAccessHistoryRecordThreshold << "):  " << mNumAccessHistoryOverflow.load();
   LOG(INFO) << "# Memory Access Instrumentation Call: " << mNumMemoryAccessInstrumentationCall.load();
+  LOG(INFO) << "# Access History Contention: " << mNumAccessHistoryContention.load();
 }
 
