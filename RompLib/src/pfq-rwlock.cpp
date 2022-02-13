@@ -247,17 +247,19 @@ pfq_rwlock_write_unlock(pfq_rwlock_t *l, pfq_rwlock_node_t *me)
   mcs_unlock(&l->wtail, me);
 }
 
-void pfq_rwlock_upgrade_from_read_to_write_lock(pfq_rwlock_t *l, pfq_rwlock_node_t *me, PerformanceCounters* performanceCounters) {
+bool pfq_rwlock_upgrade_from_read_to_write_lock(pfq_rwlock_t *l, pfq_rwlock_node_t *me, PerformanceCounters* performanceCounters) {
   // this function is called when there rises an intention to write during the read 
   // first we unlock the reasd lock
   pfq_rwlock_read_unlock(l);
+  auto hasWriteWriteContention = false;
   if (!mcs_trylock(&l->wtail, me)) {
 #ifdef PERFORMANCE
     if (performanceCounters) {
       performanceCounters->bumpNumAccessHistoryContention();
-      perforamnceCounters->bumpNumAccessHistoryWriteWriteContention();
+      performanceCounters->bumpNumAccessHistoryWriteWriteContention();
     }
 #endif
+    hasWriteWriteContention = true;
     mcs_lock(&l->wtail, me); 
   }
   //--------------------------------------------------------------------
@@ -311,5 +313,6 @@ void pfq_rwlock_upgrade_from_read_to_write_lock(pfq_rwlock_t *l, pfq_rwlock_node
     // readers of writer
     //--------------------------------------------------------------------------
   }
+  return hasWriteWriteContention;
 }
 

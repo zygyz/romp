@@ -15,7 +15,7 @@ public:
   ReaderWriterLockGuard(pfq_rwlock_t* lock, pfq_rwlock_node_t* node);
   ReaderWriterLockGuard(pfq_rwlock_t* lock, pfq_rwlock_node_t* node, PerformanceCounters* performanceCounters);
   ~ReaderWriterLockGuard();
-  void upgradeFromReaderToWriter();
+  bool upgradeFromReaderToWriter();
 private:
   pfq_rwlock_t* mLock;
   pfq_rwlock_node_t* mNode;

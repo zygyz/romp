@@ -134,6 +134,6 @@ void pfq_rwlock_write_lock(pfq_rwlock_t *l, pfq_rwlock_node_t *me);
 
 void pfq_rwlock_write_unlock(pfq_rwlock_t *l, pfq_rwlock_node_t *me);
 
-void pfq_rwlock_upgrade_from_read_to_write_lock(pfq_rwlock_t *l, pfq_rwlock_node_t *me, PerformanceCounters* performanceCounters);
+bool pfq_rwlock_upgrade_from_read_to_write_lock(pfq_rwlock_t *l, pfq_rwlock_node_t *me, PerformanceCounters* performanceCounters);
 
 #endif

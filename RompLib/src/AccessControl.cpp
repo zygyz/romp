@@ -40,10 +40,10 @@ ReaderWriterLockGuard::~ReaderWriterLockGuard() {
   }
 }
 
-void ReaderWriterLockGuard::upgradeFromReaderToWriter() {
+bool ReaderWriterLockGuard::upgradeFromReaderToWriter() {
   if (mWriteLockAcquired) {
-    return;
+    return false;
   }
-  pfq_rwlock_upgrade_from_read_to_write_lock(mLock, mNode, mPerformanceCounters); 
   mWriteLockAcquired = true;
+  return pfq_rwlock_upgrade_from_read_to_write_lock(mLock, mNode, mPerformanceCounters); 
 }

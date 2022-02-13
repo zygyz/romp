@@ -94,9 +94,16 @@ rollback: // will refactor to remove the tag
     if (decision == eSkipAddCurrentRecord) {
       skipAddCurrentRecord = true;
     }
+    if (guard.upgradeFromReaderToWriter()) {
+      // has write write contention, need to recompute 
+      goto rollback;  // will be replaced 
+    }
     modifyAccessHistory(decision, records, it);
   }
   if (!skipAddCurrentRecord) {
+    if (guard.upgradeFromReaderToWriter()) {
+      goto rollback;
+    }
     accessHistory->addRecordToAccessHistory(curRecord); 
   }
 }
