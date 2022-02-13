@@ -6,11 +6,11 @@
 namespace romp {
 
 void AccessHistory::_initRecords() {
-  _records = std::make_unique<std::vector<Record>>();
+  mRecords = std::make_unique<std::vector<Record>>();
 }
 
 mcs_lock_t & AccessHistory::getLock() {
-  return _lock;
+  return mLock;
 }
 
 /*
@@ -19,34 +19,40 @@ mcs_lock_t & AccessHistory::getLock() {
  * We assume the access history is under mutual exclusion.
  */
 std::vector<Record>* AccessHistory::getRecords() {
-  if (!_records.get()) {
+  if (!mRecords.get()) {
     _initRecords();
   }
-  return _records.get();
+  return mRecords.get();
 }
 
 void AccessHistory::setFlag(AccessHistoryFlag flag) {
-  _state |= flag;
+  mState |= flag;
 }
 
 void AccessHistory::clearFlag(AccessHistoryFlag flag) {
-  _state &= ~flag; 
+  mState &= ~flag; 
 }
 
 void AccessHistory::clearFlags() {
-  _state = 0; 
+  mState = 0; 
+}
+
+void AccessHistory::clearRecords() {
+  if (mRecords) {
+    mRecords->clear();
+  }
 }
 
 bool AccessHistory::dataRaceFound() const {
-  return (_state & eDataRaceFound) != 0;
+  return (mState & eDataRaceFound) != 0;
 }
 
 bool AccessHistory::memIsRecycled() const {
-  return (_state & eMemoryRecycled) != 0;
+  return (mState & eMemoryRecycled) != 0;
 }
 
 uint64_t AccessHistory::getState() const {
-  return _state;
+  return mState;
 }
 
 }

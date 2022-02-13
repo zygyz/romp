@@ -14,12 +14,12 @@ enum AccessHistoryFlag {
 };
 
 class AccessHistory {
-
 public: 
-  AccessHistory() : _state(0) { mcs_init(&_lock); }
+  AccessHistory() : mState(0) { mcs_init(&mLock); }
   mcs_lock_t& getLock();
   std::vector<Record>* getRecords();
   void setFlag(AccessHistoryFlag flag);
+  void clearRecords();
   void clearFlags();
   void clearFlag(AccessHistoryFlag flag);
   bool dataRaceFound() const;
@@ -28,10 +28,9 @@ public:
 private:
   void _initRecords();
 private:
-  mcs_lock_t _lock; 
-  uint64_t _state;  
-  std::unique_ptr<std::vector<Record>> _records; 
-
+  mcs_lock_t mLock; 
+  uint64_t mState;  
+  std::unique_ptr<std::vector<Record>> mRecords; 
 };
 
 }

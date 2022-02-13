@@ -47,7 +47,7 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
     //  memory location and mark this memory location as found. Future access 
     //  to this memory location does not go through data race checking.
     if (!records->empty()) {
-      records->clear();
+      accessHistory->clearRecords();
     }
     return;
   }
@@ -55,7 +55,7 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
     //  The memory slot is recycled because of the end of explicit task. 
     //  reset the memory state flag and clear the access records.
      accessHistory->clearFlags();
-     records->clear();
+     accessHistory->clearRecords();
      return;
   }
 
