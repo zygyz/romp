@@ -99,14 +99,14 @@ int omptInitialize(ompt_function_lookup_t lookup,
 void omptFinalize(ompt_data_t* toolData) {
   LOG(INFO) << "finalizing ompt";
   if (gDataRaceFound) {
-    LOG(INFO) << "data race found: " << gNumDataRace.load() << " races";
+    LOG(INFO) << "data race found";
     if (gReportLineInfo) {
       for (const auto& info : gDataRaceRecords) {
         reportDataRaceWithLineInfo(info, gSymtabHandle);
       } 
     }
   } else {
-    LOG(INFO) << "no data race found";
+    LOG(INFO) << "data race not found";
   }
 #ifdef PERFORMANCE
   gPerformanceCounters.printPerformanceCounters();
