@@ -5,7 +5,7 @@
 class LockGuard {
 public:
   LockGuard(mcs_lock_t* lock, mcs_node_t* node);
-  LockGuard(mcs_lock_t* lock, mcs_node_t* node, PerformanceCounters& performanceCounters);
+  LockGuard(mcs_lock_t* lock, mcs_node_t* node, PerformanceCounters* performanceCounters);
   ~LockGuard();
 private:
   mcs_lock_t* mLock;

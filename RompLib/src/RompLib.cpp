@@ -32,7 +32,7 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
 #endif
   mcs_node_t node; // major bottleneck
 #ifdef PERFORMANCE
-  LockGuard guard(&(accessHistory->getLock()), &node, gPerformanceCounters);
+  LockGuard guard(&(accessHistory->getLock()), &node, &gPerformanceCounters);
 #else
   LockGuard guard(&(accessHistory->getLock()), &node);
 #endif
