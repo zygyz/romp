@@ -28,28 +28,19 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
 #ifdef PERFORMANCE
   gPerformanceCounters.bumpNumCheckAccessFunctionCall();
 #endif
-  auto lock = accessHistory->getLock();
-  pfq_rwlock_read_lock(&lock);
+  pfq_rwlock_node_t me;
+  ReaderWriterLockGuard guard(&(accessHistory->getLock()), &me, &gPerformanceCounters);
   auto curRecord = Record(isWrite, curLabel, curLockSet, 
 		currentTaskData, instnAddr, hasHardwareLock);
-  pfq_rwlock_node_t me;
 rollback: // will refactor to remove the tag 
-  auto hasWriteLock = false;
-  auto records = accessHistory->getRecords();
+  auto records = accessHistory->peekRecords();
   if (records == nullptr) {
     // need to upgrade to write lock  
-    auto lockUpgradeResult = pfq_rwlock_upgrade_from_read_to_write_lock(&lock, &me);  
-    hasWriteLock = true;
-#ifdef PERFORMANCE
-    if (lockUpgradeResult == upgraded_has_other_writer) {
-      gPerformanceCounters.bumpNumAccessHistoryContention();
-    } 
-#endif
-    // recheck to see if records is still null 
-    records = accessHistory->getRecords(); 
-    if (records == nullptr) {
+    guard.upgradeFromReaderToWriter();
+    if (accessHistory->peekRecords() == nullptr) {
       records = accessHistory->getRecords(); 
     }
+    // if records is not null, we can proceed to checking without rolling back 
   }
 #ifdef PERFORMANCE
   gPerformanceCounters.bumpNumAccessHistoryOverflow(accessHistory->getNumRecords());
@@ -60,27 +51,24 @@ rollback: // will refactor to remove the tag
     //  race is reported, romp clears the access history with respect to this
     //  memory location and mark this memory location as found. Future access 
     //  to this memory location does not go through data race checking.
-    if (hasWriteLock) {
-      records->clearRecords();
-    } else {
-      auto lockUpgradeResult = pfq_rwlock_upgrade_from_read_to_write_lock(&lock, &me);  
-      hasWriteLock = true;
-#ifdef PERFORMANCE 
-      if (lockUpgradeResult == upgraded_has_other_writer) { 
-        gPerformanceCounters.bumpNumAccessHistoryContention();
+    guard.upgradeFromReaderToWriter();
+    if (accessHistory->dataRaceFound()) {
+      if (!records->empty()) {
+        records->clearRecords(); 
       }
-#endif
+      return;
     }
-    return;
   }
   if (accessHistory->memIsRecycled()) {
     //  The memory slot is recycled because of the end of explicit task. 
     //  reset the memory state flag and clear the access records.
-     accessHistory->clearFlags();
-     accessHistory->clearRecords();
-     return;
+    guard.upgradeFromReaderToWriter(); 
+    if (accessHistory->memIsRecycled()) {
+      accessHistory->clearFlags();
+      records->clearRecords();
+      return;
+    }
   }
-
   if (records->empty()) {
     // no access record, add current access to the record
     accessHistory->addRecordToAccessHistory(curRecord);

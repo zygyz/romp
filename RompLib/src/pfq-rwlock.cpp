@@ -119,16 +119,21 @@ pfq_rwlock_init(pfq_rwlock_t *l)
 }
 
 void
-pfq_rwlock_read_lock(pfq_rwlock_t *l)
+pfq_rwlock_read_lock(pfq_rwlock_t *l, PerformanceCounters* performanceCounters)
 {
   uint32_t ticket = std::atomic_fetch_add_explicit(&l->rin, READER_INCREMENT, std::memory_order_acq_rel);
 
   if (ticket & WRITER_PRESENT) {
     uint32_t phase = ticket & PHASE_BIT;
+#ifdef PERFORMANCE
+    if (performanceCounters && std::atomic_load_explicit(&l->writer_blocking_readers[phase].bit, std::memory_order_acquire)) {
+      performanceCounters->bumpNumAccessHistoryReadWriteContention();
+      performanceCounters->bumpNumAccessHistoryContention();
+    }
+#endif
     while (std::atomic_load_explicit(&l->writer_blocking_readers[phase].bit, std::memory_order_acquire));
   }
 }
-
 
 void
 pfq_rwlock_read_unlock(pfq_rwlock_t *l)
@@ -242,13 +247,18 @@ pfq_rwlock_write_unlock(pfq_rwlock_t *l, pfq_rwlock_node_t *me)
   mcs_unlock(&l->wtail, me);
 }
 
-lock_upgrade_result pfq_rwlock_upgrade_from_read_to_write_lock(pfq_rwlock_t *l, pfq_rwlock_node_t *me) {
+void pfq_rwlock_upgrade_from_read_to_write_lock(pfq_rwlock_t *l, pfq_rwlock_node_t *me, PerformanceCounters* performanceCounters) {
   // this function is called when there rises an intention to write during the read 
   // first we unlock the reasd lock
   pfq_rwlock_read_unlock(l);
-  auto upgrade_result = upgraded_no_other_writer;
   if (!mcs_trylock(&l->wtail, me)) {
-    upgrade_result = upgraded_has_other_writer;
+#ifdef PERFORMANCE
+    if (performanceCounters) {
+      performanceCounters->bumpNumAccessHistoryContention();
+      perforamnceCounters->bumpNumAccessHistoryWriteWriteContention();
+    }
+#endif
+    mcs_lock(&l->wtail, me); 
   }
   //--------------------------------------------------------------------
   // this may be false when at the head of the mcs queue
@@ -301,6 +311,5 @@ lock_upgrade_result pfq_rwlock_upgrade_from_read_to_write_lock(pfq_rwlock_t *l, 
     // readers of writer
     //--------------------------------------------------------------------------
   }
-  return upgrade_result;
 }
 

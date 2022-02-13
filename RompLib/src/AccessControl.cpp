@@ -16,12 +16,34 @@ LockGuard::~LockGuard() {
   mcs_unlock(mLock, mNode);
 }
 
-bool upgradeFromReaderToWriter(pfq_rwlock_t* lock, pfq_rwlock_node_t* me, PerformanceCounters& performanceCounters) {
-  auto lockUpgradeResult = pfq_rwlock_upgrade_from_read_to_write_lock(lock. me); 
-#ifdef PERFORMANCE 
-  if (lockUpgradeResult == upgraded_has_other_writer) {
-    gPerformanceCounters.bumpNumAccessHistoryContention();
-  }   
-#endif
-  return true; 
+// in constructor, acquire read lock, upgrade to write lock on demand 
+ReaderWriterLockGuard::ReaderWriterLockGuard(pfq_rwlock_t* lock, pfq_rwlock_node_t* node) {
+  mLock= lock;
+  mNode = node;
+  mWriteLockAcquired = false;
+  pfq_rwlock_read_lock(mLock, nullptr); 
+}
+
+ReaderWriterLockGuard::ReaderWriterLockGuard(pfq_rwlock_t* lock, pfq_rwlock_node_t* node, PerformanceCounters* performanceCounters) {
+  mLock = lock;
+  mNode = node;
+  mPerformanceCounters = performanceCounters; 
+  mWriteLockAcquired = false; 
+  pfq_rwlock_read_lock(mLock, mPerformanceCounters);
+}
+
+ReaderWriterLockGuard::~ReaderWriterLockGuard() {
+  if (mWriteLockAcquired) {
+    pfq_rwlock_write_unlock(mLock, mNode);
+  } else {
+    pfq_rwlock_read_unlock(mLock);
+  }
+}
+
+void ReaderWriterLockGuard::upgradeFromReaderToWriter() {
+  if (mWriteLockAcquired) {
+    return;
+  }
+  pfq_rwlock_upgrade_from_read_to_write_lock(mLock, mNode, mPerformanceCounters); 
+  mWriteLockAcquired = true;
 }

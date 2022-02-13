@@ -1,6 +1,5 @@
 #pragma once
-#include "mcs-lock.h"
-#include "PerformanceCounters.h"
+#include "pfq-rwlock.h"
 
 class LockGuard {
 public:
@@ -11,4 +10,15 @@ private:
   mcs_node_t* mNode;
 };
 
-bool upgradeFromReaderToWriter(pfq_rwlock-t* lock, pfq_rwlock_node_t* me, PerformanceCounters& performanceCounters);
+class ReaderWriterLockGuard {
+public:
+  ReaderWriterLockGuard(pfq_rwlock_t* lock, pfq_rwlock_node_t* node);
+  ReaderWriterLockGuard(pfq_rwlock_t* lock, pfq_rwlock_node_t* node, PerformanceCounters* performanceCounters);
+  ~ReaderWriterLockGuard();
+  void upgradeFromReaderToWriter();
+private:
+  pfq_rwlock_t* mLock;
+  pfq_rwlock_node_t* mNode;
+  bool mWriteLockAcquired;
+  PerformanceCounters* mPerformanceCounters;
+};
