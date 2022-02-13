@@ -25,10 +25,10 @@ enum CheckCase {
   eWorkWork = eLogical | (eLogical << CASE_SHIFT),
 }; 
 
-enum RecordManagement{
-  eNoOp,
-  eSkipAddCur,
-  eDelHist,
+enum AccessHistoryManagementDecision{
+  eNoOperation,
+  eSkipAddCurrentRecord,
+  eDeleteHistoryRecord,
 };
 
 bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex);
@@ -43,6 +43,6 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, boo
 bool analyzeTaskGroupSync(Label* histLabel, Label* curLabel, int index);
 uint64_t computeExitRank(uint64_t phase);
 uint64_t computeEnterRank(uint64_t phase);
-RecordManagement manageAccessRecord(const Record& histRecord, const Record& curRecord, bool isHistBeforeCur, int diffIndex);
-void modifyAccessHistory(RecordManagement decision, std::vector<Record>* records, std::vector<Record>::iterator& cit);
+AccessHistoryManagementDecision manageAccessRecord(const Record& histRecord, const Record& curRecord, bool isHistBeforeCur, int diffIndex);
+void modifyAccessHistory(AccessHistoryManagementDecision decision, std::vector<Record>* records, std::vector<Record>::iterator& cit);
 }

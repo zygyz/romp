@@ -337,7 +337,7 @@ inline CheckCase buildCheckCase(SegmentType histType, SegmentType curType) {
   return static_cast<CheckCase>(histType | (curType << CASE_SHIFT));
 }
 
-RecordManagement manageAccessRecord(const Record& histRecord, 
+AccessHistoryManagementDecision manageAccessRecord(const Record& histRecord, 
                                     const Record& curRecord,
                                     bool isHistBeforeCurrent,
                                     int diffIndex) {
@@ -347,19 +347,19 @@ RecordManagement manageAccessRecord(const Record& histRecord,
   auto curLockSet = curRecord.getLockSet();
   if (((histIsWrite && curIsWrite) || !histIsWrite) && 
           isHistBeforeCurrent && isSubset(curLockSet, histLockSet)) {
-    return eDelHist;  
+    return eDeleteHistoryRecord;  
   } else if (diffIndex == static_cast<int>(eSameLabel) && 
             ((!histIsWrite && !curIsWrite) || histIsWrite) && 
             isSubset(histLockSet, curLockSet)) {
-      return eSkipAddCur; 
-  }
-  return eNoOp;
+    return eSkipAddCurrentRecord; 
+  } 
+  return eNoOperation;
 } 
 
-void modifyAccessHistory(RecordManagement decision, 
+void modifyAccessHistory(AccessHistoryManagementDecision decision, 
                          std::vector<Record>* records,
                          std::vector<Record>::iterator& it) {
-  if (decision == eDelHist) {
+  if (decision == eDeleteHistoryRecord) {
     it = records->erase(it);
   } else {
     it++;
