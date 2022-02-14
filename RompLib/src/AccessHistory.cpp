@@ -62,6 +62,3 @@ uint64_t AccessHistory::getNumRecords() const {
   return mRecords ? mRecords->size() : 0;
 }
 
-bool AccessHistory::hasRecords() const {
-  return mRecords && mRecords->size() > 0;
-}

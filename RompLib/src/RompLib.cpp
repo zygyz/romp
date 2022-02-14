@@ -30,25 +30,24 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
 #endif
   pfq_rwlock_node_t me;
   ReaderWriterLockGuard guard(&(accessHistory->getLock()), &me, &gPerformanceCounters);
-  auto curRecord = Record(isWrite, curLabel, curLockSet, 
-		currentTaskData, instnAddr, hasHardwareLock);
 rollback: // will refactor to remove the tag 
 #ifdef PERFORMANCE
   gPerformanceCounters.bumpNumAccessHistoryOverflow(accessHistory->getNumRecords());
 #endif
-  if (accessHistory->dataRaceFound() && !records->empty()) {
+  if (accessHistory->dataRaceFound()) {
     //  data race has already been found on this memory location, romp only 
     //  reports one data race on any memory location in one run. Once the data 
     //  race is reported, romp clears the access history with respect to this
     //  memory location and mark this memory location as found. Future access 
     //  to this memory location does not go through data race checking.
-    guard.upgradeFromReaderToWriter();
-    if (accessHistory->dataRaceFound()) {
-      if (!records->empty()) {
-        accessHistory->clearRecords(); 
-      }
-      return;
+    if (!accessHistory->hasRecords()) {
+      return; 
     }
+    guard.upgradeFromReaderToWriter();
+    if (accessHistory->hasRecords()) {
+      accessHistory->clearRecords(); 
+    }
+    return;
   }
   if (accessHistory->memIsRecycled()) {
     //  The memory slot is recycled because of the end of explicit task. 
@@ -60,12 +59,17 @@ rollback: // will refactor to remove the tag
       return;
     }
   }
-  if (records->empty()) {
+  auto curRecord = Record(isWrite, curLabel, curLockSet, currentTaskData, instnAddr, hasHardwareLock);
+  if (!accessHistory->hasRecords()) {
     // no access record, add current access to the record
-    accessHistory->addRecordToAccessHistory(curRecord);
-    return;
+    auto hasWriteWriteContention = guard.upgradeFromReaderToWriter();
+    if (!hasWriteWriteContention || hasWriteWriteContention && !accessHistory->hasRecords()) {
+      accessHistory->addRecordToAccessHistory(curRecord);
+      return;
+    }
   }
   // check previous access records with current access
+  auto records = accessHistory->getRecords();
   auto isHistBeforeCurrent = false;
   auto it = records->begin();
   std::vector<Record>::const_iterator cit;
@@ -80,14 +84,9 @@ rollback: // will refactor to remove the tag
       accessHistory->setFlag(eDataRaceFound);
       return;
     }
-    auto decision = manageAccessRecord(histRecord, curRecord, 
-            isHistBeforeCurrent, diffIndex);
+    auto decision = manageAccessRecord(histRecord, curRecord, isHistBeforeCurrent, diffIndex);
     if (decision == eSkipAddCurrentRecord) {
       skipAddCurrentRecord = true;
-    }
-    if (guard.upgradeFromReaderToWriter()) {
-      // has write write contention, need to recompute 
-      goto rollback;  // will be replaced 
     }
     modifyAccessHistory(decision, records, it);
   }
