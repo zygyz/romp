@@ -8,11 +8,6 @@ namespace romp {
 AccessHistory::AccessHistory() {
   mState = 0;
   mcs_init(&mLock);
-  initializeRecordStorage();
-}
-
-void AccessHistory::initializeRecordStorage() {
-  mRecords = std::make_unique<std::vector<Record>>();
 }
 
 mcs_lock_t & AccessHistory::getLock() {
@@ -42,6 +37,9 @@ void AccessHistory::clearRecords() {
 }
 
 void AccessHistory::addRecordToAccessHistory(const Record& record) {
+  if (!mRecords) {
+    mRecords = std::make_unique<std::vector<Record>>();  
+  }
   mRecords->push_back(record);
 }
 

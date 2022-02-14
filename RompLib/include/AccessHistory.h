@@ -29,8 +29,6 @@ public:
   uint64_t getState() const;
   uint64_t getNumRecords() const;
 private:
-  void initializeRecordStorage();
-private:
   mcs_lock_t mLock; 
   uint64_t mState;  
   std::unique_ptr<std::vector<Record>> mRecords; 
