@@ -33,15 +33,6 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
   auto curRecord = Record(isWrite, curLabel, curLockSet, 
 		currentTaskData, instnAddr, hasHardwareLock);
 rollback: // will refactor to remove the tag 
-  auto records = accessHistory->peekRecords();
-  if (records == nullptr) {
-    // need to upgrade to write lock  
-    guard.upgradeFromReaderToWriter();
-    if (accessHistory->peekRecords() == nullptr) {
-      records = accessHistory->getRecords(); 
-    }
-    // if records is not null, we can proceed to checking without rolling back 
-  }
 #ifdef PERFORMANCE
   gPerformanceCounters.bumpNumAccessHistoryOverflow(accessHistory->getNumRecords());
 #endif
