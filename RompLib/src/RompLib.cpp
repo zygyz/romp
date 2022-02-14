@@ -66,6 +66,8 @@ rollback: // will refactor to remove the tag
     if (!hasWriteWriteContention || hasWriteWriteContention && !accessHistory->hasRecords()) {
       accessHistory->addRecordToAccessHistory(curRecord);
       return;
+    } else {
+      goto rollback; 
     }
   }
   // check previous access records with current access
@@ -157,8 +159,7 @@ void checkAccess(void* baseAddress,
   TaskMemoryInfo taskMemoryInfo;
   queryTaskMemoryInfo(taskMemoryInfo);
   for (uint64_t i = 0; i < memUnitAccessed; ++i) {
-    auto checkedAddress = gUseWordLevelCheck ? reinterpret_cast<uint64_t>(baseAddress) + i * 4 :
-                                           reinterpret_cast<uint64_t>(baseAddress) + i;      
+    auto checkedAddress = gUseWordLevelCheck ? reinterpret_cast<uint64_t>(baseAddress) + i * 4 : reinterpret_cast<uint64_t>(baseAddress) + i;      
     if (shouldCheckMemoryAccess(threadInfo, taskMemoryInfo, taskInfo, checkedAddress, isWrite)) {
       auto accessHistory = shadowMemory.getShadowMemorySlot(checkedAddress);
       checkDataRace(accessHistory, curLabel, curLockSet, instnAddr, static_cast<void*>(currentTaskData), taskInfo.flags, isWrite, hasHardwareLock, checkedAddress);
