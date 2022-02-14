@@ -15,7 +15,7 @@ enum AccessHistoryFlag {
 
 class AccessHistory {
 public: 
-  AccessHistory() : mState(0) { mcs_init(&mLock); }
+  AccessHistory(); 
   mcs_lock_t& getLock();
   std::vector<Record>* getRecords();
   void setFlag(AccessHistoryFlag flag);
@@ -24,9 +24,10 @@ public:
   void clearFlag(AccessHistoryFlag flag);
   bool dataRaceFound() const;
   bool memIsRecycled() const;
+  bool hasRecords() const;
   uint64_t getState() const;
 private:
-  void _initRecords();
+  void initializeRecordStorage();
 private:
   mcs_lock_t mLock; 
   uint64_t mState;  
