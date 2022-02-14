@@ -54,7 +54,7 @@ rollback: // will refactor to remove the tag
     guard.upgradeFromReaderToWriter();
     if (accessHistory->dataRaceFound()) {
       if (!records->empty()) {
-        records->clearRecords(); 
+        accessHistory->clearRecords(); 
       }
       return;
     }
@@ -65,7 +65,7 @@ rollback: // will refactor to remove the tag
     guard.upgradeFromReaderToWriter(); 
     if (accessHistory->memIsRecycled()) {
       accessHistory->clearFlags();
-      records->clearRecords();
+      accessHistory->clearRecords();
       return;
     }
   }
