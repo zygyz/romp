@@ -3,7 +3,6 @@
 #include <glog/logging.h>
 #include <glog/raw_logging.h>
 
-#include "AccessControl.h"
 #include "ParallelRegionData.h"
 #include "TaskInfoQuery.h"
 #include "ThreadData.h"
@@ -363,12 +362,18 @@ AccessHistoryManagementDecision manageAccessRecord(const Record& histRecord,
   return eNoOperation;
 } 
 
-void modifyAccessHistory(AccessHistoryManagementDecision decision, 
+bool modifyAccessHistory(AccessHistoryManagementDecision decision, 
                          std::vector<Record>* records,
-                         std::vector<Record>::iterator& it) {
+                         std::vector<Record>::iterator& it, 
+                         ReaderWriterLockGuard* guard) {
+  auto shouldRollback = false;
   if (decision == eDeleteHistoryRecord) {
-    it = records->erase(it);
+    shouldRollback = guard->upgradeFromReaderToWriter();
+    if (!shouldRollback) {
+      it = records->erase(it);
+    }
   } else {
     it++;
   }
+  return shouldRollback;
 }

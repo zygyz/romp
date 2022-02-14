@@ -1,4 +1,5 @@
 #pragma once 
+#include "AccessControl.h"
 #include "AccessHistory.h"
 #include "CoreUtil.h"
 #include "LockSet.h"
@@ -23,4 +24,4 @@ bool analyzeTaskGroupSync(Label* histLabel, Label* curLabel, int index);
 uint64_t computeExitRank(uint64_t phase);
 uint64_t computeEnterRank(uint64_t phase);
 AccessHistoryManagementDecision manageAccessRecord(const Record& histRecord, const Record& curRecord, bool isHistBeforeCur, int diffIndex);
-void modifyAccessHistory(AccessHistoryManagementDecision decision, std::vector<Record>* records, std::vector<Record>::iterator& cit);
+bool modifyAccessHistory(AccessHistoryManagementDecision decision, std::vector<Record>* records, std::vector<Record>::iterator& cit, ReaderWriterLockGuard* guard);

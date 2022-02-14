@@ -88,7 +88,9 @@ rollback: // will refactor to remove the tag
     if (decision == eSkipAddCurrentRecord) {
       skipAddCurrentRecord = true;
     }
-    modifyAccessHistory(decision, records, it);
+    if (modifyAccessHistory(decision, records, it, &guard)) {
+      goto rollback;
+    }
   }
   if (!skipAddCurrentRecord) {
     if (guard.upgradeFromReaderToWriter()) {
