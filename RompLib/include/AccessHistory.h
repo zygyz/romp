@@ -16,7 +16,6 @@ public:
   AccessHistory(); 
   pfq_rwlock_t& getLock();
   std::vector<Record>* getRecords();
-  std::vector<Record>* peekRecords(); 
   void setFlag(AccessHistoryFlag flag);
   void clearRecords();
   void clearFlags();
