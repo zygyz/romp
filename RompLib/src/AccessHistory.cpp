@@ -5,7 +5,12 @@
 
 AccessHistory::AccessHistory() {
   mState = 0;
-  mcs_init(&mLock);
+  pfq_rwlock_init(&mLock);
+  initializeRecordStorage(); 
+}
+
+void AccessHistory::initializeRecordStorage() {
+  mRecords = std::make_unique<std::vector<Record>>();
 }
 
 pfq_rwlock_t & AccessHistory::getLock() {
@@ -59,4 +64,8 @@ bool AccessHistory::hasRecords() const {
 
 uint64_t AccessHistory::getNumRecords() const {
   return mRecords ? mRecords->size() : 0;
+}
+
+bool AccessHistory::hasRecords() const {
+  return mRecords && mRecords->size() > 0;
 }
