@@ -26,6 +26,7 @@ public:
   bool memIsRecycled() const;
   bool hasRecords() const;
   uint64_t getState() const;
+  uint64_t getNumRecords() const;
 private:
   void initializeRecordStorage();
 private:

@@ -38,7 +38,7 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
 #endif
   auto records = accessHistory->getRecords();
 #ifdef PERFORMANCE
-  gPerformanceCounters.bumpNumAccessHistoryOverflow(records->size());
+  gPerformanceCounters.bumpNumAccessHistoryOverflow(accessHistory->getNumRecords());
 #endif
   if (accessHistory->dataRaceFound()) {
     //  data race has already been found on this memory location, romp only 
@@ -46,7 +46,7 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
     //  race is reported, romp clears the access history with respect to this
     //  memory location and mark this memory location as found. Future access 
     //  to this memory location does not go through data race checking.
-    if (!records->empty()) {
+    if (accessHistory->hasRecords()) {
       accessHistory->clearRecords();
     }
     return;
@@ -61,7 +61,7 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
 
   auto curRecord = Record(isWrite, curLabel, curLockSet, 
 		currentTaskData, instnAddr, hasHardwareLock);
-  if (records->empty()) {
+  if (!accessHistory->hasRecords()) {
     // no access record, add current access to the record
     records->push_back(curRecord);
     return;

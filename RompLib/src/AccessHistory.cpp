@@ -20,9 +20,6 @@ mcs_lock_t & AccessHistory::getLock() {
 }
 
 std::vector<Record>* AccessHistory::getRecords() {
-  if (!mRecords.get()) {
-    _initRecords();
-  }
   return mRecords.get();
 }
 
@@ -60,4 +57,7 @@ uint64_t AccessHistory::getState() const {
   return mState;
 }
 
+uint64_t AccessHistory::getNumRecords() const {
+  return mRecords ? mRecords->size() : 0;
+}
 }
