@@ -41,6 +41,10 @@ void AccessHistory::clearRecords() {
   }
 }
 
+void AccessHistory::addRecordToAccessHistory(const Record& record) {
+  mRecords->push_back(record);
+}
+
 bool AccessHistory::dataRaceFound() const {
   return (mState & eDataRaceFound) != 0;
 }

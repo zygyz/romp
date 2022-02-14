@@ -22,6 +22,7 @@ public:
   void clearRecords();
   void clearFlags();
   void clearFlag(AccessHistoryFlag flag);
+  void addRecordToAccessHistory(const Record& record);
   bool dataRaceFound() const;
   bool memIsRecycled() const;
   bool hasRecords() const;

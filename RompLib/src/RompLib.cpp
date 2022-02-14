@@ -63,7 +63,7 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
 		currentTaskData, instnAddr, hasHardwareLock);
   if (!accessHistory->hasRecords()) {
     // no access record, add current access to the record
-    records->push_back(curRecord);
+    accessHistory->addRecordToAccessHistory(curRecord);
     return;
   }
   // check previous access records with current access
@@ -89,7 +89,7 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
     modifyAccessHistory(decision, records, it);
   }
   if (!skipAddCurrentRecord) {
-    records->push_back(curRecord); 
+    accessHistory->addRecordToAccessHistory(curRecord); 
   }
 }
 
