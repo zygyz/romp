@@ -20,6 +20,14 @@ KEY_NUM_ACCESS_HISTORY_WRITE_WRITE_CONTENTION="key_num_access_history_write_writ
 KEY_NUM_ACCESS_HISTORY_WRITE_READ_CONTENTION="key_num_access_history_write_read_contention";
 KEY_NUM_ACCESS_HISTORY_READ_WRITE_CONTENTION="key_num_access_history_read_write_contention";
 
+metrics_key_name_map = {
+  KEY_NUM_CHECK_ACCESS_CALL: 'Check Access Function Call',
+  KEY_NUM_ACCESS_HISTORY_CONTENTION: 'Access History Contention',
+  KEY_NUM_ACCESS_HISTORY_WRITE_WRITE_CONTENTION: 'Access History Write Write Contention',
+  KEY_NUM_ACCESS_HISTORY_WRITE_READ_CONTENTION: 'Access History Write Read Contention',
+  KEY_NUM_ACCESS_HISTORY_READ_WRITE_CONTENTION: 'Access History Read Write Contention', 
+}
+
 def get_output_directory_path(benchmark_root_path: str, branch: str) -> str:
   return os.path.join(benchmark_root_path, 'output-'+ branch);
 
@@ -57,28 +65,29 @@ def run_benchmarks_for_branch(romp_root_path: str, benchmark_root_path: str, bra
   output_path = create_output_directory(benchmark_root_path, branch);
   run(benchmark_root_path, output_path);
 
+def extract_metric(metric_string: str, lines: list[str]) -> float | None:
+  for line in lines:
+    if metric_string in line:
+      return float(line.strip().split()[-1]);
+  return None;
+
 def process_output_file(output_file_path: str) -> dict:
   result = {};
   if os.stat(output_file_path).st_size == 0:
     return result;
   with open(output_file_path) as file:
     lines = file.readlines();
-    result[KEY_NUM_CHECK_ACCESS_CALL] = float([line.strip().split()[-1] for line in lines if 'Check Access Function Call' in line][0]);
-    result[KEY_NUM_MEMORY_ACCESS_INSTRUMENTATION_CALL] = float([line.strip().split()[-1] for line in lines if 'Memory Access Instrumentation Call' in line][0]);
-    result[KEY_NUM_ACCESS_HISTORY_CONTENTION] = float([line.strip().split()[-1] for line in lines if 'Access History Contention' in line][0]);
-    result[KEY_NUM_ACCESS_HISTORY_WRITE_WRITE_CONTENTION] = float([line.strip().split()[-1] for line in lines if 'Access History Write Write Contention' in line][0]);
-    result[KEY_NUM_ACCESS_HISTORY_WRITE_READ_CONTENTION] = float([line.strip().split()[-1] for line in lines if 'Access History Write Read Contention' in line][0]);
-    result[KEY_NUM_ACCESS_HISTORY_READ_WRITE_CONTENTION] = float([line.strip().split()[-1] for line in lines if 'Access History Read Write Contention' in line][0]);
+    for metric_name, metric_string in metrics_key_name_map.items():
+      result[metric_name] = extract_metric(metric_string, lines);
   return result;
 
    
 def aggregate_result(baseline_result: dict, optimize_result: dict) -> dict:
-  key_list = [KEY_NUM_CHECK_ACCESS_CALL, KEY_NUM_MEMORY_ACCESS_INSTRUMENTATION_CALL, KEY_NUM_ACCESS_HISTORY_CONTENTION, KEY_NUM_ACCESS_HISTORY_WRITE_WRITE_CONTENTION, KEY_NUM_ACCESS_HISTORY_WRITE_READ_CONTENTION, KEY_NUM_ACCESS_HISTORY_READ_WRITE_CONTENTION];  
   result = {}
-  for key in key_list:
-    baseline_value = baseline_result.get(key);
-    optimize_value = optimize_result.get(key);
-    result[key] = [baseline_value, optimize_value,  -1.0 if baseline_value == 0.0 or baseline_value is None  else optimize_value / baseline_value];
+  for metric_name in metrics_key_name_map:
+    baseline_value = baseline_result.get(metric_name);
+    optimize_value = optimize_result.get(metric_name);
+    result[metric_name] = [baseline_value, optimize_value,  -1.0 if baseline_value == 0.0 or baseline_value is None  else optimize_value / baseline_value];
   return result;
 
 def calculate_performance(benchmark_root_path: str, baseline_branch: str, optimize_branch: str) -> None:
