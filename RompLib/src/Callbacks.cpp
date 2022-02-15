@@ -456,11 +456,11 @@ void on_ompt_callback_dependences(
     RAW_LOG(FATAL, "callback dependences: current parallel data ptr is null");
     return;
   }
-  mcs_node_t node;      
+  pfq_rwlock_node_t node;      
 #ifdef PERFORMANCE
-  LockGuard guard(&(parallelRegionData->lock), &node, &gPerformanceCounters);
+  ReaderWriterLockGuard guard(&(parallelRegionData->lock), &node, &gPerformanceCounters);
 #else
-  LockGuard guard(&(parallelRegionData->lock), &node, nullptr);
+  ReaderWriterLockGuard guard(&(parallelRegionData->lock), &node);
 #endif
   // while in mutual exculsion, maintain explicit task dependencies
   for (int i = 0; i < ndeps; ++i) {

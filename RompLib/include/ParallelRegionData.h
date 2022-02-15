@@ -1,7 +1,7 @@
 #pragma once
 #include <omp-tools.h>
 
-#include "pfq-rwlock-lock.h"
+#include "pfq-rwlock.h"
 #include "TaskDependenceGraph.h"
 
 typedef struct ParallelRegionData {
@@ -10,11 +10,11 @@ typedef struct ParallelRegionData {
   int parallelFlag;
   pfq_rwlock_t lock;      
   std::atomic_int expTaskCount; 
-  ParallelRegionData() { mcs_init(&lock); }
+  ParallelRegionData() { pfq_rwlock_init(&lock); }
   ParallelRegionData(unsigned int n, int p): numParallelism(n), parallelFlag(p) {
     dataPtr = nullptr; 
     expTaskCount = 0;
-    mcs_init(&lock);
+    pfq_rwlock_init(&lock);
   } 
   TaskDependenceGraph taskDepGraph;
 } ParallelRegionData;
