@@ -1,4 +1,5 @@
 #include "AccessControl.h"
+#include "PerformanceCounters.h"
 
 LockGuard::LockGuard(mcs_lock_t* lock, mcs_node_t* node, PerformanceCounters* performanceCounters) {
   mLock = lock;

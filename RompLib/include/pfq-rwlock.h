@@ -82,7 +82,6 @@
 //******************************************************************************
 
 #include "mcs-lock.h"
-#include "PerformanceCounters.h"
 
 //******************************************************************************
 // macros
@@ -98,6 +97,8 @@
 //******************************************************************************
 
 typedef mcs_node_t pfq_rwlock_node_t;
+
+class PerformanceCounters;
 
 typedef struct bigbool {
   std::atomic_bool bit cache_aligned;

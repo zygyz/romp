@@ -49,9 +49,9 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord,
       // have to lock the task dep graph before graph traversal
       mcs_node_t node;
 #ifdef PERFORMANCE
-      LockGuard guard(&(parallelRegionData->lock), &node, &gPerformanceCounters);
+      ReaderWriterLockGuard guard(&(parallelRegionData->lock), &node, &gPerformanceCounters);
 #else
-      LockGuard guard(&(parallelRegionData->lock), &node, nullptr);
+      ReaderWriterLockGuard guard(&(parallelRegionData->lock), &node);
 #endif
       if (parallelRegionData->taskDepGraph.hasPath((void*)histTaskData, 
 				 (void*)curTaskData)) {

@@ -1,14 +1,14 @@
 #pragma once
 #include <omp-tools.h>
 
-#include "mcs-lock.h"
+#include "pfq-rwlock-lock.h"
 #include "TaskDependenceGraph.h"
 
 typedef struct ParallelRegionData {
   void* dataPtr;  
   unsigned int numParallelism;
   int parallelFlag;
-  mcs_lock_t lock;      
+  pfq_rwlock_t lock;      
   std::atomic_int expTaskCount; 
   ParallelRegionData() { mcs_init(&lock); }
   ParallelRegionData(unsigned int n, int p): numParallelism(n), parallelFlag(p) {
