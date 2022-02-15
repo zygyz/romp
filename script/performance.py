@@ -87,7 +87,7 @@ def aggregate_result(baseline_result: dict, optimize_result: dict) -> dict:
   for metric_name in metrics_key_name_map:
     baseline_value = baseline_result.get(metric_name);
     optimize_value = optimize_result.get(metric_name);
-    result[metric_name] = [baseline_value, optimize_value,  -1.0 if baseline_value == 0.0 or baseline_value is None  else optimize_value / baseline_value];
+    result[metric_name] = [baseline_value, optimize_value,  -1.0 if baseline_value == 0.0 or baseline_value is None or optimize_value is None else optimize_value / baseline_value];
   return result;
 
 def calculate_performance(benchmark_root_path: str, baseline_branch: str, optimize_branch: str) -> None:
