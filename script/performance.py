@@ -22,10 +22,10 @@ KEY_NUM_ACCESS_CONTROL_READ_WRITE_CONTENTION="key_num_access_control_read_write_
 
 metrics_key_name_map = {
   KEY_NUM_CHECK_ACCESS_CALL: 'Check Access Function Call',
-  KEY_NUM_ACCESS_HISTORY_CONTENTION: 'Access History Contention',
-  KEY_NUM_ACCESS_HISTORY_WRITE_WRITE_CONTENTION: 'Access Control Write Write Contention',
-  KEY_NUM_ACCESS_HISTORY_WRITE_READ_CONTENTION: 'Access Control Write Read Contention',
-  KEY_NUM_ACCESS_HISTORY_READ_WRITE_CONTENTION: 'Access Control Read Write Contention', 
+  KEY_NUM_ACCESS_CONTROL_CONTENTION: 'Access History Contention',
+  KEY_NUM_ACCESS_CONTROL_WRITE_WRITE_CONTENTION: 'Access Control Write Write Contention',
+  KEY_NUM_ACCESS_CONTROL_WRITE_READ_CONTENTION: 'Access Control Write Read Contention',
+  KEY_NUM_ACCESS_CONTROL_READ_WRITE_CONTENTION: 'Access Control Read Write Contention', 
 }
 
 def get_output_directory_path(benchmark_root_path: str, branch: str) -> str:
