@@ -1,6 +1,7 @@
 #pragma once
 #include <atomic>
 
+namespace romp {
 class PerformanceCounters {
 public: 
   PerformanceCounters(int accessHisotryRecordThreshold): 
@@ -8,12 +9,13 @@ public:
   void bumpNumCheckAccessFunctionCall();
   void bumpNumAccessHistoryOverflow(int numRecords);
   void bumpNumMemoryAccessInstrumentationCall();
-  void bumpNumAccessHistoryContention();
+  void bumpNumAccessControlContention();
   void printPerformanceCounters() const;
 private:
   std::atomic_long mNumMemoryAccessInstrumentationCall;
   std::atomic_long mNumCheckAccessFunctionCall;
   std::atomic_long mNumAccessHistoryOverflow;
-  std::atomic_long mNumAccessHistoryContention;
+  std::atomic_long mNumAccessControlContention;
   int mAccessHistoryRecordThreshold;
 };
+}

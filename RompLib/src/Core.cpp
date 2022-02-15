@@ -10,6 +10,8 @@
 
 namespace romp {
 
+extern PerformanceCounters gPerformanceCounters;
+
 bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, 
         bool& isHistBeforeCur, int& diffIndex, const uint64_t checkedAddress) {
   auto histLabel = histRecord.getLabel(); 
@@ -44,7 +46,11 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord,
       auto parallelRegionData= static_cast<ParallelRegionData*>(parallelRegionInfo.parallelData->ptr); 
       // have to lock the task dep graph before graph traversal
       mcs_node_t node;
+#ifdef PERFORMANCE
+      LockGuard guard(&(parallelRegionData->lock), &node, &gPerformanceCounters);
+#else
       LockGuard guard(&(parallelRegionData->lock), &node);
+#endif
       if (parallelRegionData->taskDepGraph.hasPath((void*)histTaskData, 
 				 (void*)curTaskData)) {
          isHistBeforeCur = true;

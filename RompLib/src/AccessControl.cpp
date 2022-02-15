@@ -1,5 +1,6 @@
 #include "AccessControl.h"
 
+namespace romp {
 LockGuard::LockGuard(mcs_lock_t* lock, mcs_node_t* node) {
   mLock = lock;
   mNode = node;
@@ -14,12 +15,12 @@ LockGuard::LockGuard(mcs_lock_t* lock, mcs_node_t* node, PerformanceCounters* pe
   }
   mcs_lock(mLock, mNode);
   if (performanceCounters) {
-    performanceCounters->bumpNumAccessHistoryContention();
+    performanceCounters->bumpNumAccessControlContention();
   }
 }
 
-
 LockGuard::~LockGuard() {
   mcs_unlock(mLock, mNode);
+}
 }
 

@@ -9,6 +9,7 @@
 #include "DataSharing.h"
 #include "Label.h"
 #include "ParallelRegionData.h"
+#include "PerformanceCounters.h"
 #include "TaskInfoQuery.h"
 #include "ShadowMemory.h"
 #include "TaskData.h"
@@ -17,6 +18,7 @@
 namespace romp {   
 
 extern ShadowMemory<AccessHistory> shadowMemory;
+extern PerformanceCounters gPerformanceCounters;
    
 void on_ompt_callback_implicit_task(
        ompt_scope_endpoint_t endPoint,
@@ -457,7 +459,11 @@ void on_ompt_callback_dependences(
     return;
   }
   mcs_node_t node;      
+#ifdef PERFORMANCE
+  LockGuard guard(&(parallelRegionData->lock), &node, &gPerformanceCounters);
+#else
   LockGuard guard(&(parallelRegionData->lock), &node);
+#endif
   // while in mutual exculsion, maintain explicit task dependencies
   for (int i = 0; i < ndeps; ++i) {
     auto variable = deps[i].variable; 

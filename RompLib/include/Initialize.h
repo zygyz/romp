@@ -9,16 +9,15 @@
 #include "Callbacks.h"
 #include "CoreUtil.h"
 #include "mcs-lock.h"
-#include "PerformanceCounters.h"
 #include "TaskInfoQuery.h"
-
-#define ACCESS_HISTORY_RECORDS_THRESHOLD 8
 
 /* 
  * This header file defines functions that are used 
  * to initialize OMPT interface. 
 */
 namespace romp{
+
+extern PerformanceCounters gPerformanceCounters;
 
 bool gOmptInitialized = false; 
 bool gDataRaceFound = false;
@@ -30,7 +29,6 @@ Dyninst::SymtabAPI::Symtab* gSymtabHandle = nullptr;
 mcs_lock_t gDataRaceLock;
 std::atomic_int gNumDataRace = 0;
 std::vector<DataRaceInfo> gDataRaceRecords;
-PerformanceCounters gPerformanceCounters(ACCESS_HISTORY_RECORDS_THRESHOLD); 
 
 ompt_get_task_info_t omptGetTaskInfo;
 ompt_get_parallel_info_t omptGetParallelInfo;

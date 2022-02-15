@@ -8,16 +8,19 @@
 #include "AccessControl.h"
 #include "AccessHistory.h"
 #include "CoreUtil.h"
-#include "TaskInfoQuery.h"
+#include "PerformanceCounters.h"
 #include "ShadowMemory.h"
 #include "TaskData.h"
+#include "TaskInfoQuery.h"
 #include "ThreadData.h"
 
 #define USER_SPACE_VIRTUAL_MEMORY_BOUND 0x00007fffffffffff //canonical form x86-64 VM layout 
 #define MINIMUM_STACK_FRAME_SIZE 32
 
 namespace romp {
- 
+
+extern PerformanceCounters gPerformanceCounters; 
+
 bool shouldCheckMemoryAccess(const ThreadInfo& threadInfo, 
                              const TaskMemoryInfo& taskMemoryInfo,
                              const uint64_t memoryAddress,
@@ -122,7 +125,12 @@ void recycleMemRange(void* lowerBound, void* upperBound) {
   for (auto addr = start; addr <= end; addr++) {
     auto accessHistory = shadowMemory.getShadowMemorySlot(addr);
     mcs_node_t node;
+#ifdef PERFORMANCE
+    LockGuard guard(&(accessHistory->getLock()), &node, &gPerformanceCounters);
+#else
     LockGuard guard(&(accessHistory->getLock()), &node);
+#endif
+
     accessHistory->setFlag(eMemoryRecycled);
   }
 }
