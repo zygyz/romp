@@ -5,9 +5,6 @@
 #include <stack>
 
 #include "TaskData.h"
-
-namespace romp {
-
 /*
  * Given a task referred to by taskPtr, register its dependence in _deps
  * _deps is a map that takes the variable address as the key. The value is 
@@ -119,6 +116,4 @@ bool TaskDependenceGraph::hasPath(void* from, void* to) {
     }
   }
   return false;
-}
-
 }

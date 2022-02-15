@@ -18,8 +18,6 @@
 
 namespace fs = std::experimental::filesystem;
 
-namespace romp {
-
 using LabelPtr = std::shared_ptr<Label>;
 using LockSetPtr = std::shared_ptr<LockSet>;
 
@@ -157,6 +155,5 @@ void checkAccess(void* baseAddress,
       checkDataRace(accessHistory, curLabel, curLockSet, instnAddr, static_cast<void*>(currentTaskData), taskInfo.flags, isWrite, hasHardwareLock, checkedAddress);
     }
   }
-}
 }
 }

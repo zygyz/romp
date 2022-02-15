@@ -1,8 +1,6 @@
 #pragma once
 #include <omp-tools.h>
 
-namespace romp {
-
 void on_ompt_callback_implicit_task(
         ompt_scope_endpoint_t endPoint,
         ompt_data_t * parallelData,
@@ -87,4 +85,3 @@ void on_ompt_callback_reduction(
        ompt_data_t *parallelData,
        ompt_data_t *taskData,
        const void *codePtrRa);
-}

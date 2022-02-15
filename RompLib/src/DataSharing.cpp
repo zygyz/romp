@@ -17,8 +17,6 @@
 #define USER_SPACE_VIRTUAL_MEMORY_BOUND 0x00007fffffffffff //canonical form x86-64 VM layout 
 #define MINIMUM_STACK_FRAME_SIZE 32
 
-namespace romp {
-
 extern PerformanceCounters gPerformanceCounters; 
 
 bool shouldCheckMemoryAccess(const ThreadInfo& threadInfo, 
@@ -174,7 +172,3 @@ void recycleTaskPrivateMemory() {
           taskPrivateDataSize);
   recycleMemRange(taskPrivateDataBase, taskPrivateDataEnd);
 }
-
-}
-
-

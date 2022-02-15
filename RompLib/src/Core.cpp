@@ -8,8 +8,6 @@
 #include "TaskInfoQuery.h"
 #include "ThreadData.h"
 
-namespace romp {
-
 extern PerformanceCounters gPerformanceCounters;
 
 bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, 
@@ -370,5 +368,4 @@ void modifyAccessHistory(AccessHistoryManagementDecision decision,
   } else {
     it++;
   }
-}
 }

@@ -2,7 +2,6 @@
 #include <memory>
 #include <vector>
 
-namespace romp {
 class Label;
 class LockSet;
 
@@ -31,5 +30,3 @@ typedef struct TaskData {
     isExplicitTask = false;
   }
 } TaskData;
-
-}

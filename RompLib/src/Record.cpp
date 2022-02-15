@@ -1,7 +1,5 @@
 #include "Record.h"
 
-namespace romp {
-  
 /*
  * If current access is write, set the lowest bit to 1. Otherwise, set to 0.
  * m_state variable is 8-bit wide.
@@ -60,5 +58,4 @@ void* Record::getInstructionAddress() const {
 
 void* Record::getTaskPtr() const {
   return m_taskPtr;
-}
 }

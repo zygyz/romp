@@ -4,8 +4,6 @@
 #include "mcs-lock.h"
 #include "TaskDependenceGraph.h"
 
-namespace romp {
-
 typedef struct ParallelRegionData {
   void* dataPtr;  
   unsigned int numParallelism;
@@ -21,8 +19,5 @@ typedef struct ParallelRegionData {
   TaskDependenceGraph taskDepGraph;
 } ParallelRegionData;
 
-void maintainTaskDeps(const ompt_dependence_t& dependence, 
-		      void* taskPtr, 
-		      ParallelRegionData* parRegionData);
+void maintainTaskDeps(const ompt_dependence_t& dependence, void* taskPtr, ParallelRegionData* parRegionData);
 
-}

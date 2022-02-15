@@ -6,8 +6,6 @@
 #include "mcs-lock.h"
 #include "Record.h"
 
-namespace romp {
-
 enum AccessHistoryFlag {
   eDataRaceFound = 0x1,
   eMemoryRecycled = 0x2,
@@ -33,5 +31,3 @@ private:
   uint64_t mState;  
   std::unique_ptr<std::vector<Record>> mRecords; 
 };
-
-}

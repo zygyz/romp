@@ -3,8 +3,6 @@
 #include <glog/logging.h>
 #include <glog/raw_logging.h>
 
-namespace romp {
-
 AccessHistory::AccessHistory() {
   mState = 0;
   mcs_init(&mLock);
@@ -61,5 +59,4 @@ uint64_t AccessHistory::getState() const {
 
 uint64_t AccessHistory::getNumRecords() const {
   return mRecords ? mRecords->size() : 0;
-}
 }

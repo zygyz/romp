@@ -3,8 +3,6 @@
 #include <unordered_map>
 #include <vector>
 
-namespace romp {
-
 /*
  * Class TaskDependenceGraph maintains a directed acylic graph using map.
  * Each node is represented by the pointer to task's allocated TaskData data
@@ -24,5 +22,3 @@ private:
 	  std::vector<std::pair<void*, ompt_dependence_type_t>>> _deps;
   std::unordered_map<void*, std::vector<void*>> _graph;
 };
-
-}

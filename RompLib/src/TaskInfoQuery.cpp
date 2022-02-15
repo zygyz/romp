@@ -3,10 +3,6 @@
 #include <glog/logging.h>
 #include <glog/raw_logging.h>
 #include <pthread.h>
-
-
-namespace romp {
-
 /* 
  * Helper function to determine if the query function get available result.
  */
@@ -95,6 +91,4 @@ bool queryRuntimeInfo(ThreadInfo& threadInfo,
 bool queryTaskMemoryInfo(TaskMemoryInfo& taskMemoryInfo) {  
   // ompt_get_task_memory only supports blockNum = 0 in current implementation.
   return omptGetTaskMemory(&taskMemoryInfo.blockAddress, &taskMemoryInfo.blockSize, 0) == 1;
-}
-
 }

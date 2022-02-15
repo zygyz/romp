@@ -35,8 +35,6 @@
 #define SINGLE_OTHER_SHIFT 6
 #define WORK_SHARE_TYPE_SHIFT 62
 
-namespace romp {
-
 /*
  * Each segment contains a 64 bit value. From low to high, assign index 0-63
  * [48, 63]: offset 
@@ -318,6 +316,4 @@ void WorkShareSegment::setWorkShareType(WorkShareType type) {
 
 WorkShareType WorkShareSegment::getWorkShareType() const {
   return static_cast<WorkShareType>((m_workShareId & static_cast<uint64_t>(WORK_SHARE_TYPE_MASK)) >> WORK_SHARE_TYPE_SHIFT);
-}
-
 }

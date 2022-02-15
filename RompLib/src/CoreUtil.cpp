@@ -9,7 +9,6 @@
 using namespace Dyninst;
 using namespace SymtabAPI;
 
-namespace romp {
 /*
  * Report data race with line information. The function uses symtabAPI's 
  * api to get line information. It incurs quite large overhead because of 
@@ -68,7 +67,4 @@ void reportDataRace(void* instnAddrPrev, void* instnAddrCur, uint64_t memAddr) {
 void* computeAddressRangeEnd(void* baseAddr, size_t chunkSize) {
   auto rangeEnd = reinterpret_cast<uint64_t>(baseAddr) + chunkSize - 1;
   return reinterpret_cast<void*>(rangeEnd);
-}
-
-
 }

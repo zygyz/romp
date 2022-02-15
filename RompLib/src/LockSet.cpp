@@ -4,8 +4,6 @@
 #include <glog/logging.h>
 #include <glog/raw_logging.h>
 
-namespace romp {
-
 SmallLockSet::SmallLockSet() {
   for (int i = 0; i < 4; ++i) {
     _locks[i] = 0;
@@ -111,6 +109,4 @@ bool isSubset(LockSet* me, LockSet* other) {
 
 std::shared_ptr<LockSet> SmallLockSet::clone() const {
   return std::make_shared<SmallLockSet>(*this);
-}
-
 }

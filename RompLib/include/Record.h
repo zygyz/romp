@@ -2,9 +2,6 @@
 #include "Label.h"
 #include "LockSet.h"
 
-
-namespace romp {
-
 /*
  * `Record` class stores a metadata associated with a single memory access.
  */
@@ -39,7 +36,3 @@ private:
   void* m_taskPtr; // pointer to data of encountering task
   void* m_instructionAddress;  
 };
-
-
-}
-

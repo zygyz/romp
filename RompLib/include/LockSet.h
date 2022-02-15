@@ -2,8 +2,6 @@
 #include <memory>
 #include <string>
 
-namespace romp {
-
 class LockSet {
 public:
   virtual std::string toString() const = 0;
@@ -37,5 +35,3 @@ private:
 };
 
 bool isSubset(LockSet* me, LockSet* other);
-
-}

@@ -7,8 +7,6 @@
 /*
  * This header file defines a set of wrapper for ompt query functions.
  */
-namespace romp {
-
 extern ompt_get_task_info_t omptGetTaskInfo;
 extern ompt_get_parallel_info_t omptGetParallelInfo;
 extern ompt_get_thread_data_t omptGetThreadData;
@@ -49,5 +47,3 @@ bool queryThreadStackInfo(void*& stackBaseAddress, size_t& stackSize);
 bool queryTaskMemoryInfo(void** addr, size_t* size);
 bool queryRuntimeInfo(ThreadInfo& threadInfo, ParallelRegionInfo& parallelRegionInfo, TaskInfo& taskInfo);
 bool queryTaskMemoryInfo(TaskMemoryInfo& taskMemoryInfo);
-
-}

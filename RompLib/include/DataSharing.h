@@ -3,8 +3,6 @@
 
 #include "TaskInfoQuery.h"
 
-namespace romp {
-
 enum DataSharingType { 
   eNonThreadPrivate,
   eThreadPrivateAccessOtherTask,
@@ -23,5 +21,3 @@ DataSharingType analyzeDataSharingType(const ThreadInfo& threadInfo, const TaskM
 void recycleTaskThreadStackMemory(void* taskData);
 void recycleTaskPrivateMemory();
 void recycleMemRange(void* lowerBound, void* higherBound);
-
-}

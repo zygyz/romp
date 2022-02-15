@@ -2,7 +2,6 @@
 #include "mcs-lock.h"
 #include "PerformanceCounters.h"
 
-namespace romp {
 class LockGuard {
 public:
   LockGuard(mcs_lock_t* lock, mcs_node_t* node);
@@ -12,4 +11,3 @@ private:
   mcs_lock_t* mLock;
   mcs_node_t* mNode;
 };
-}

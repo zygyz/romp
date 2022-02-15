@@ -3,8 +3,6 @@
 #include <unordered_map>
 #define ADDR_MAX 0xffffffffffff
 
-namespace romp {
-
 typedef struct ThreadData {
   void* stackBaseAddress;
   void* stackTopAddress;
@@ -22,5 +20,3 @@ typedef struct ThreadData {
     lowestAccessedAddress = (void*)ADDR_MAX;
   }
 } ThreadData;
-
-}

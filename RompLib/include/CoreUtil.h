@@ -13,8 +13,6 @@
  * ease the maintenance effort.
  */
 
-namespace romp {
-
 typedef struct DataRaceInfo {
   DataRaceInfo() {}
   DataRaceInfo(void* instnAddrPrev, void* instnAddrCur, uint64_t memAddr):
@@ -28,4 +26,3 @@ typedef struct DataRaceInfo {
 void reportDataRaceWithLineInfo(const DataRaceInfo& dataRaceInfo,Dyninst::SymtabAPI::Symtab* symtabHandle);
 void reportDataRace(void* instnAddrPrev, void* instnAddrCur, uint64_t address);
 void* computeAddressRangeEnd(void* baseAddr, size_t chunkSize);
-}

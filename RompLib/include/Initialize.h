@@ -15,7 +15,6 @@
  * This header file defines functions that are used 
  * to initialize OMPT interface. 
 */
-namespace romp{
 
 extern PerformanceCounters gPerformanceCounters;
 
@@ -108,4 +107,3 @@ void omptFinalize(ompt_data_t* toolData) {
 #endif
 }
 
-}

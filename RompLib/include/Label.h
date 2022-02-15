@@ -3,8 +3,6 @@
 #include <vector>
 #include "Segment.h"
 
-namespace romp {
-
 enum LabelCompare {
   eLeftIsPrefix = -1,
   eRightIsPrefix = -2, 
@@ -61,4 +59,3 @@ std::shared_ptr<Label> mutateTaskGroupBegin(Label* label);
 std::shared_ptr<Label> mutateTaskGroupEnd(Label* label);
 std::shared_ptr<Label> mutateTaskComplete(Label* label);
 std::shared_ptr<Label> mutateTaskGroupSyncChild(Label* label);
-}

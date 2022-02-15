@@ -4,8 +4,6 @@
 #include "LockSet.h"
 #include "TaskData.h"
 
-namespace romp {
-
 /*
  * Different sub cases for happens before analysis. Each case represents the 
  * segment type of corresponding next segment after the first pair of different
@@ -45,4 +43,3 @@ uint64_t computeExitRank(uint64_t phase);
 uint64_t computeEnterRank(uint64_t phase);
 AccessHistoryManagementDecision manageAccessRecord(const Record& histRecord, const Record& curRecord, bool isHistBeforeCur, int diffIndex);
 void modifyAccessHistory(AccessHistoryManagementDecision decision, std::vector<Record>* records, std::vector<Record>::iterator& cit);
-}

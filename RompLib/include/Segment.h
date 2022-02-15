@@ -3,8 +3,6 @@
 #include <memory> 
 #include <string>
 
-namespace romp {
-
 enum SegmentType {
   eImplicit = 0x1,
   eExplicit = 0x2,
@@ -141,6 +139,3 @@ public:
 private: 
   uint64_t m_workShareId; 
 };
-
-
-}

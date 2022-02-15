@@ -11,8 +11,6 @@
  * on 64 bits system. So we use uint64_t to represent void*
  */
 #define CANONICAL_FORM_MASK 0x0000ffffffffffff
-namespace romp {
-
 enum Granularity {
   eByteLevel,
   eWordLevel, // aligned four bytes treated as the same memory access
@@ -288,7 +286,3 @@ template<typename T>
 uint64_t ShadowMemory<T>::_genPageIndexMask(uint64_t numBits, uint64_t lowZeros) {
   return (1 << numBits) - (1 << lowZeros);
 }
-
-}
-
-

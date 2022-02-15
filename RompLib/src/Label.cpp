@@ -2,9 +2,6 @@
 
 #include <glog/logging.h>
 #include <glog/raw_logging.h>
-
-namespace romp {
-
 /* 
  * Use a shallow copy so that the new label does not create separate new 
  * segments. If later on some label segment changes, one should erase that 
@@ -337,8 +334,4 @@ std::shared_ptr<Label> mutateTaskGroupSyncChild(Label* label) {
   auto lastSeg = newLabel->getLastKthSegment(1);
   lastSeg->setTaskGroupSync();
   return newLabel;
-}
-
-
-
 }

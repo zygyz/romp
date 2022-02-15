@@ -15,8 +15,6 @@
 #include "TaskData.h"
 #include "ThreadData.h"
 
-namespace romp {   
-
 extern ShadowMemory<AccessHistory> shadowMemory;
 extern PerformanceCounters gPerformanceCounters;
    
@@ -554,5 +552,4 @@ void on_ompt_callback_reduction(
     case ompt_scope_end:
       taskDataPtr->inReduction = false;
   }
-}
 }
