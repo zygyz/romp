@@ -9,17 +9,17 @@ public:
   void bumpNumAccessHistoryOverflow(int numRecords);
   void bumpNumMemoryAccessInstrumentationCall();
   void bumpNumAccessControlContention();
-  void bumpNumAccessHistoryReadWriteContention();
-  void bumpNumAccessHistoryWriteWriteContention();
-  void bumpNumAccessHistoryWriteReadContention();
+  void bumpNumAccessControlReadWriteContention();
+  void bumpNumAccessControlWriteWriteContention();
+  void bumpNumAccessControlWriteReadContention();
   void printPerformanceCounters() const;
 private:
   std::atomic_long mNumMemoryAccessInstrumentationCall;
   std::atomic_long mNumCheckAccessFunctionCall;
   std::atomic_long mNumAccessHistoryOverflow;
   std::atomic_long mNumAccessControlContention;
-  std::atomic_long mNumAccessHistoryReadWriteContention;
-  std::atomic_long mNumAccessHistoryWriteWriteContention;
-  std::atomic_long mNumAccessHistoryWriteReadContention;
+  std::atomic_long mNumAccessControlReadWriteContention;
+  std::atomic_long mNumAccessControlWriteWriteContention;
+  std::atomic_long mNumAccessControlWriteReadContention;
   int mAccessHistoryRecordThreshold;
 };

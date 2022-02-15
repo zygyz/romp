@@ -128,8 +128,8 @@ pfq_rwlock_read_lock(pfq_rwlock_t *l, PerformanceCounters* performanceCounters)
     uint32_t phase = ticket & PHASE_BIT;
 #ifdef PERFORMANCE
     if (performanceCounters && std::atomic_load_explicit(&l->writer_blocking_readers[phase].bit, std::memory_order_acquire)) {
-      performanceCounters->bumpNumAccessHistoryReadWriteContention();
-      performanceCounters->bumpNumAccessHistoryContention();
+      performanceCounters->bumpNumAccessControlReadWriteContention();
+      performanceCounters->bumpNumAccessControlContention();
     }
 #endif
     while (std::atomic_load_explicit(&l->writer_blocking_readers[phase].bit, std::memory_order_acquire));
@@ -256,8 +256,8 @@ bool pfq_rwlock_upgrade_from_read_to_write_lock(pfq_rwlock_t *l, pfq_rwlock_node
   if (!mcs_trylock(&l->wtail, me)) {
 #ifdef PERFORMANCE
     if (performanceCounters) {
-      performanceCounters->bumpNumAccessHistoryContention();
-      performanceCounters->bumpNumAccessHistoryWriteWriteContention();
+      performanceCounters->bumpNumAccessControlContention();
+      performanceCounters->bumpNumAccessControlWriteWriteContention();
     }
 #endif
     hasWriteWriteContention = true;

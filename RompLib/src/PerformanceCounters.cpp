@@ -25,16 +25,16 @@ void PerformanceCounters::bumpNumAccessControlContention() {
   mNumAccessControlContention.fetch_add(1, std::memory_order_relaxed);
 }
 
-void PerformanceCounters::bumpNumAccessHistoryReadWriteContention() {
-  mNumAccessHistoryReadWriteContention.fetch_add(1, std::memory_order_relaxed);
+void PerformanceCounters::bumpNumAccessControlReadWriteContention() {
+  mNumAccessControlReadWriteContention.fetch_add(1, std::memory_order_relaxed);
 }
 
-void PerformanceCounters::bumpNumAccessHistoryWriteWriteContention() {
-  mNumAccessHistoryWriteWriteContention.fetch_add(1, std::memory_order_relaxed);
+void PerformanceCounters::bumpNumAccessControlWriteWriteContention() {
+  mNumAccessControlWriteWriteContention.fetch_add(1, std::memory_order_relaxed);
 }
 
-void PerformanceCounters::bumpNumAccessHistoryWriteReadContention() {
-  mNumAccessHistoryWriteReadContention.fetch_add(1, std::memory_order_relaxed);
+void PerformanceCounters::bumpNumAccessControlWriteReadContention() {
+  mNumAccessControlWriteReadContention.fetch_add(1, std::memory_order_relaxed);
 }
 
 void PerformanceCounters::printPerformanceCounters() const {
@@ -42,7 +42,7 @@ void PerformanceCounters::printPerformanceCounters() const {
   LOG(INFO) << "# Access History Record Overflow (threshold=" << mAccessHistoryRecordThreshold << "):  " << mNumAccessHistoryOverflow.load();
   LOG(INFO) << "# Memory Access Instrumentation Call: " << mNumMemoryAccessInstrumentationCall.load();
   LOG(INFO) << "# Access Control Contention: " << mNumAccessControlContention.load();
-  LOG(INFO) << "# Access Control Write Write Contention: " << mNumAccessHistoryWriteWriteContention.load();
-  LOG(INFO) << "# Access Control Write Read Contention: " << mNumAccessHistoryWriteReadContention.load();
-  LOG(INFO) << "# Access Control Read Write Contention: " << mNumAccessHistoryReadWriteContention.load();
+  LOG(INFO) << "# Access Control Write Write Contention: " << mNumAccessControlWriteWriteContention.load();
+  LOG(INFO) << "# Access Control Write Read Contention: " << mNumAccessControlWriteReadContention.load();
+  LOG(INFO) << "# Access Control Read Write Contention: " << mNumAccessControlReadWriteContention.load();
 }
