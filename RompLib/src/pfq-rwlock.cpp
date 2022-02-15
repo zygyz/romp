@@ -70,7 +70,6 @@
 //******************************************************************************
 
 #include "pfq-rwlock.h"
-#include "PerformanceCounters.h"
 
 //******************************************************************************
 // macros
@@ -120,7 +119,7 @@ pfq_rwlock_init(pfq_rwlock_t *l)
 }
 
 void
-pfq_rwlock_read_lock(pfq_rwlock_t *l, romp::PerformanceCounters* performanceCounters)
+pfq_rwlock_read_lock(pfq_rwlock_t *l, PerformanceCounters* performanceCounters)
 {
   uint32_t ticket = std::atomic_fetch_add_explicit(&l->rin, READER_INCREMENT, std::memory_order_acq_rel);
 
@@ -248,7 +247,7 @@ pfq_rwlock_write_unlock(pfq_rwlock_t *l, pfq_rwlock_node_t *me)
   mcs_unlock(&l->wtail, me);
 }
 
-bool pfq_rwlock_upgrade_from_read_to_write_lock(pfq_rwlock_t *l, pfq_rwlock_node_t *me, romp::PerformanceCounters* performanceCounters) {
+bool pfq_rwlock_upgrade_from_read_to_write_lock(pfq_rwlock_t *l, pfq_rwlock_node_t *me, PerformanceCounters* performanceCounters) {
   // this function is called when there rises an intention to write during the read 
   // first we unlock the reasd lock
   pfq_rwlock_read_unlock(l);

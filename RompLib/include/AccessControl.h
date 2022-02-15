@@ -1,5 +1,6 @@
 #pragma once
 #include "pfq-rwlock.h"
+#include "PerformanceCounters.h"
 
 class LockGuard {
 public:
