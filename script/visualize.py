@@ -20,9 +20,8 @@ def aggregate_data_for_metric(metric_name: str, data: dict) -> dict:
   result = {};
   for benchmark, metrics in data.items():
     for metric, values in metrics.items():
-      print(metric, metric_name);
       if metric == metric_name:
-        result[metric] = values.get(metrics_config.RATIO_TAG); 
+        result[benchmark] = values.get(metrics_config.RATIO_TAG); 
         break;    
   print(result);
   return result;
