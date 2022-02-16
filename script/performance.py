@@ -74,7 +74,7 @@ def aggregate_result(baseline_result: dict, optimize_result: dict) -> dict:
   for metric_name in metrics_config.metrics_key_name_map:
     baseline_value = baseline_result.get(metric_name);
     optimize_value = optimize_result.get(metric_name);
-    result[metric_name] = {metrics.BASELINE_TAG: baseline_value, metrics.OPTIMIZE_TAG: optimize_value,  metrics.RATIO_TAG: -1.0 if baseline_value == 0.0 or baseline_value is None or optimize_value is None else optimize_value / baseline_value};
+    result[metric_name] = {metrics_config.BASELINE_TAG: baseline_value, metrics_config.OPTIMIZE_TAG: optimize_value,  metrics_config.RATIO_TAG: -1.0 if baseline_value == 0.0 or baseline_value is None or optimize_value is None else optimize_value / baseline_value};
   return result;
 
 def calculate_performance(benchmark_root_path: str, baseline_branch: str, optimize_branch: str) -> None:
