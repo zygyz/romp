@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import matplotlib.pyplot as plt
 import os
 import pprint
 import sys
@@ -23,15 +24,19 @@ def aggregate_data_for_metric(metric_name: str, data: dict) -> dict:
       if metric == metric_name:
         result[benchmark] = values.get(metrics_config.RATIO_TAG); 
         break;    
-  print(result);
-  return result;
+  return {key:value for key, value in result.items() if value > 0};
 
 def plot_performance_result(data: dict) -> None:
-  for benchmark, metrics in data.items():
-    print('benchmark: ', benchmark); 
-    print('metrics: ', metrics);
+  for metric in metrics_config.metrics_key_list_for_visualize:
+    result = aggregate_data_for_metric(metric, data);
+    draw(metric, result);
 
-def draw(data: dict) -> None: 
+def draw(metric_name: str, data: dict) -> None: 
+  print(data); 
+  values = data.values();
+  keys = data.keys();  
+  print(keys);
+  print(values);
   return; 
 
 def main() -> int:
@@ -47,9 +52,7 @@ def main() -> int:
     pprint.PrettyPrinter(indent=2).pprint(data);
     return 0;
   if (args.draw):
-    print(metrics_config.KEY_NUM_MEMORY_ACCESS_INSTRUMENTATION_CALL);
-    aggregate_data_for_metric(metrics_config.KEY_NUM_MEMORY_ACCESS_INSTRUMENTATION_CALL, data);
-#    plot_performance_result(data);
+    plot_performance_result(data);
   return 0;
 
 if __name__ == '__main__':

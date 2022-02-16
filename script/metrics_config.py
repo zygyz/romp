@@ -19,3 +19,5 @@ metrics_key_name_map = {
   KEY_NUM_ACCESS_CONTROL_WRITE_READ_CONTENTION: 'Access Control Write Read Contention',
   KEY_NUM_ACCESS_CONTROL_READ_WRITE_CONTENTION: 'Access Control Read Write Contention', 
 }
+
+metrics_key_list_for_visualize  = [KEY_NUM_CHECK_ACCESS_CALL, KEY_NUM_ACCESS_CONTROL_CONTENTION];
