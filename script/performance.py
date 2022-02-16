@@ -6,7 +6,7 @@ import os
 import pprint
 import sys
 
-import metrics
+import metrics_config 
 
 benchmark_relative_path='dataracebench/micro-benchmarks';
 skipped_benchmark_list = ['008', '024', '025', '137', '138', '031', '037', '038', '041', '042', 
@@ -64,17 +64,17 @@ def process_output_file(output_file_path: str) -> dict:
     return result;
   with open(output_file_path) as file:
     lines = file.readlines();
-    for metric_name, metric_string in metrics.metrics_key_name_map.items():
+    for metric_name, metric_string in metrics_config.metrics_key_name_map.items():
       result[metric_name] = extract_metric(metric_string, lines);
   return result;
 
    
 def aggregate_result(baseline_result: dict, optimize_result: dict) -> dict:
   result = {}
-  for metric_name in metrics.metrics_key_name_map:
+  for metric_name in metrics_config.metrics_key_name_map:
     baseline_value = baseline_result.get(metric_name);
     optimize_value = optimize_result.get(metric_name);
-    result[metric_name] = {'baseline': baseline_value, 'optimized': optimize_value,  'optimized/baseline': -1.0 if baseline_value == 0.0 or baseline_value is None or optimize_value is None else optimize_value / baseline_value};
+    result[metric_name] = {metrics.BASELINE_TAG: baseline_value, metrics.OPTIMIZE_TAG: optimize_value,  metrics.RATIO_TAG: -1.0 if baseline_value == 0.0 or baseline_value is None or optimize_value is None else optimize_value / baseline_value};
   return result;
 
 def calculate_performance(benchmark_root_path: str, baseline_branch: str, optimize_branch: str) -> None:
