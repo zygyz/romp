@@ -6,27 +6,14 @@ import os
 import pprint
 import sys
 
+import metrics
+
 benchmark_relative_path='dataracebench/micro-benchmarks';
 skipped_benchmark_list = ['008', '024', '025', '137', '138', '031', '037', '038', '041', '042', 
 '043', '044', '055', '056', '058', '062', '065', '180', '070', '105', '095', '096', '097', '098',
 '116','129','130','144','145','146','147','148','149','150','151','152','153','154','156','157',
 '160','161','162','163','164', '110','114','122','127','128', '131','132','133','134','135','139',
 '140','143','155','158','159','165','168','173','174', '175','176','179','181'];
-
-KEY_NUM_CHECK_ACCESS_CALL="key_num_check_access_call";
-KEY_NUM_MEMORY_ACCESS_INSTRUMENTATION_CALL="key_num_memory_access_instrumentation_call";
-KEY_NUM_ACCESS_CONTROL_CONTENTION="key_num_access_control_contention";
-KEY_NUM_ACCESS_CONTROL_WRITE_WRITE_CONTENTION="key_num_access_control_write_write_contention";
-KEY_NUM_ACCESS_CONTROL_WRITE_READ_CONTENTION="key_num_access_control_write_read_contention";
-KEY_NUM_ACCESS_CONTROL_READ_WRITE_CONTENTION="key_num_access_control_read_write_contention";
-
-metrics_key_name_map = {
-  KEY_NUM_CHECK_ACCESS_CALL: 'Check Access Function Call',
-  KEY_NUM_ACCESS_CONTROL_CONTENTION: 'Access Control Contention',
-  KEY_NUM_ACCESS_CONTROL_WRITE_WRITE_CONTENTION: 'Access Control Write Write Contention',
-  KEY_NUM_ACCESS_CONTROL_WRITE_READ_CONTENTION: 'Access Control Write Read Contention',
-  KEY_NUM_ACCESS_CONTROL_READ_WRITE_CONTENTION: 'Access Control Read Write Contention', 
-}
 
 def get_output_directory_path(benchmark_root_path: str, branch: str) -> str:
   return os.path.join(benchmark_root_path, 'output-'+ branch);
@@ -77,14 +64,14 @@ def process_output_file(output_file_path: str) -> dict:
     return result;
   with open(output_file_path) as file:
     lines = file.readlines();
-    for metric_name, metric_string in metrics_key_name_map.items():
+    for metric_name, metric_string in metrics.metrics_key_name_map.items():
       result[metric_name] = extract_metric(metric_string, lines);
   return result;
 
    
 def aggregate_result(baseline_result: dict, optimize_result: dict) -> dict:
   result = {}
-  for metric_name in metrics_key_name_map:
+  for metric_name in metrics.metrics_key_name_map:
     baseline_value = baseline_result.get(metric_name);
     optimize_value = optimize_result.get(metric_name);
     result[metric_name] = {'baseline': baseline_value, 'optimized': optimize_value,  'optimized/baseline': -1.0 if baseline_value == 0.0 or baseline_value is None or optimize_value is None else optimize_value / baseline_value};
