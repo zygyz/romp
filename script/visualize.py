@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import matplotlib.pyplot as plt
 import os
 import pprint
 import sys
@@ -28,9 +29,6 @@ def aggregate_data_for_metric(metric_name: str, data: dict) -> dict:
 def plot_performance_result(data: dict) -> None:
   for metric in metrics_config.metrics_key_list_for_visualize:
     result = aggregate_data_for_metric(metric, data);
-    print('metric: ', metric);
-    pprint.PrettyPrinter(indent=2).pprint(result);
-    print('=======================================');
 
 def draw(metric_name: str, data: dict) -> None: 
   return; 
@@ -48,8 +46,8 @@ def main() -> int:
     #pprint.PrettyPrinter(indent=2).pprint(data);
     plot_performance_result(data);
     return 0;
-  #if (args.draw):
-  #  plot_performance_result(data);
+  if (args.draw):
+    plot_performance_result(data);
   return 0;
 
 if __name__ == '__main__':
