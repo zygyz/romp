@@ -25,7 +25,7 @@ if [ $build_type == "release" ]; then
 fi 
 
 if [ $build_type == "perf" ]; then
-  cmake -DCMAKE_CXX_FLAGS="-std=c++17 -g -DPERFORMANCE" -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=`pwd`/../install ..
+  cmake -DCMAKE_CXX_FLAGS="-std=c++17 -g -DPERFORMANCE -O3" -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=`pwd`/../install ..
 fi
 
 make 
