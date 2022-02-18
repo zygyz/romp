@@ -97,6 +97,43 @@ def calculate_performance(benchmark_root_path: str, baseline_branch: str, optimi
     json_file.write(json.dumps(summary));
   pp = pprint.PrettyPrinter(indent=2);
   pp.pprint(summary);
+
+def validate_result_for_benchmark(output_file_path: str, has_data_race: bool) -> bool:
+  result = {};
+  if os.stat(output_file_path).st_size == 0:
+    return result;
+  with open(output_file_path) as file:
+    lines = file.readlines();
+    for line in lines:
+      if has_data_race == True and 'data race found' in line:
+        return True;
+      if has_data_race == False and 'data race not found' in line:
+        return True;
+  return False;
+    
+def validate_results(benchmark_root_path: str, baseline_branch: str, optimize_branch: str) -> None:
+  baseline_output_path = get_output_directory_path(benchmark_root_path, baseline_branch);
+  optimize_output_path = get_output_directory_path(benchmark_root_path, optimize_branch); 
+  baseline_output_files = os.listdir(baseline_output_path);
+  optimize_output_files = os.listdir(optimize_output_path);
+  for baseline_output_file in baseline_output_files:
+    baseline_output_file_path = os.path.join(baseline_output_path, baseline_output_file); 
+    is_correct = False;
+    if '-no' in baseline_output_file:
+      is_correct = validate_result_for_benchmark(baseline_output_file_path, False);
+    elif '-yes' in baseline_output_file:
+      is_correct = validate_result_for_benchmark(baseline_output_file_path, True); 
+    if is_correct == False:
+      print('Wrong Result: ', baseline_output_file_path); 
+  for optimize_output_file in optimize_output_files:
+    optimize_output_file_path = os.path.join(optimize_output_path, optimize_output_file);
+    is_correct = False;
+    if '-no' in optimize_output_file:
+      is_correct = validate_result_for_benchmark(optimize_output_file_path, False);
+    elif '-yes' in optimize_output_file:
+      is_correct = validate_result_for_benchmark(optimize_output_file_path, True); 
+    if is_correct == False:
+      print('Wrong Result: ', optimize_output_file_path); 
  
 def main() -> int:
   parser = argparse.ArgumentParser(description='Argument parsing for performance profiler');
@@ -105,9 +142,13 @@ def main() -> int:
   parser.add_argument('baseline_branch', type=str, help='baseline branch');
   parser.add_argument('optimize_branch', type=str, help='optimize branch');
   parser.add_argument('-c', '--calculate', action="store_true", help="calculate the performance");
+  parser.add_argument('-v', '--validate', action="store_true", help="validate data race detetion result");
   args = parser.parse_args();
   if args.calculate:
     calculate_performance(args.benchmark_root_path, args.baseline_branch, args.optimize_branch);
+    return 0;
+  if args.validate:
+    validate_results(args.benchmark_root_path, args.baseline_branch, args.optimize_branch);
     return 0;
   run_benchmarks_for_branch(args.romp_root_path, args.benchmark_root_path, args.baseline_branch);
   run_benchmarks_for_branch(args.romp_root_path, args.benchmark_root_path, args.optimize_branch);
