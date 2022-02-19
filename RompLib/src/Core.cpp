@@ -14,7 +14,7 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord,
         bool& isHistBeforeCur, int& diffIndex, const uint64_t checkedAddress) {
   auto histLabel = histRecord.getLabel(); 
   auto curLabel = curRecord.getLabel(); 
-  RAW_DLOG(INFO, "analyze race condition - address: %lx hist label: %s cur label: %s\n", checkedAddress, histLabel->toString().c_str(), curLabel->toString().c_str());
+  RAW_DLOG(INFO, "analyze race condition - address: %lx hist label: %s hist is write: %d cur label: %s cur is write: %d\n", checkedAddress, histLabel->toString().c_str(), histRecord.isWrite(), curLabel->toString().c_str(), curRecord.isWrite());
   if (analyzeMutualExclusion(histRecord, curRecord)) {
     return false;
   }  
