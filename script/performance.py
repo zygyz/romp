@@ -119,9 +119,9 @@ def validate_results(benchmark_root_path: str, baseline_branch: str, optimize_br
   for baseline_output_file in baseline_output_files:
     baseline_output_file_path = os.path.join(baseline_output_path, baseline_output_file); 
     is_correct = False;
-    if '-no' in baseline_output_file:
+    if '-no.c.bin' in baseline_output_file or '-no.cpp.bin' in baseline_output_file:
       is_correct = validate_result_for_benchmark(baseline_output_file_path, False);
-    elif '-yes' in baseline_output_file:
+    elif '-yes.c.bin' in baseline_output_file or '-yes.cpp.bin' in baseline_output_file:
       is_correct = validate_result_for_benchmark(baseline_output_file_path, True); 
     if is_correct == False:
       print('Wrong Result: ', baseline_output_file_path); 
