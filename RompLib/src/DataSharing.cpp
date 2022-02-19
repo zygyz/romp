@@ -30,12 +30,14 @@ bool shouldCheckMemoryAccess(const ThreadInfo& threadInfo,
     case eThreadMetaDataNotSet: 
     case eTaskExitFrameNotSet:
     case eUndefined:
+      RAW_DLOG(INFO,  "should check memory address, data sharing type: %d, memory address: %lx", dataSharingType, memoryAddress);
       return true;
     case eThreadPrivateAccessCurrentTask:
     case eTaskPrivate:
     case eNonWorkerThread:
     case eOmpRuntime:
     case eInitialThread:
+      RAW_DLOG(INFO,  "should not check memory address, data sharing type: %d, memory address: %lx", dataSharingType, memoryAddress);
       return false; 
   }
   RAW_LOG(FATAL, "unexpected data sharing type: %d", dataSharingType);
