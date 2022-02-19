@@ -84,10 +84,8 @@ DataSharingType analyzeDataSharingType(const ThreadInfo& threadInfo,
   // The enter_frame field of an ompt_frame_t object contains information to identify the latest still active 
   // procedure frame executing the task region before entering the OpenMP runtime implementation or before 
   // executing a different task.
-  if (exitFrameFlags == (ompt_frame_runtime | ompt_frame_framepointer) || 
-      enterFrameFlags == (ompt_frame_runtime | ompt_frame_framepointer)) {
-    return eOmpRuntime;
-  }
+  // enter_frame_flags field indicates that the provided frame information points to a runtime or an application frame address. 
+  // The same fields also specify the kind of information that is provided to identify the frame, These fields are a disjunction of values in the ompt_frame_flag_t enumeration type
   if (exitFrame.ptr && exitFrameFlags == (ompt_frame_application | ompt_frame_framepointer) && 
       memoryAddress > reinterpret_cast<const uint64_t>(exitFrame.ptr)) {
     // memory address is above the first procedure frame executing current task region. 
