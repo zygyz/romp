@@ -338,10 +338,6 @@ uint64_t computeEnterRank(uint64_t phase) {
   return phase + (phase % 2);
 }
 
-inline CheckCase buildCheckCase(SegmentType histType, SegmentType curType) {
-  return static_cast<CheckCase>(histType | (curType << CASE_SHIFT));
-}
-
 AccessHistoryManagementDecision manageAccessRecord(const Record& histRecord, 
                                     const Record& curRecord,
                                     bool isHistBeforeCurrent,

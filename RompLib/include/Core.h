@@ -4,25 +4,6 @@
 #include "LockSet.h"
 #include "TaskData.h"
 
-/*
- * Different sub cases for happens before analysis. Each case represents the 
- * segment type of corresponding next segment after the first pair of different
- * segments.
- */
-#define CASE_SHIFT 2
-
-enum CheckCase {
-  eImpImp = eImplicit | (eImplicit << CASE_SHIFT),
-  eImpExp = eImplicit | (eExplicit << CASE_SHIFT),
-  eImpWork = eImplicit | (eLogical << CASE_SHIFT),
-  eExpImp = eExplicit | (eImplicit << CASE_SHIFT),
-  eExpExp = eExplicit | (eExplicit << CASE_SHIFT),
-  eExpWork = eExplicit | (eLogical<< CASE_SHIFT),
-  eWorkImp = eLogical | (eImplicit << CASE_SHIFT),
-  eWorkExp = eLogical | (eExplicit << CASE_SHIFT),
-  eWorkWork = eLogical | (eLogical << CASE_SHIFT),
-}; 
-
 enum AccessHistoryManagementDecision{
   eNoOperation,
   eSkipAddCurrentRecord,
