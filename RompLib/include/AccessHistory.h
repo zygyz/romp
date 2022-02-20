@@ -24,10 +24,8 @@ public:
   bool dataRaceFound() const;
   bool memIsRecycled() const;
   bool hasRecords() const;
-  uint64_t getState() const;
   uint64_t getNumRecords() const;
 private:
   mcs_lock_t mLock; 
-  uint64_t mState;  
   std::unique_ptr<std::vector<Record>> mRecords; 
 };
