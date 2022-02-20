@@ -11,6 +11,13 @@ enum AccessHistoryFlag {
   eMemoryRecycled = 0x2,
 };
 
+enum AccessHistoryState {
+  eEmpty = 0, // start state 
+  eOneReader = 1,
+  eOneWriter = 2,
+  eUndefined = 3,
+};
+
 class AccessHistory {
 public: 
   AccessHistory(); 
