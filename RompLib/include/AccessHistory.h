@@ -31,9 +31,10 @@ public:
   bool dataRaceFound() const;
   bool memIsRecycled() const;
   bool hasRecords() const;
+  uint8_t getState() const;
   uint64_t getNumRecords() const;
 private:
   pfq_rwlock_t mLock; 
+  uint8_t mState;  
   std::unique_ptr<std::vector<Record>> mRecords; 
-  uint8_t mState;
 };

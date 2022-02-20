@@ -23,5 +23,5 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, boo
 bool analyzeTaskGroupSync(Label* histLabel, Label* curLabel, int index);
 uint64_t computeExitRank(uint64_t phase);
 uint64_t computeEnterRank(uint64_t phase);
-AccessHistoryManagementDecision manageAccessRecord(const Record& histRecord, const Record& curRecord, bool isHistBeforeCur, int diffIndex);
+AccessHistoryManagementDecision manageAccessRecord(AccessHistoryState currentState, const Record& histRecord, const Record& curRecord, bool isHistBeforeCur, int diffIndex);
 bool modifyAccessHistory(AccessHistoryManagementDecision decision, std::vector<Record>* records, std::vector<Record>::iterator& cit, ReaderWriterLockGuard* guard);

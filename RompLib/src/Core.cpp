@@ -343,10 +343,11 @@ uint64_t computeEnterRank(uint64_t phase) {
   return phase + (phase % 2);
 }
 
-AccessHistoryManagementDecision manageAccessRecord(const Record& histRecord, 
-                                    const Record& curRecord,
-                                    bool isHistBeforeCurrent,
-                                    int diffIndex) {
+AccessHistoryManagementDecision manageAccessRecord(AccessHistoryState currentState, 
+                                                   const Record& histRecord, 
+                                                   const Record& curRecord,
+                                                   bool isHistBeforeCurrent,
+                                                   int diffIndex) {
   auto histIsWrite = histRecord.isWrite();  
   auto curIsWrite = curRecord.isWrite();
   auto histLockSet = histRecord.getLockSet();
