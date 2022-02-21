@@ -87,7 +87,7 @@ rollback: // will refactor to remove the tag
       accessHistory->setFlag(eDataRaceFound);
       return;
     }
-    auto decision = manageAccessRecord(accessHistory->getState(), histRecord, curRecord, isHistBeforeCurrent, diffIndex);
+    auto decision = manageAccessRecord(accessHistory->getRecordState(), histRecord, curRecord, isHistBeforeCurrent, diffIndex);
     if (decision == eSkipAddCurrentRecord) {
       skipAddCurrentRecord = true;
     } else if (decision == eDeleteHistoryRecord) {
