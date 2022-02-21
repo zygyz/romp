@@ -10,6 +10,7 @@ KEY_NUM_ACCESS_CONTROL_CONTENTION="key_num_access_control_contention";
 KEY_NUM_ACCESS_CONTROL_WRITE_WRITE_CONTENTION="key_num_access_control_write_write_contention";
 KEY_NUM_ACCESS_CONTROL_WRITE_READ_CONTENTION="key_num_access_control_write_read_contention";
 KEY_NUM_ACCESS_CONTROL_READ_WRITE_CONTENTION="key_num_access_control_read_write_contention";
+KEY_NUM_ACCESS_HISTORY_SKIP_REMOVE_RECORDS="key_num_access_history_skip_remove_records";
 
 metrics_key_name_map = {
   KEY_NUM_CHECK_ACCESS_CALL: 'Check Access Function Call',
@@ -18,6 +19,7 @@ metrics_key_name_map = {
   KEY_NUM_ACCESS_CONTROL_WRITE_WRITE_CONTENTION: 'Access Control Write Write Contention',
   KEY_NUM_ACCESS_CONTROL_WRITE_READ_CONTENTION: 'Access Control Write Read Contention',
   KEY_NUM_ACCESS_CONTROL_READ_WRITE_CONTENTION: 'Access Control Read Write Contention', 
+  KEY_NUM_ACCESS_HISTORY_SKIP_REMOVE_RECORDS: 'Access History Skip Remove Records',
 }
 
 metrics_key_list_for_visualization  = [KEY_NUM_CHECK_ACCESS_CALL, KEY_NUM_ACCESS_CONTROL_CONTENTION];
