@@ -12,10 +12,10 @@ enum AccessHistoryFlag {
 };
 
 enum AccessHistoryState {
-  eEmpty = 0, // start state 
-  eOneReader = 1,
-  eOneWriter = 2,
-  eUndefined = 3,
+  eEmptyState = 0, // start state 
+  eOneReaderState = 1,
+  eOneWriterState = 2,
+  eUndefinedState = 3,
 };
 
 class AccessHistory {
@@ -28,6 +28,7 @@ public:
   void clearFlags();
   void clearFlag(AccessHistoryFlag flag);
   void addRecordToAccessHistory(const Record& record);
+  void removeRecords(const std::vector<int>& recordsToBeRemoved);
   bool dataRaceFound() const;
   bool memIsRecycled() const;
   bool hasRecords() const;

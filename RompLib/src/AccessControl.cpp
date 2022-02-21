@@ -41,6 +41,7 @@ ReaderWriterLockGuard::~ReaderWriterLockGuard() {
   }
 }
 
+// return true if there exists write-write contention
 bool ReaderWriterLockGuard::upgradeFromReaderToWriter() {
   if (mWriteLockAcquired) {
     return false;

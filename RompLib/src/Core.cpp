@@ -343,7 +343,7 @@ uint64_t computeEnterRank(uint64_t phase) {
   return phase + (phase % 2);
 }
 
-AccessHistoryManagementDecision manageAccessRecord(AccessHistoryState currentState, 
+AccessHistoryManagementDecision manageAccessRecord(uint8_t currentState, 
                                                    const Record& histRecord, 
                                                    const Record& curRecord,
                                                    bool isHistBeforeCurrent,

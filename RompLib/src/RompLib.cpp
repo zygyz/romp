@@ -77,6 +77,7 @@ rollback: // will refactor to remove the tag
   std::vector<Record>::const_iterator cit;
   auto skipAddCurrentRecord = false;
   int diffIndex;
+  std::vector<int> recordsToBeRemoved;
   while (it != records->end()) {
     cit = it; 
     auto histRecord = *cit;
@@ -89,16 +90,30 @@ rollback: // will refactor to remove the tag
     auto decision = manageAccessRecord(accessHistory->getState(), histRecord, curRecord, isHistBeforeCurrent, diffIndex);
     if (decision == eSkipAddCurrentRecord) {
       skipAddCurrentRecord = true;
+    } else if (decision == eDeleteHistoryRecord) {
+      recordsToBeRemoved.push_back(it - records->begin());
     }
+    /*
     if (modifyAccessHistory(decision, records, it, &guard)) {
       goto rollback;
     }
-  }
-  if (!skipAddCurrentRecord) {
-    if (guard.upgradeFromReaderToWriter()) {
-      goto rollback;
+    */
+  } 
+  auto hasRecordsToRemove = !recordsToBeRemoved.empty();
+  if (hasRecordsToRemove || !skipAddCurrentRecord) {
+    auto hasWriteWriteContention = guard.upgradeFromReaderToWriter(); 
+    if (!hasWriteWriteContention) {
+      if (hasRecordsToRemove) {
+        accessHistory->removeRecords(recordsToBeRemoved);
+      }
+      if (!skipAddCurrentRecord) {
+        accessHistory->addRecordToAccessHistory(curRecord); 
+      }
+    } else {
+      if (!skipAddCurrentRecord) {
+        goto rollback;
+      }
     }
-    accessHistory->addRecordToAccessHistory(curRecord); 
   }
 }
 

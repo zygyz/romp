@@ -250,7 +250,7 @@ pfq_rwlock_write_unlock(pfq_rwlock_t *l, pfq_rwlock_node_t *me)
 
 bool pfq_rwlock_upgrade_from_read_to_write_lock(pfq_rwlock_t *l, pfq_rwlock_node_t *me, PerformanceCounters* performanceCounters) {
   // this function is called when there rises an intention to write during the read 
-  // first we unlock the reasd lock
+  // first we unlock the read lock. Return true if there exists write-write contention
   pfq_rwlock_read_unlock(l);
   auto hasWriteWriteContention = false;
   if (!mcs_trylock(&l->wtail, me)) {

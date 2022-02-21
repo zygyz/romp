@@ -61,3 +61,13 @@ uint8_t AccessHistory::getState() const {
 uint64_t AccessHistory::getNumRecords() const {
   return mRecords ? mRecords->size() : 0;
 }
+
+void AccessHistory::removeRecords(const std::vector<int>& recordsToBeRemoved) {
+  if (!mRecords ||  mRecords->empty()) {
+    return; 
+  }
+  for (auto it = recordsToBeRemoved.rbegin(); it != recordsToBeRemoved.rend(); it++) {
+    mRecords->erase(mRecords->begin() + *it);
+  }  
+}
+
