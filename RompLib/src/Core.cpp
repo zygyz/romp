@@ -22,6 +22,7 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord,
   if (curTaskData->inReduction) { 
     // current memory access is in reduction phase, we trust runtime library
     // that in this phase no data race is genereted by reduction method.
+    RAW_DLOG(INFO, "current memory access is in reduction phase. memory address: %lx", checkedAddress);
     return false;
   }
   isHistBeforeCur = happensBefore(histLabel, curLabel, diffIndex);
