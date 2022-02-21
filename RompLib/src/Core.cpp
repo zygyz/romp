@@ -16,6 +16,7 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord,
   auto curLabel = curRecord.getLabel(); 
   RAW_DLOG(INFO, "analyze race condition - address: %lx hist label: %s hist is write: %d cur label: %s cur is write: %d\n", checkedAddress, histLabel->toString().c_str(), histRecord.isWrite(), curLabel->toString().c_str(), curRecord.isWrite());
   if (analyzeMutualExclusion(histRecord, curRecord)) {
+    RAW_DLOG(INFO, "mutual exclusion by lock, memory address: %lx", checkedAddress);
     return false;
   }  
   auto curTaskData = static_cast<TaskData*>(curRecord.getTaskPtr());
@@ -27,6 +28,7 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord,
   }
   isHistBeforeCur = happensBefore(histLabel, curLabel, diffIndex);
   if (diffIndex == eRightIsPrefix) {
+    RAW_DLOG(INFO, "current access is prefix: %lx", checkedAddress);
     return false;
   }
   if (!isHistBeforeCur) {
@@ -36,6 +38,7 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord,
     if (curTaskData->isExplicitTask && histTaskData->isExplicitTask) {
       // first check if the two tasks are mutex tasks
       if (curTaskData->isMutexTask && histTaskData->isMutexTask) { 
+        RAW_DLOG(INFO, "current access and history access are mutex task memory address: %lx", checkedAddress);
         return false; // mutex task does not form race condition
       }
       // have to get the associated parallel region
