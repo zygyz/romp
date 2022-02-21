@@ -306,6 +306,12 @@ bool pfq_rwlock_upgrade_from_read_to_write_lock(pfq_rwlock_t *l, pfq_rwlock_node
   // if any reads are active, wait for last reader to signal me
   //--------------------------------------------------------------------
   if (in != out) {
+#ifdef PERFORMANCE
+    if (performanceCounters) {
+      performanceCounters->bumpNumAccessControlContention();
+      performanceCounters->bumpNumAccessControlWriteReadContention();
+    }
+#endif
     while (std::atomic_load_explicit(&me->blocked, std::memory_order_acquire));
     // wait for active reads to drain
 
