@@ -52,7 +52,7 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord,
 #ifdef PERFORMANCE
       LockGuard guard(&(parallelRegionData->lock), &node, &gPerformanceCounters);
 #else
-      LockGuard guard(&(parallelRegionData->lock), &node);
+      LockGuard guard(&(parallelRegionData->lock), &node, nullptr);
 #endif
       if (parallelRegionData->taskDepGraph.hasPath((void*)histTaskData, 
 				 (void*)curTaskData)) {

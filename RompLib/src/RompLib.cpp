@@ -32,7 +32,7 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
 #ifdef PERFORMANCE
   LockGuard guard(&(accessHistory->getLock()), &node, &gPerformanceCounters);
 #else
-  LockGuard guard(&(accessHistory->getLock()), &node);
+  LockGuard guard(&(accessHistory->getLock()), &node, nullptr);
 #endif
   auto records = accessHistory->getRecords();
 #ifdef PERFORMANCE

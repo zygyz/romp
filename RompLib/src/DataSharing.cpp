@@ -126,7 +126,7 @@ void recycleMemRange(void* lowerBound, void* upperBound) {
 #ifdef PERFORMANCE
     LockGuard guard(&(accessHistory->getLock()), &node, &gPerformanceCounters);
 #else
-    LockGuard guard(&(accessHistory->getLock()), &node);
+    LockGuard guard(&(accessHistory->getLock()), &node, nullptr);
 #endif
 
     accessHistory->setFlag(eMemoryRecycled);
