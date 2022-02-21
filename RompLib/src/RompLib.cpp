@@ -93,11 +93,7 @@ rollback: // will refactor to remove the tag
     } else if (decision == eDeleteHistoryRecord) {
       recordsToBeRemoved.push_back(it - records->begin());
     }
-    /*
-    if (modifyAccessHistory(decision, records, it, &guard)) {
-      goto rollback;
-    }
-    */
+    it++;
   } 
   auto hasRecordsToRemove = !recordsToBeRemoved.empty();
   if (hasRecordsToRemove || !skipAddCurrentRecord) {
