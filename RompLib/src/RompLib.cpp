@@ -109,6 +109,11 @@ rollback: // will refactor to remove the tag
       if (!skipAddCurrentRecord) {
         goto rollback;
       }
+#ifdef PERFORMANCE
+      if (hasRecordsToRemove) {
+        gPerformanceCounters.bumpNumAccessHistorySkipRemoveRecords();
+      }
+#endif
     }
   }
 }
