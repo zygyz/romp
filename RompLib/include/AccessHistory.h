@@ -28,4 +28,5 @@ public:
 private:
   mcs_lock_t mLock; 
   std::unique_ptr<std::vector<Record>> mRecords; 
+  uint8_t mState;
 };
