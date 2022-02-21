@@ -460,7 +460,7 @@ void on_ompt_callback_dependences(
 #ifdef PERFORMANCE
   ReaderWriterLockGuard guard(&(parallelRegionData->lock), &node, &gPerformanceCounters);
 #else
-  ReaderWriterLockGuard guard(&(parallelRegionData->lock), &node);
+  ReaderWriterLockGuard guard(&(parallelRegionData->lock), &node, nullptr);
 #endif
   // while in mutual exculsion, maintain explicit task dependencies
   for (int i = 0; i < ndeps; ++i) {

@@ -51,7 +51,7 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord,
 #ifdef PERFORMANCE
       ReaderWriterLockGuard guard(&(parallelRegionData->lock), &node, &gPerformanceCounters);
 #else
-      ReaderWriterLockGuard guard(&(parallelRegionData->lock), &node);
+      ReaderWriterLockGuard guard(&(parallelRegionData->lock), &node, nullptr);
 #endif
       if (parallelRegionData->taskDepGraph.hasPath((void*)histTaskData, 
 				 (void*)curTaskData)) {
