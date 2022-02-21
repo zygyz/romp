@@ -17,14 +17,6 @@ LockGuard::~LockGuard() {
   mcs_unlock(mLock, mNode);
 }
 
-// in constructor, acquire read lock, upgrade to write lock on demand 
-ReaderWriterLockGuard::ReaderWriterLockGuard(pfq_rwlock_t* lock, pfq_rwlock_node_t* node) {
-  mLock= lock;
-  mNode = node;
-  mWriteLockAcquired = false;
-  pfq_rwlock_read_lock(mLock, nullptr); 
-}
-
 ReaderWriterLockGuard::ReaderWriterLockGuard(pfq_rwlock_t* lock, pfq_rwlock_node_t* node, PerformanceCounters* performanceCounters) {
   mLock = lock;
   mNode = node;

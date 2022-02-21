@@ -13,7 +13,6 @@ private:
 
 class ReaderWriterLockGuard {
 public:
-  ReaderWriterLockGuard(pfq_rwlock_t* lock, pfq_rwlock_node_t* node);
   ReaderWriterLockGuard(pfq_rwlock_t* lock, pfq_rwlock_node_t* node, PerformanceCounters* performanceCounters);
   ~ReaderWriterLockGuard();
   bool upgradeFromReaderToWriter();
