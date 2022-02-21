@@ -23,6 +23,9 @@ def create_output_directory(benchmark_root_path: str, branch: str) -> str:
   output_path = get_output_directory_path(benchmark_root_path, branch);
   if not os.path.exists(output_path):
     os.mkdir(output_path);
+  else:
+    os.rmdir(output_path) 
+    os.mkdir(output_path);
   print("Create output path: ", output_path);
   return output_path;
   
