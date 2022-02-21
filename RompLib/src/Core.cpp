@@ -60,7 +60,9 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord,
 	}
     }
   }
-  return !isHistBeforeCur && (histRecord.isWrite() || curRecord.isWrite());
+  auto hasDataRace = !isHistBeforeCur && (histRecord.isWrite() || curRecord.isWrite());
+  RAW_DLOG(INFO, "has data race: %d memory address: %lx", hasDataRace, checkedAddress); 
+  return hasDataRace;
 }
 
 bool analyzeMutualExclusion(const Record& histRecord, const Record& curRecord) {
