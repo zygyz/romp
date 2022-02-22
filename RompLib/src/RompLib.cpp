@@ -30,10 +30,10 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
 #endif
   pfq_rwlock_node_t me;
   ReaderWriterLockGuard guard(&(accessHistory->getLock()), &me, &gPerformanceCounters);
-rollback: // will refactor to remove the tag 
 #ifdef PERFORMANCE
   gPerformanceCounters.bumpNumAccessHistoryOverflow(accessHistory->getNumRecords());
 #endif
+rollback: // will refactor to remove the tag 
   if (accessHistory->dataRaceFound()) {
     //  data race has already been found on this memory location, romp only 
     //  reports one data race on any memory location in one run. Once the data 
