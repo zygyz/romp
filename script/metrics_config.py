@@ -1,9 +1,5 @@
 # metrics,py
 
-BASELINE_TAG='baseline';
-OPTIMIZE_TAG='optimized';
-RATIO_TAG='optimized/baseline';
-
 KEY_NUM_CHECK_ACCESS_CALL="key_num_check_access_call";
 KEY_NUM_MEMORY_ACCESS_INSTRUMENTATION_CALL="key_num_memory_access_instrumentation_call";
 KEY_NUM_ACCESS_CONTROL_CONTENTION="key_num_access_control_contention";

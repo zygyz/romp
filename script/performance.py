@@ -73,12 +73,13 @@ def process_output_file(output_file_path: str) -> dict:
   return result;
 
    
-def aggregate_result(baseline_result: dict, optimize_result: dict) -> dict:
+def aggregate_result(baseline_result: dict, optimize_result: dict, baseline_branch_name: str, optimize_branch_name: str) -> dict:
   result = {}
+  ratio_tag_name = optimize_branch_name + '/' + baseline_branch_name;
   for metric_name in metrics_config.metrics_key_name_map:
     baseline_value = baseline_result.get(metric_name);
     optimize_value = optimize_result.get(metric_name);
-    result[metric_name] = {metrics_config.BASELINE_TAG: baseline_value, metrics_config.OPTIMIZE_TAG: optimize_value,  metrics_config.RATIO_TAG: -1.0 if baseline_value == 0.0 or baseline_value is None or optimize_value is None else optimize_value / baseline_value};
+    result[metric_name] = {baseline_branch_name: baseline_value, optimize_branch_name: optimize_value, ratio_tag_name: -1.0 if baseline_value == 0.0 or baseline_value is None or optimize_value is None else optimize_value / baseline_value};
   return result;
 
 def calculate_performance(benchmark_root_path: str, baseline_branch: str, optimize_branch: str) -> None:
@@ -95,7 +96,7 @@ def calculate_performance(benchmark_root_path: str, baseline_branch: str, optimi
     baseline_output_file_path = os.path.join(baseline_output_path, baseline_output_file); 
     baseline_result = process_output_file(baseline_output_file_path);
     optimize_result = process_output_file(optimize_output_file_path); 
-    result = aggregate_result(baseline_result, optimize_result);     
+    result = aggregate_result(baseline_result, optimize_result, baseline_branch, optimize_branch);     
     summary[baseline_output_file] = result;
   with open(os.path.join(benchmark_root_path, 'summary.json'), 'w') as json_file:
     json_file.write(json.dumps(summary));
