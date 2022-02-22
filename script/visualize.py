@@ -28,17 +28,19 @@ def aggregate_data_for_metric(metric_name: str, data: dict, baseline_branch: str
   return {key:value for key, value in result.items() if value > 0};
 
 def plot_performance_result(data: dict, baseline_branch: str, compare_branch: str) -> None:
+  output_figure_suffix = baseline_branch + '_' + compare_branch;
   for metric in metrics_config.metrics_key_list_for_visualization:
     result = aggregate_data_for_metric(metric, data, baseline_branch, compare_branch);
-    draw(metric, result);
+    draw(metric, result, output_figure_suffix);
 
-def draw(metric_name: str, data: dict) -> None: 
+def draw(metric_name: str, data: dict, output_figure_suffix: str) -> None: 
   values = list(data.values());
   fig, ax = plt.subplots();
   ax.axes.xaxis.set_visible(False);
   ax.set_title(metric_name); 
   ax.plot(list(range(0, len(values))), values, "*");
-  fig.savefig(metric_name + '.png');
+  output_figure_name = metric_name + '_' + output_figure_suffix + '.png';
+  fig.savefig(output_figure_name);
   return;
 
 def main() -> int:
