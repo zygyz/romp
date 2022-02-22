@@ -37,7 +37,6 @@ def build_romp(romp_root_path: str, branch: str) -> None:
   try: 
     os.system('git checkout ' + branch);
     os.system('./install.sh perf');
-    os.system('git checkout master'); #switch back to master branch
   finally:
     os.chdir(cwd);
 
