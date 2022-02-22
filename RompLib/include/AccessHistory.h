@@ -6,6 +6,8 @@
 #include "pfq-rwlock.h"
 #include "Record.h"
 
+#define ACCESS_RECORD_NUM_LIMIT 16
+
 enum AccessHistoryFlag {
   eDataRaceFound = 0x1,
   eMemoryRecycled = 0x2,

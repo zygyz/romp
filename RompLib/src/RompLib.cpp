@@ -96,25 +96,17 @@ rollback: // will refactor to remove the tag
     it++;
   } 
   auto hasRecordsToRemove = !recordsToBeRemoved.empty();
-  if (hasRecordsToRemove || !skipAddCurrentRecord) {
-    auto hasWriteWriteContention = guard.upgradeFromReaderToWriter(); 
-    if (!hasWriteWriteContention) {
-      if (hasRecordsToRemove) {
-        accessHistory->removeRecords(recordsToBeRemoved);
-      }
-      if (!skipAddCurrentRecord) {
-        accessHistory->addRecordToAccessHistory(curRecord); 
-      }
-    } else {
-      if (!skipAddCurrentRecord) {
-        goto rollback;
-      }
-#ifdef PERFORMANCE
-      if (hasRecordsToRemove) {
-        gPerformanceCounters.bumpNumAccessHistorySkipRemoveRecords();
-      }
-#endif
+  if (hasRecordsToRemove && accessHistory->getNumRecords() > ACCESS_RECORD_NUM_LIMIT) {
+    if (!guard.upgradeFromReaderToWriter()) {
+      accessHistory->removeRecords(recordsToBeRemoved);
     }
+  }
+  if (!skipAddCurrentRecord) {
+  // if we need to add current record to access history
+  // we just add it to the access history and not rolling back. Because if there is 
+  // write write contention, adding record to history is always safe 
+    guard.upgradeFromReaderToWriter();
+    accessHistory->addRecordToAccessHistory(curRecord); 
   }
 }
 
