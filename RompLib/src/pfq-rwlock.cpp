@@ -307,7 +307,7 @@ bool pfq_rwlock_upgrade_from_read_to_write_lock(pfq_rwlock_t *l, pfq_rwlock_node
   //--------------------------------------------------------------------
   if (in != out) {
 #ifdef PERFORMANCE
-    if (performanceCounters) {
+    if (performanceCounters && std::atomic_load_explicit(&me->blocked, std::memory_order_acquire)) {
       performanceCounters->bumpNumAccessControlContention();
       performanceCounters->bumpNumAccessControlWriteReadContention();
     }
