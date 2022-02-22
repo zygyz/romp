@@ -98,7 +98,8 @@ def calculate_performance(benchmark_root_path: str, baseline_branch: str, optimi
     optimize_result = process_output_file(optimize_output_file_path); 
     result = aggregate_result(baseline_result, optimize_result, baseline_branch, optimize_branch);     
     summary[baseline_output_file] = result;
-  with open(os.path.join(benchmark_root_path, 'summary.json'), 'w') as json_file:
+  summary_file_name = baseline_branch + '_' + optimize_branch + '.json';
+  with open(os.path.join(benchmark_root_path, summary_file_name), 'w') as json_file:
     json_file.write(json.dumps(summary));
   pp = pprint.PrettyPrinter(indent=2);
   pp.pprint(summary);
