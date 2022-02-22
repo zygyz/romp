@@ -46,7 +46,7 @@ def main() -> int:
   parser.add_argument('performance_profile_path', type=str, help="path to performance profile json file");
   parser.add_argument('baseline_branch', type=str, help="baseline branch name"); 
   parser.add_argument('compare_branch', type=str, help="compare branch name");
-  parser.add_argument('output_figure_prefix', type=str, help-"output figure prefix");
+  parser.add_argument('output_figure_prefix', type=str, help="output figure prefix");
   parser.add_argument('-p', '--pprint', action="store_true", help="parse the json file and pretty print to stdout");
   parser.add_argument('-d', '--draw', action="store_true", help="parse the json file and plot the data");
   args = parser.parse_args();
