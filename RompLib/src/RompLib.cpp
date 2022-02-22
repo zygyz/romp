@@ -98,6 +98,7 @@ rollback: // will refactor to remove the tag
   auto hasRecordsToRemove = !recordsToBeRemoved.empty();
   if (hasRecordsToRemove && accessHistory->getNumRecords() > ACCESS_RECORD_NUM_LIMIT) {
     if (!guard.upgradeFromReaderToWriter()) {
+      RAW_DLOG(INFO, "remove access records, access history number: %d", accessHistory->getNumRecords());
       accessHistory->removeRecords(recordsToBeRemoved);
     }
   }
