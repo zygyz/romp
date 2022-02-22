@@ -27,20 +27,18 @@ def aggregate_data_for_metric(metric_name: str, data: dict, baseline_branch: str
         break;    
   return {key:value for key, value in result.items() if value > 0};
 
-def plot_performance_result(data: dict, baseline_branch: str, compare_branch: str) -> None:
-  output_figure_suffix = baseline_branch + '_' + compare_branch;
+def plot_performance_result(data: dict, baseline_branch: str, compare_branch: str, output_figure_prefix: str) -> None:
   for metric in metrics_config.metrics_key_list_for_visualization:
     result = aggregate_data_for_metric(metric, data, baseline_branch, compare_branch);
-    draw(metric, result, output_figure_suffix);
+    draw(metric, result, output_figure_prefix);
 
-def draw(metric_name: str, data: dict, output_figure_suffix: str) -> None: 
+def draw(metric_name: str, data: dict, output_figure_prefix: str) -> None: 
   values = list(data.values());
   fig, ax = plt.subplots();
   ax.axes.xaxis.set_visible(False);
   ax.set_title(metric_name); 
   ax.plot(list(range(0, len(values))), values, "*");
-  output_figure_name = metric_name + '_' + output_figure_suffix + '.png';
-  fig.savefig(output_figure_name);
+  fig.savefig(output_figure_prefix + '_' + metric_name + '.png');
   return;
 
 def main() -> int:
@@ -48,6 +46,7 @@ def main() -> int:
   parser.add_argument('performance_profile_path', type=str, help="path to performance profile json file");
   parser.add_argument('baseline_branch', type=str, help="baseline branch name"); 
   parser.add_argument('compare_branch', type=str, help="compare branch name");
+  parser.add_argument('output_figure_prefix', type=str, help-"output figure prefix");
   parser.add_argument('-p', '--pprint', action="store_true", help="parse the json file and pretty print to stdout");
   parser.add_argument('-d', '--draw', action="store_true", help="parse the json file and plot the data");
   args = parser.parse_args();
@@ -57,7 +56,7 @@ def main() -> int:
   if (args.pprint):
     pprint.PrettyPrinter(indent=2).pprint(data);
   if (args.draw):
-    plot_performance_result(data, args.baseline_branch, args.compare_branch);
+    plot_performance_result(data, args.baseline_branch, args.compare_branch, args.output_figure_prefix);
   return 0;
 
 if __name__ == '__main__':
