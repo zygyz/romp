@@ -83,10 +83,11 @@ uint16_t SmallLockSet::getNumLocks() const {
  * Return true if lock set `me` is the subset of lock set `other`
  */
 bool isSubset(LockSet* me, LockSet* other) {
-  if (me == nullptr) {
+  if (me == nullptr) { 
     return true;
-  } else if (other == nullptr) {
-    return false;
+  }
+  if (other == nullptr) {
+    return false; 
   }
   auto numLocksMe= me->getNumLocks();
   auto numLocksOther = other->getNumLocks();
