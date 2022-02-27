@@ -68,8 +68,7 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord,
 bool analyzeMutualExclusion(const Record& histRecord, const Record& curRecord) {
   auto histLockSet = histRecord.getLockSet(); 
   auto curLockSet = curRecord.getLockSet();  
-  return histRecord.hasHardwareLock() && curRecord.hasHardwareLock() || 
-         (histLockSet && curLockSet && histLockSet->hasCommonLock(*curLockSet));  
+  return histRecord.hasHardwareLock() && curRecord.hasHardwareLock() || hasCommonLock(histLockSet, curLockSet);  
 }
 
 
@@ -353,11 +352,11 @@ AccessHistoryManagementDecision manageAccessRecord(const Record& histRecord,
   auto histLockSet = histRecord.getLockSet();
   auto curLockSet = curRecord.getLockSet();
   if (((histIsWrite && curIsWrite) || !histIsWrite) && 
-          isHistBeforeCurrent && isSubset(curLockSet, histLockSet)) {
+          isHistBeforeCurrent && isSubSet(curLockSet, histLockSet)) {
     return eDeleteHistoryRecord;  
   } else if (diffIndex == static_cast<int>(eSameLabel) && 
             ((!histIsWrite && !curIsWrite) || histIsWrite) && 
-            isSubset(histLockSet, curLockSet)) {
+            isSubSet(histLockSet, curLockSet)) {
     return eSkipAddCurrentRecord; 
   } 
   return eNoOperation;

@@ -2,13 +2,13 @@
 
 /*
  * If current access is write, set the lowest bit to 1. Otherwise, set to 0.
- * m_state variable is 8-bit wide.
+ * mState variable is 8-bit wide.
  */
 void Record::setAccessType(bool isWrite) {
   if (isWrite) {
-    m_state |= 0x1;
+    mState |= 0x1;
   } else {
-    m_state &= 0xfe; 
+    mState &= 0xfe; 
   }
 }
 
@@ -20,42 +20,42 @@ void Record::setAccessType(bool isWrite) {
  */
 void Record::setHasHardwareLock(bool hardwareLock) {
   if (hardwareLock) {
-    m_state |= 0x2;
+    mState |= 0x2;
   } else {
-    m_state &= 0xfd;
+    mState &= 0xfd;
   }
 }
 
 bool Record::isWrite() const {
-  return (m_state & 0x1) == 0x1;
+  return (mState & 0x1) == 0x1;
 }
 
 bool Record::hasHardwareLock() const {
-  return (m_state & 0x2) == 0x2;
+  return (mState & 0x2) == 0x2;
 }
 /*
  * toString() is mainly for debugging
  */
 std::string Record::toString() const {
   std::string result = "";
-  auto labelStr = m_label? m_label->toString() : std::string("[empty label]");
+  auto labelStr = mLabel? mLabel->toString() : std::string("[empty label]");
   result += std::string("Label:") + labelStr;
   result += isWrite()? std::string("@write") : std::string("@read");
   return result;
 }
 
 Label* Record::getLabel() const {
-  return m_label? m_label.get() : nullptr;
+  return mLabel? mLabel.get() : nullptr;
 }
 
 LockSet* Record::getLockSet() const {
-  return m_lockSet? m_lockSet.get() : nullptr;
+  return mLockSet? mLockSet.get() : nullptr;
 }
 
 void* Record::getInstructionAddress() const {
-  return m_instructionAddress;
+  return mInstructionAddress;
 }
 
 void* Record::getTaskPtr() const {
-  return m_taskPtr;
+  return mTaskPtr;
 }
