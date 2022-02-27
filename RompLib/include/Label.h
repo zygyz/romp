@@ -7,6 +7,7 @@ enum LabelCompare {
   eLeftIsPrefix = -1,
   eRightIsPrefix = -2, 
   eSameLabel = -3,
+  eLabelCompareUndefined = -4,
 };
 /*
  * Label class implements the high level representation of task label.

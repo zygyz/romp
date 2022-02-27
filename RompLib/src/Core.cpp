@@ -9,8 +9,7 @@
 
 extern PerformanceCounters gPerformanceCounters;
 
-bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, 
-        bool& isHistBeforeCur, int& diffIndex, const uint64_t checkedAddress) {
+bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, const uint64_t checkedAddress) {
   auto histLabel = histRecord.getLabel(); 
   auto curLabel = curRecord.getLabel(); 
   RAW_DLOG(INFO, "analyze race condition - address: %lx hist label: %s hist is write: %d cur label: %s cur is write: %d\n", checkedAddress, histLabel->toString().c_str(), histRecord.isWrite(), curLabel->toString().c_str(), curRecord.isWrite());
@@ -25,7 +24,8 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord,
     RAW_DLOG(INFO, "current memory access is in reduction phase. memory address: %lx", checkedAddress);
     return false;
   }
-  isHistBeforeCur = happensBefore(histLabel, curLabel, diffIndex);
+  int diffIndex;
+  auto isHistBeforeCur = happensBefore(histLabel, curLabel, diffIndex);
   if (diffIndex == eRightIsPrefix) {
     RAW_DLOG(INFO, "current access is prefix: %lx", checkedAddress);
     return false;
@@ -60,7 +60,7 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord,
     }
   }
   auto hasDataRace = !isHistBeforeCur && (histRecord.isWrite() || curRecord.isWrite());
-  RAW_DLOG(INFO, "has data race: %d memory address: %lx", hasDataRace, checkedAddress); 
+  RAW_DLOG(INFO, "has data race: %d memory address: %lx hist label: %s cur label: %s", hasDataRace, checkedAddress, histLabel->toString().c_str(), curLabel->toString().c_str()); 
   return hasDataRace;
 }
 
@@ -377,4 +377,20 @@ bool modifyAccessHistory(AccessHistoryManagementDecision decision,
     it++;
   }
   return shouldRollback;
+}
+
+// return true if there is data race. 
+bool checkDataRaceForMemoryAddress(uint64_t checkedAddress, AccessHistory* accessHistory, const Record& currentRecord) {
+  auto records = accessHistory->getRecords();
+  std::vector<Record>::const_iterator cit;
+  auto it = records->begin();
+  while (it != records->end()) {
+    cit = it;
+    auto histRecord = *cit;
+    if (analyzeRaceCondition(histRecord, currentRecord, checkedAddress)) {
+      return true;
+    }
+    it++;
+  }
+  return false;
 }
