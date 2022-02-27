@@ -69,19 +69,7 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, con
 bool analyzeMutualExclusion(const Record& histRecord, const Record& curRecord, RecordManagementInfo& recordManagementInfo) {
   auto histLockSet = histRecord.getLockSet(); 
   auto curLockSet = curRecord.getLockSet();  
-  if (isSubset(histLockSet, curLockSet)) {
-    recordManagementInfo.lockRelation = eCurrentLockSetContainsHistoryLockSet;
-    return true;
-  }
-  if (isSubset(curLockSet, histLockSet)) {
-    recordManagementInfo.lockRelation = eHistoryLockSetContainsCurrentLockSet;
-    return true;
-  } 
-  if(histRecord.hasHardwareLock() && curRecord.hasHardwareLock() || (histLockSet && curLockSet && histLockSet->hasCommonLock(*curLockSet))) {
-    recordManagementInfo.lockRelation = eHasCommonLock;
-    return true;
-  }
-   
+  return histRecord.hasHardwareLock() && curRecord.hasHardwareLock() || hasCommonLock(histLockSet, curLockSet);  
 }
 
 

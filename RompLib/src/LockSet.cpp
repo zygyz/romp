@@ -4,127 +4,72 @@
 #include <glog/logging.h>
 #include <glog/raw_logging.h>
 
-SmallLockSet::SmallLockSet() {
-  for (int i = 0; i < 4; ++i) {
-    _locks[i] = 0;
-  }
-  _numLocks = 0;
-}
-
-SmallLockSet::SmallLockSet(const SmallLockSet& lockset) {
-  for (int i = 0; i < lockset._numLocks; ++i) {
-    _locks[i] = lockset._locks[i];
-  }
-  _numLocks = lockset._numLocks;
-}
-
-std::string SmallLockSet::toString() const {
+std::string LockSet::toString() const {
   std::stringstream stream;
-  for (int i = 0; i < _numLocks; ++i) {
-    stream << std::hex << _locks[i] << "|";
+  for (std::pair<uint64_t, uint64_t> element : mLock) {
+    stream << std::hex << element.first << "|";
   }
   auto result = "<" + stream.str() + ">";
   return result;
 }
 
-void SmallLockSet::addLock(uint64_t lock) {
-  if (_numLocks == 4) {
-    RAW_LOG(FATAL, "number of nesting locks exceeds limit of 4");
-  }  
-  _locks[_numLocks] = lock; 
-  _numLocks++;
+LockSet::LockSet(const LockSet& lockSet) {
+  for (std::pair<uint64_t, uint64_t> element : lockSet.mLock) {
+    mLock[element.first] = element.second;
+  }
 }
 
-/*
- * Compute the intersect of two set of locks
- * Return true if two set of locks have common lock
- * Return false otherwise
- */
-bool SmallLockSet::hasCommonLock(const LockSet& other) const {
-  auto otherLockSet = dynamic_cast<const SmallLockSet&>(other);
-  auto otherNumLocks = otherLockSet._numLocks;
-  for (int i = 0; i < _numLocks; ++i) {
-    auto lock = _locks[i];
-    for (int j = 0; j < otherNumLocks; ++j) {
-      auto otherLock = otherLockSet._locks[j]; 
-      if (otherLock == lock) {
-        return true;
-      } 
-    } 
+void LockSet::addLock(uint64_t lock) {
+  mLock[lock] = 1; 
+}
+
+void LockSet::removeLock(uint64_t lock) {
+  mLock.erase(lock); 
+}
+
+bool hasCommonLockImpl(const LockSet& l1, const LockSet& l2) {
+  for (std::pair<uint64_t, uint64_t> element : l1.mLock) {
+    auto lock = element.first;
+    if (l2.mLock.find(lock) != l2.mLock.end()) {
+      return true;
+    }
   }
   return false;
 }
 
-void* SmallLockSet::getLocks() {
-  return static_cast<void*>(_locks);
-}
-
-void SmallLockSet::removeLock(uint64_t lock) {
-  auto index = -1;
-  for (int i = 0; i < _numLocks; ++i) {
-    if (_locks[i] == lock) {
-      index = i; 
-      break;
-    }
-  }
-  if (index == -1) {
-    RAW_LOG(FATAL, "cannot find lock to delete: %lu", lock);
-  }
-  for (int i = index + 1; i < _numLocks; ++i) {
-    _locks[i - 1] = _locks[i];
-  }
-  _numLocks--;
-}
-
-uint16_t SmallLockSet::getNumLocks() const {
-  return _numLocks;
-}
-
-bool hasCommonLock(LockSet* lockSetA, LockSet* lockSetB) {
-  if (lockSetA == nullptr) {
-    return false;
-  } 
-  if (lockSetB == nullptr) {
-    return false;
-  }
-  auto numLocksInLockSetA = lockSetA->getNumLocks();
-  auto numLocksInLockSetB = lockSetB->getNumLocks();
-  for (int i = 0; i < numLocksInLockSetA; ++i) {
-    auto lock = static_cast<uint64_t*>
-    for (int j = 0; j < numLocksInLockSetB; ++j) {
-       
-    }
-  }
-}
-/*
- * Return true if lock set `me` is the subset of lock set `other`
- */
-bool isSubset(LockSet* me, LockSet* other) {
-  if (me == nullptr) { 
-    return true;
-  }
-  if (other == nullptr) {
+bool hasCommonLock(LockSet* l1, LockSet* l2) {
+  if (l1 == nullptr || l2 == nullptr) {
     return false; 
-  }
-  auto numLocksMe= me->getNumLocks();
-  auto numLocksOther = other->getNumLocks();
-  if (numLocksOther < numLocksMe) {
+  } 
+  return hasCommonLockImpl(*l1, *l2);
+}
+
+// return true if l1 is subset of l2
+bool isSubSetImpl(const LockSet& l1, const LockSet& l2) {
+  auto numLockInL1 = l1.mLock.size(); 
+  auto numLockInL2 = l2.mLock.size(); 
+  if (numLockInL1 > numLockInL2) {
     return false;
   }
-  auto meLocks = me->getLocks();
-  auto otherLocks = other->getLocks();
-  for (int i = 0; i < numLocksMe; ++i) {
-    auto lock = static_cast<uint64_t*>(meLocks)[i];
-    for (int j = 0; j < numLocksOther; ++j) {
-      auto otherLock = static_cast<uint64_t*>(otherLocks)[j];
-      if (otherLock != lock) {
-        return false; 
-      }
-    } 
+  for (std::pair<uint64_t, uint64_t> element : l1.mLock) {
+    auto lock = element.first;
+    if (l2.mLock.find(lock) == l2.mLock.end()) {
+      return false; 
+    }
   }
   return true;
 }
 
-std::shared_ptr<LockSet> SmallLockSet::clone() const {
-  return std::make_shared<SmallLockSet>(*this);
+bool isSubSet(LockSet* l1, LockSet* l2) {
+  if (l1 == nullptr) {
+    return true;
+  }
+  if (l2 == nullptr) {
+    return false;
+  } 
+  return isSubSetImpl(*l1, *l2); 
+}
+
+std::shared_ptr<LockSet> LockSet::clone() const {
+  return std::make_shared<LockSet>(*this);
 }

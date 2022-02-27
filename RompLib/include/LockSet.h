@@ -1,38 +1,22 @@
 #pragma once
 #include <memory>
 #include <string>
+#include <unordered_map>
 
 class LockSet {
 public:
-  virtual std::string toString() const = 0;
-  virtual bool hasCommonLock(const LockSet& other) const = 0;
-  virtual std::shared_ptr<LockSet> clone() const = 0;
-  virtual void addLock(uint64_t lock) = 0;
-  virtual void removeLock(uint64_t lock) = 0;
-  virtual void* getLocks() = 0;
-  virtual uint16_t getNumLocks() const = 0; 
-  virtual ~LockSet() = default;
-};
-
-/*
- * SmallLockSet class is for recording the set of locks held upon
- * a memory access. This class holds at most four nested locks
- */
-class SmallLockSet : public LockSet {
-public:
-  SmallLockSet();
-  SmallLockSet(const SmallLockSet& lockset);
-  std::string toString() const override;
-  std::shared_ptr<LockSet> clone() const override; 
-  bool hasCommonLock(const LockSet& other) const override;
-  void addLock(uint64_t lock) override;
-  void removeLock(uint64_t lock) override;
-  void* getLocks() override; 
-  uint16_t getNumLocks() const;
+  std::string toString() const;
+  std::shared_ptr<LockSet> clone() const;
+  void addLock(uint64_t lock);
+  void removeLock(uint64_t lock);
+  LockSet() = default;
+  ~LockSet() = default;
+  LockSet(const LockSet& lockset);
+  friend bool hasCommonLockImpl(const LockSet& l1, const LockSet& l2);
+  friend bool isSubSetImpl(const LockSet& l1, const LockSet& l2);
 private:
-  uint64_t _locks[4];
-  uint16_t _numLocks;
+  std::unordered_map<uint64_t, uint64_t> mLock; 
 };
 
-bool isSubset(LockSet* me, LockSet* other);
-bool hasCommonLock(LockSet* lockSetA, LockSet* lockSetB);
+bool hasCommonLock(LockSet* l1, LockSet* l2);
+bool isSubSet(LockSet* l1, LockSet* l2);

@@ -215,7 +215,7 @@ void on_ompt_callback_mutex_acquired(
     mutatedLabel = mutateOrderSection(label.get()); 
   } else {
     if (taskDataPtr->lockSet == nullptr) {
-      auto lockSet = std::make_shared<SmallLockSet>();
+      auto lockSet = std::make_shared<LockSet>();
       taskDataPtr->lockSet = std::move(lockSet);
       taskDataPtr->lockSet->addLock(static_cast<uint64_t>(waitId));
     } else {
