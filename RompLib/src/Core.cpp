@@ -4,17 +4,19 @@
 #include <glog/raw_logging.h>
 
 #include "ParallelRegionData.h"
+#include "RecordManagement.h"
 #include "TaskInfoQuery.h"
 #include "ThreadData.h"
 
 extern PerformanceCounters gPerformanceCounters;
 
-bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, const uint64_t checkedAddress) {
+bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, const uint64_t checkedAddress, RecordManagementInfo& recordManagementInfo) {
   auto histLabel = histRecord.getLabel(); 
   auto curLabel = curRecord.getLabel(); 
   RAW_DLOG(INFO, "analyze race condition - address: %lx hist label: %s hist is write: %d cur label: %s cur is write: %d\n", checkedAddress, histLabel->toString().c_str(), histRecord.isWrite(), curLabel->toString().c_str(), curRecord.isWrite());
   if (analyzeMutualExclusion(histRecord, curRecord)) {
     RAW_DLOG(INFO, "mutual exclusion by lock, memory address: %lx", checkedAddress);
+    recordManagementInfo.lockRelation = eHasCommonLock;
     return false;
   }  
   auto curTaskData = static_cast<TaskData*>(curRecord.getTaskPtr());
@@ -64,11 +66,22 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, con
   return hasDataRace;
 }
 
-bool analyzeMutualExclusion(const Record& histRecord, const Record& curRecord) {
+bool analyzeMutualExclusion(const Record& histRecord, const Record& curRecord, RecordManagementInfo& recordManagementInfo) {
   auto histLockSet = histRecord.getLockSet(); 
   auto curLockSet = curRecord.getLockSet();  
-  return histRecord.hasHardwareLock() && curRecord.hasHardwareLock() || 
-         (histLockSet && curLockSet && histLockSet->hasCommonLock(*curLockSet));  
+  if (isSubset(histLockSet, curLockSet)) {
+    recordManagementInfo.lockRelation = eCurrentLockSetContainsHistoryLockSet;
+    return true;
+  }
+  if (isSubset(curLockSet, histLockSet)) {
+    recordManagementInfo.lockRelation = eHistoryLockSetContainsCurrentLockSet;
+    return true;
+  } 
+  if(histRecord.hasHardwareLock() && curRecord.hasHardwareLock() || (histLockSet && curLockSet && histLockSet->hasCommonLock(*curLockSet))) {
+    recordManagementInfo.lockRelation = eHasCommonLock;
+    return true;
+  }
+   
 }
 
 
@@ -343,24 +356,27 @@ uint64_t computeEnterRank(uint64_t phase) {
   return phase + (phase % 2);
 }
 
-AccessHistoryManagementDecision manageAccessRecord(uint8_t currentState, 
-                                                   const Record& histRecord, 
-                                                   const Record& curRecord,
-                                                   bool isHistBeforeCurrent,
-                                                   int diffIndex) {
-  auto histIsWrite = histRecord.isWrite();  
-  auto curIsWrite = curRecord.isWrite();
-  auto histLockSet = histRecord.getLockSet();
-  auto curLockSet = curRecord.getLockSet();
-  if (((histIsWrite && curIsWrite) || !histIsWrite) && 
-          isHistBeforeCurrent && isSubset(curLockSet, histLockSet)) {
-    return eDeleteHistoryRecord;  
-  } else if (diffIndex == static_cast<int>(eSameLabel) && 
-            ((!histIsWrite && !curIsWrite) || histIsWrite) && 
-            isSubset(histLockSet, curLockSet)) {
-    return eSkipAddCurrentRecord; 
-  } 
-  return eNoOperation;
+// iterate over access records in accessHistory, make access history managemnet decision 
+void manageAccessRecords(AccessHistory* accessHistory, const Record& currentRecord, ReaderWriterLockGuard& lockGuard) {
+  std::vector<int> recordsForRemoval;       
+  auto records = accessHistory->getRecords();
+  std::vector<Record>::const_iterator cit;
+  auto it = records->begin();
+  while (it != records->end()) {
+   
+//  auto histIsWrite = histRecord.isWrite();  
+//  auto curIsWrite = curRecord.isWrite();
+//  auto histLockSet = histRecord.getLockSet();
+//  auto curLockSet = curRecord.getLockSet();
+//  if (((histIsWrite && curIsWrite) || !histIsWrite) && 
+//          isHistBeforeCurrent && isSubset(curLockSet, histLockSet)) {
+//    return eDeleteHistoryRecord;  
+//  } else if (diffIndex == static_cast<int>(eSameLabel) && 
+//            ((!histIsWrite && !curIsWrite) || histIsWrite) && 
+//            isSubset(histLockSet, curLockSet)) {
+//    return eSkipAddCurrentRecord; 
+//  } 
+//  return eNoOperation;
 } 
 
 bool modifyAccessHistory(AccessHistoryManagementDecision decision, 
@@ -380,16 +396,19 @@ bool modifyAccessHistory(AccessHistoryManagementDecision decision,
 }
 
 // return true if there is data race. 
-bool checkDataRaceForMemoryAddress(uint64_t checkedAddress, AccessHistory* accessHistory, const Record& currentRecord) {
+bool checkDataRaceForMemoryAddress(uint64_t checkedAddress, AccessHistory* accessHistory, const Record& currentRecord, std::vector<RecordManagementInfo>& recordManagementInfo) {
   auto records = accessHistory->getRecords();
   std::vector<Record>::const_iterator cit;
   auto it = records->begin();
   while (it != records->end()) {
     cit = it;
     auto histRecord = *cit;
-    if (analyzeRaceCondition(histRecord, currentRecord, checkedAddress)) {
+    RecordManagementInfo recordManagementInfo;      
+    if (analyzeRaceCondition(histRecord, currentRecord, checkedAddress, recordManagementInfo)) {
+      accessHistory->setFlag(eDataRaceFound); 
       return true;
     }
+    records.push_back(recordManagementInfo);
     it++;
   }
   return false;

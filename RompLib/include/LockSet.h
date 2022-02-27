@@ -35,3 +35,4 @@ private:
 };
 
 bool isSubset(LockSet* me, LockSet* other);
+bool hasCommonLock(LockSet* lockSetA, LockSet* lockSetB);

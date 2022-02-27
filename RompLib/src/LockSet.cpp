@@ -79,6 +79,23 @@ void SmallLockSet::removeLock(uint64_t lock) {
 uint16_t SmallLockSet::getNumLocks() const {
   return _numLocks;
 }
+
+bool hasCommonLock(LockSet* lockSetA, LockSet* lockSetB) {
+  if (lockSetA == nullptr) {
+    return false;
+  } 
+  if (lockSetB == nullptr) {
+    return false;
+  }
+  auto numLocksInLockSetA = lockSetA->getNumLocks();
+  auto numLocksInLockSetB = lockSetB->getNumLocks();
+  for (int i = 0; i < numLocksInLockSetA; ++i) {
+    auto lock = static_cast<uint64_t*>
+    for (int j = 0; j < numLocksInLockSetB; ++j) {
+       
+    }
+  }
+}
 /*
  * Return true if lock set `me` is the subset of lock set `other`
  */

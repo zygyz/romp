@@ -70,13 +70,12 @@ rollback: // will refactor to remove the tag
       goto rollback; 
     }
   }
-  // check previous access records with current access
+  // check previous access records with current access, if there exists data race 
   if (checkDataRaceForMemoryAddress(checkedAddress, accessHistory, curRecord)) {
     gDataRaceFound = true;
-    accessHistory->setFlag(eDataRaceFound);
     return;
   }
-  //manageAccessRecords(accessHistory, curRecord, guard);
+  manageAccessRecords(accessHistory, curRecord, guard);
 
  // while (it != records->end()) {
  //   cit = it; 
