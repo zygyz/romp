@@ -475,7 +475,7 @@ bool modifyAccessHistory(AccessHistoryManagementDecision decision,
 */
 
 // return true if there is data race. 
-bool checkDataRaceForMemoryAddress(uint64_t checkedAddress, AccessHistory* accessHistory, const Record& currentRecord, std::vector<RecordManagementInfo>& recordManagementInfo) {
+bool checkDataRaceForMemoryAddress(uint64_t checkedAddress, AccessHistory* accessHistory, const Record& currentRecord, std::vector<RecordManagementInfo>& info) {
   auto records = accessHistory->getRecords();
   std::vector<Record>::const_iterator cit;
   auto it = records->begin();
@@ -487,7 +487,7 @@ bool checkDataRaceForMemoryAddress(uint64_t checkedAddress, AccessHistory* acces
       accessHistory->setFlag(eDataRaceFound); 
       return true;
     }
-    //records->push_back(recordManagementInfo);
+    info.push_back(recordManagementInfo); 
     it++;
   }
   return false;
