@@ -13,26 +13,26 @@ extern PerformanceCounters gPerformanceCounters;
 bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, const uint64_t checkedAddress, RecordManagementInfo& recordManagementInfo) {
   auto histLabel = histRecord.getLabel(); 
   auto curLabel = curRecord.getLabel(); 
+  recordManagementInfo.nodeRelation = eUndefinedNodeRelation;
+  recordManagementInfo.lockRelation = eUndefinedLockRelation;
   RAW_DLOG(INFO, "analyze race condition - address: %lx hist label: %s hist is write: %d cur label: %s cur is write: %d\n", checkedAddress, histLabel->toString().c_str(), histRecord.isWrite(), curLabel->toString().c_str(), curRecord.isWrite());
-  if (analyzeMutualExclusion(histRecord, curRecord)) {
-    RAW_DLOG(INFO, "mutual exclusion by lock, memory address: %lx", checkedAddress);
-    recordManagementInfo.lockRelation = eHasCommonLock;
-    return false;
-  }  
+  // we want to set both lock set info and node relation info so we don't early return.
+  auto hasCommonLock = analyzeMutualExclusion(histRecord, curRecord, recordManagementInfo);
+
   auto curTaskData = static_cast<TaskData*>(curRecord.getTaskPtr());
-  if (curTaskData->inReduction) { 
-    // current memory access is in reduction phase, we trust runtime library
-    // that in this phase no data race is genereted by reduction method.
-    RAW_DLOG(INFO, "current memory access is in reduction phase. memory address: %lx", checkedAddress);
-    return false;
-  }
+  auto isInReduction = curTaskData->inReduction;  
+  auto isMutexTask = false;  
+
   int diffIndex;
-  auto isHistBeforeCur = happensBefore(histLabel, curLabel, diffIndex);
+  auto isHistoryAccessBeforeCurrentAccess = happensBefore(histLabel, curLabel, diffIndex, recordManagementInfo);    
   if (diffIndex == eRightIsPrefix) {
-    RAW_DLOG(INFO, "current access is prefix: %lx", checkedAddress);
-    return false;
+    RAW_DLOG(FATAL, "current access is prefix: %lx", checkedAddress);
   }
-  if (!isHistBeforeCur) {
+  if (isInReduction) {
+    RAW_DLOG(INFO, "current memory access is in reduction phase. memory address: %lx", checkedAddress);
+    recordManagementInfo.lockRelation = eInReduction;
+  }
+  if (!isHistoryAccessBeforeCurrentAccess) {
     // further check explicit task dependence if current task and history task 
     // are both explicit tasks. If no task dependence, return true
     auto histTaskData = static_cast<TaskData*>(histRecord.getTaskPtr()); 
@@ -40,7 +40,7 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, con
       // first check if the two tasks are mutex tasks
       if (curTaskData->isMutexTask && histTaskData->isMutexTask) { 
         RAW_DLOG(INFO, "current access and history access are mutex task memory address: %lx", checkedAddress);
-        return false; // mutex task does not form race condition
+        isMutexTask = true;
       }
       // have to get the associated parallel region
       ParallelRegionInfo parallelRegionInfo;
@@ -49,37 +49,52 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, con
       } 
       auto parallelRegionData= static_cast<ParallelRegionData*>(parallelRegionInfo.parallelData->ptr); 
       // have to lock the task dep graph before graph traversal
-      mcs_node_t node;
+      pfq_rwlock_node_t node;
 #ifdef PERFORMANCE
       ReaderWriterLockGuard guard(&(parallelRegionData->lock), &node, &gPerformanceCounters);
 #else
       ReaderWriterLockGuard guard(&(parallelRegionData->lock), &node, nullptr);
 #endif
-      if (parallelRegionData->taskDepGraph.hasPath((void*)histTaskData, 
-				 (void*)curTaskData)) {
-         isHistBeforeCur = true;
-	}
+      if (parallelRegionData->taskDepGraph.hasPath((void*)histTaskData, (void*)curTaskData)) {
+        isHistoryAccessBeforeCurrentAccess= true;
+        recordManagementInfo.nodeRelation = eHappensBefore;
+      }
     }
   }
-  auto hasDataRace = !isHistBeforeCur && (histRecord.isWrite() || curRecord.isWrite());
+  auto hasDataRace = !isInReduction && !hasCommonLock && !isHistoryAccessBeforeCurrentAccess && (histRecord.isWrite() || curRecord.isWrite());
   RAW_DLOG(INFO, "has data race: %d memory address: %lx hist label: %s cur label: %s", hasDataRace, checkedAddress, histLabel->toString().c_str(), curLabel->toString().c_str()); 
   return hasDataRace;
 }
 
+// return true if has mutual exclusion
 bool analyzeMutualExclusion(const Record& histRecord, const Record& curRecord, RecordManagementInfo& recordManagementInfo) {
   auto histLockSet = histRecord.getLockSet(); 
   auto curLockSet = curRecord.getLockSet();  
-  return histRecord.hasHardwareLock() && curRecord.hasHardwareLock() || hasCommonLock(histLockSet, curLockSet);  
+  if (isSubSet(histLockSet, curLockSet)) {
+    recordManagementInfo.lockRelation = eCurrentLockSetContainsHistoryLockSet;
+    return true;
+  } 
+  if (isSubSet(curLockSet, histLockSet)) {
+    recordManagementInfo.lockRelation = eHistoryLockSetContainsCurrentLockSet;
+    return true;
+  }
+  if (hasCommonLock(curLockSet, histLockSet)) {
+    recordManagementInfo.lockRelation = eHasCommonLock;
+    return true;
+  }
+  recordManagementInfo.lockRelation = eNoCommonLock;
+  return false;
 }
 
-
-bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex) {
+bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex, RecordManagementInfo& recordManagementInfo) {
   diffIndex = compareLabels(histLabel, curLabel);
   if (diffIndex < 0) {
     switch(diffIndex) {
       case static_cast<int>(eSameLabel):
+        recordManagementInfo.nodeRelation = eSameNode; 
         return true;
       case static_cast<int>(eLeftIsPrefix):
+        recordManagementInfo.nodeRelation = eHappensBefore;
         return true;
       case static_cast<int>(eRightIsPrefix):
 	// current record -> hist record
@@ -105,11 +120,13 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex) {
             != cur seg type");
     switch(histType) {
       case eImplicit:
+        recordManagementInfo.nodeRelation = eHappensBefore;
         return true;
       case eLogical:
-        return analyzeOrderedSection(histLabel, curLabel,  diffIndex);
+        return analyzeOrderedSection(histLabel, curLabel,  diffIndex, recordManagementInfo);
       case eExplicit:
-        return analyzeSameTask(histLabel, curLabel, diffIndex);
+        // same explciit task for T(histLabel[diffIndex]) and T(curLabel[diffIndex])
+        return analyzeSameTask(histLabel, curLabel, diffIndex, recordManagementInfo);
       default:
         RAW_LOG(FATAL, "unexpected segment type: %d", histType);
         return false;
@@ -120,19 +137,26 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex) {
     if (histOffset % span == curOffset % span) {
       RAW_CHECK(histOffset < curOffset, "not expecting history access joined \
                before current access");
+      recordManagementInfo.nodeRelation = eHappensBefore;
       return true; 
     } 
-    return analyzeSiblingImplicitTask(histLabel, curLabel, diffIndex);
+    return analyzeSiblingImplicitTask(histLabel, curLabel, diffIndex, recordManagementInfo);
   } 
-  return analyzeSameTask(histLabel, curLabel, diffIndex); 
+  return analyzeSameTask(histLabel, curLabel, diffIndex, recordManagementInfo); 
 }
 
-bool analyzeSiblingImplicitTask(Label* histLabel, Label* curLabel, int diffIndex) { 
+bool analyzeSiblingImplicitTask(Label* histLabel, Label* curLabel, int diffIndex, RecordManagementInfo& recordManagementInfo) { 
   auto lenHistLabel = histLabel->getLabelLength();
   auto lenCurLabel = curLabel->getLabelLength();
+  auto isSibling = lenHistLabel == lenCurLabel && diffIndex == lenCurLabel - 1;
   if (diffIndex == (lenHistLabel - 1) || diffIndex == (lenCurLabel - 1)) {
     // if any one if T(histLabel) and T(curLabel) is leaf implicit task, 
     // we are sure there is no happens-beofre relationship
+    if (isSibling) {
+      recordManagementInfo.nodeRelation = eSiblingParallel;
+    } else {
+      recordManagementInfo.nodeRelation = eNonSiblingParallel;  
+    }
     return false;
   }
   // now diffIndex + 1 must not be out of boundary
@@ -146,6 +170,7 @@ bool analyzeSiblingImplicitTask(Label* histLabel, Label* curLabel, int diffIndex
     auto curNextWorkShareType = static_cast<WorkShareSegment*>(curNextSeg)->getWorkShareType();
     if (histNextWorkShareType == eSection || curNextWorkShareType == eSection) {   
       // section construct does not have ordered section 
+      recordManagementInfo.nodeRelation = eNonSiblingParallel;
       return false;
     } 
     auto histSeg = histLabel->getKthSegment(diffIndex);
@@ -153,20 +178,32 @@ bool analyzeSiblingImplicitTask(Label* histLabel, Label* curLabel, int diffIndex
     auto histSegLoopCount = histSeg->getLoopCount();
     auto curSegLoopCount = curSeg->getLoopCount();
     if (histSegLoopCount == curSegLoopCount) {
-      return analyzeOrderedSection(histLabel, curLabel, diffIndex + 1);
+      return analyzeOrderedSection(histLabel, curLabel, diffIndex + 1, recordManagementInfo);
     } 
+    recordManagementInfo.nodeRelation = eNonSiblingParallel;
     return false;
   }
+  recordManagementInfo.nodeRelation = eNonSiblingParallel;
   return false;
 }
 
-bool analyzeOrderedSection(Label* histLabel, Label* curLabel, int startIndex) {
+// T(histLabel[startIndex]) and T(curLabel[startIndex]) are logical tasks
+bool analyzeOrderedSection(Label* histLabel, Label* curLabel, int startIndex, RecordManagementInfo& recordManagementInfo) {
   auto histBaseSeg  = histLabel->getKthSegment(startIndex);
   auto curBaseSeg = curLabel->getKthSegment(startIndex);
   auto histSegment = static_cast<WorkShareSegment*>(histBaseSeg);
   auto curSegment = static_cast<WorkShareSegment*>(curBaseSeg);
+  auto histLabelLength = histLabel->getLabelLength();
+  auto curLabelLength = curLabel->getLabelLength();
+  auto isSibling =  histLabelLength == curLabelLength && startIndex == histLabelLength - 1; 
+  
   if (histSegment->isWorkSharePlaceHolder() || curSegment->isWorkSharePlaceHolder()) {
     // have not entered the workshare construct yet.
+    if (isSibling) {
+      recordManagementInfo.nodeRelation = eSiblingParallel;  // two sibling implicit tasks
+    } else {
+      recordManagementInfo.nodeRelation = eNonSiblingParallel; 
+    }
     return false;
   } 
   auto histPhase = histBaseSeg->getPhase();
@@ -177,96 +214,104 @@ bool analyzeOrderedSection(Label* histLabel, Label* curLabel, int startIndex) {
     auto histLen = histLabel->getLabelLength();
     auto curLen = curLabel->getLabelLength();
     if (startIndex == histLen - 1) {
+      recordManagementInfo.nodeRelation = eHappensBefore;
       return true;
     } 
-    return analyzeOrderedDescendants(histLabel, startIndex, histPhase);
+    return analyzeOrderedDescendants(histLabel, startIndex, histPhase, recordManagementInfo);
+  }
+  if (isSibling) {
+    recordManagementInfo.nodeRelation = eSiblingParallel;
+  } else {
+    recordManagementInfo.nodeRelation = eNonSiblingParallel;
   }
   return false;
 }
 
-bool analyzeOrderedDescendants(Label* histLabel, int startIndex, 
-        uint64_t histPhase) {
-  auto nextSeg = histLabel->getKthSegment(startIndex + 1);
-  auto nextSegType = nextSeg->getType();
-  if (nextSegType == eImplicit) {
+bool analyzeOrderedDescendants(Label* histLabel, int startIndex, uint64_t histPhase, RecordManagementInfo& recordManagementInfo) {
+  auto nextSegment = histLabel->getKthSegment(startIndex + 1);
+  auto nextSegmentType = nextSegment->getType();
+  if (nextSegmentType == eLogical) {
+    RAW_LOG(FATAL, "does not expect next segment of workshare seg to be workshare segment"); 
+    return false;
+  }
+  if (nextSegmentType == eImplicit) {
     // we know that implicit task syncs with its parent task
+    recordManagementInfo.nodeRelation = eHappensBefore;
     return true;
   } 
-  if (nextSegType == eLogical) {
-    RAW_LOG(FATAL, "does not expect next segment of workshare seg to be \
-           workshare segment"); 
-    return false;
-  }
-  if (nextSegType == eExplicit) {
-    auto curSeg = histLabel->getKthSegment(startIndex);
-    auto taskGroupLevel = curSeg->getTaskGroupLevel();
+  if (nextSegmentType == eExplicit) {
+    auto curSegment = histLabel->getKthSegment(startIndex);
+    auto taskGroupLevel = curSegment->getTaskGroupLevel();
     if (taskGroupLevel > 0) {
-      auto phase = curSeg->getPhase();  
-      if (phase % 2 == 0 && nextSeg->isTaskGroupSync() && 
-              nextSeg->getTaskGroupPhase() <= histPhase) {
-        return true;
-      } 
-      if (phase % 2 == 1) {
+      auto phase = curSegment->getPhase();  
+      if (phase % 2 == 1 || (phase % 2 == 0 && nextSegment->isTaskGroupSync() && nextSegment->getTaskGroupPhase() <= histPhase)) {
+        recordManagementInfo.nodeRelation = eHappensBefore; 
         return true;
       } 
     }
-    if (nextSeg->isTaskwaited() && nextSeg->getTaskwaitPhase() <= histPhase) {
-      return analyzeSyncChain(histLabel, startIndex + 1);
+    if (nextSegment->isTaskwaited() && nextSegment->getTaskwaitPhase() <= histPhase) {
+      return analyzeExplicitTaskSynchronizationWithTaskWait(histLabel, startIndex + 1, recordManagementInfo);
     }
-    return false;
   }
+  recordManagementInfo.nodeRelation = eNonSiblingParallel;
   return false;
 }
 
-bool analyzeSyncChain(Label* label, int startIndex) {
+bool analyzeExplicitTaskSynchronizationWithTaskWait(Label* label, int startIndex, RecordManagementInfo& recordManagementInfo) {
   auto lenLabel = label->getLabelLength(); 
   if (startIndex == lenLabel - 1) {
     // already the leaf task
+    recordManagementInfo.nodeRelation = eHappensBefore;    
     return true;
   }
   for (auto i = startIndex; i < lenLabel; ++i) {
-    auto seg = label->getKthSegment(i);
-    auto segType = seg->getType();
-    if (segType == eImplicit) {
+    auto segment = label->getKthSegment(i);
+    auto segmentType = segment->getType();
+    if (segmentType == eImplicit) {
+      recordManagementInfo.nodeRelation = eHappensBefore;    
       return true;
-    } else if (segType == eExplicit) {
-      auto taskGroupLevel = seg->getTaskGroupLevel();    
+    } else if (segmentType == eExplicit) {
+      auto taskGroupLevel = segment->getTaskGroupLevel();    
       if (taskGroupLevel > 0) {
         // taskgroup guarantees completion of descendants
+        recordManagementInfo.nodeRelation = eHappensBefore;    
         return true;
       } else {
-        if (!seg->isTaskwaited()) { 
+        if (!segment->isTaskwaited()) { 
           // if current explicit task T(label, i) is not waited 
           // by parent task, no sync.
+          recordManagementInfo.nodeRelation = eNonSiblingParallel;
           return false;
         }
       }
     }
   }
+  recordManagementInfo.nodeRelation = eHappensBefore;
   return true;
 }
 
-bool analyzeSameTask(Label* histLabel, Label* curLabel, int diffIndex) {
+// T(histLabel[diffIndex]) and T(curLabel[diffIndex]) are the same implicit or explicit task. If they are the same implicit task, they
+// have the same offset value. 
+bool analyzeSameTask(Label* histLabel, Label* curLabel, int diffIndex, RecordManagementInfo& recordManagementInfo) {
   auto lenHistLabel = histLabel->getLabelLength(); 
   auto lenCurLabel = curLabel->getLabelLength();
+  // T(histLabel[diffIndex]) is leaf task
   if (diffIndex == (lenHistLabel - 1)) {
+    recordManagementInfo.nodeRelation = eHappensBefore;
     return true;
   }      
-  // T(histLabel, diffIndex) is not leaf task
+  // T(curLabel[diffIndex]) is leaf task 
   if (diffIndex == (lenCurLabel - 1)) {
     auto histNextSeg = histLabel->getKthSegment(diffIndex + 1);
     auto histNextType = histNextSeg->getType();
-    RAW_CHECK(histNextType != eImplicit, 
-            "not expecting next level task to be implicit task");
+    RAW_CHECK(histNextType != eImplicit, "not expecting next level task to be implicit task");
     if (histNextType == eExplicit) {
-      // check if T(histLabel) happens before T(curLabel) because of explicit 
-      // task synchronization
+      // check if T(histLabel) happens before T(curLabel) because of explicit task synchronization
       auto histSeg = histLabel->getKthSegment(diffIndex);
       auto histTaskwait = histSeg->getTaskwait();
       auto curSeg = curLabel->getKthSegment(diffIndex);
       auto curTaskwait = curSeg->getTaskwait();
-      RAW_CHECK(curTaskwait >= histTaskwait, "not expecting hist taskwait\
-              to be larger than cur taskwait");
+      RAW_CHECK(curTaskwait >= histTaskwait, "not expecting hist taskwait to be larger than cur taskwait");
       if (curTaskwait == histTaskwait) {
         // futher check task group sync 
         auto histTaskGroupLevel = histSeg->getTaskGroupLevel();      
@@ -274,49 +319,95 @@ bool analyzeSameTask(Label* histLabel, Label* curLabel, int diffIndex) {
           // T(histLabel) happens before T(curLabel) only when the taskgroup 
           // construct wrapping T(histLabel,diffIndex + 1) finishes before 
           // T(curLabel, diffIndex)
+          recordManagementInfo.nodeRelation = eHappensBefore;
           return true;
         }
+        recordManagementInfo.nodeRelation = eNonSiblingParallel; 
         return false;
       } 
-      return analyzeSyncChain(histLabel, diffIndex + 1); 
+      return analyzeExplicitTaskSynchronizationWithTaskWait(histLabel, diffIndex + 1, recordManagementInfo); 
     } 
     if (histNextType == eLogical) {
       if (static_cast<WorkShareSegment*>(histNextSeg)->isWorkSharePlaceHolder()) {
+        recordManagementInfo.nodeRelation = eHappensBefore; 
         return true;
       }
+      recordManagementInfo.nodeRelation = eNonSiblingParallel;
       return false; 
     }
   } 
-  // both T(histLabel, diffIndex) and T(curLabel, diffIndex) are not leaf task 
-  auto histNextSeg = histLabel->getKthSegment(diffIndex + 1);
-  auto curNextSeg = curLabel->getKthSegment(diffIndex + 1);
-  auto histNextType = histNextSeg->getType();
-  auto curNextType = curNextSeg->getType();
-  RAW_CHECK(!(histNextType == eImplicit && curNextType == eImplicit),
-            "not expecting next level tasks are sibling implicit tasks");
-    // invoke different checking depending on next segment's type 
-  if (histNextType == eExplicit && curNextType == eExplicit || histNextType == eExplicit && curNextType == eLogical) {
-    return analyzeExplicitTask(histLabel, curLabel, diffIndex);
+  // both T(histLabel, diffIndex) and T(curLabel, diffIndex) have descendant tasks
+  // Precondition: If T(histLabel, diffIndex) and T(curLabel, diffIndex) are the same implicit task, with offset value being the same. they could be at different phase, but 
+  // there should not be any barrier between the two phases, otherwise, their parent segment should have already been different.
+  auto histSegment = histLabel->getKthSegment(diffIndex); 
+  auto curSegment = curLabel->getKthSegment(diffIndex); 
+  auto histNextSegment = histLabel->getKthSegment(diffIndex + 1);
+  auto curNextSegment = curLabel->getKthSegment(diffIndex + 1);
+  auto histSegmentType = histSegment->getType();
+  auto curSegmentType = curSegment->getType(); 
+  auto histNextSegmentType = histNextSegment->getType();
+  auto curNextSegmentType = curNextSegment->getType();
+  RAW_CHECK(histSegmentType == curSegmentType, "not expecting segment type to be different");
+  RAW_CHECK(histSegmentType != eLogical && curSegmentType != eLogical, "not expecting segment type to be logical task");
+  // T(histLabel, diffIndex) and T(curLabel, diffIndex) are the same implicit task or the same explicit task.
+  // In terms of possible combinations of T_c = T(curLabel, diffIndex+1) and T_h = T(histLabel, diffIndex + 1), 
+  //x 1) T_h is implicit task, T_c is implicit task. This is not possible. If T_h and T_c are sibling implicit tasks, histLabel[diffIndex] and curLabel[diffIndex] would have been the same. If T_h and T_c belong to two consecutive parallel regions, 
+  //  the offset field in histLabel[diffIndex] and curLabel[diffIndex] would be different, this violates the precondition  
+  //x 2) T_h is implicit task, T_c is explicit task. This is not possible. Because T_c can only be created after the parallel region that encloses T_h finishes. This would make curLabel[diffIndex-1] and histLabel[diffIndex-1] different already.
+  //x 3) T_h is implicit task, T_c is logical task. This is not possible. Because T_c can only be created after the parallel region that encloses T_h finishes. This would make curLabel[diffIndex-1] and histLabel[diffIndex-1] different already.
+  //  4) T_h is explicit task, T_c is implicit task. This is possible.
+  //  5) T_h is explicit task, T_c is logical task. This is possible
+  //  6) T_h is explicit task, T_c is explicit task. This is possible
+  //  7) T_h is logical task, T_c is implicit task. This is only possible when the worksharing construct specifies nowait clause, and T(curLabel,diffIndex) = T(histLabel, diffIndex) being implicit task
+  //  8) T_h is logical task, T_c is logical task. This is only possible when the worksharing construct specifies nowait clause. and T(curLabel,diffIndex) = T(histLabel, diffIndex) being implicit task
+  //  9) T_h is logical task, T_c is explicit task. This is only possible when the worksharing construct specifies nowait clause. and T(curLabel,diffIndex) = T(histLabel, diffIndex) being implicit task
+  if (histNextSegmentType == eExplicit) {
+    if (analyzeTaskGroupSync(histLabel, curLabel, diffIndex)) {
+      recordManagementInfo.nodeRelation = eHappensBefore;
+      return true;
+    }
+    auto histTaskwait = histSegment->getTaskwait();
+    auto curTaskwait = curSegment->getTaskwait();
+    if (histTaskwait == curTaskwait) {
+      // no taskwait clause   
+      recordManagementInfo.nodeRelation = eNonSiblingParallel;
+      return false;
+    } else if (histTaskwait < curTaskwait) {
+      // there is taskwait between creation of T(histLabel, diffIndex + 1) and T(curLabel, diffIndex + 1)  
+      return analyzeExplicitTaskSynchronizationWithTaskWait(histLabel, diffIndex + 1, recordManagementInfo); 
+    } else {
+      RAW_LOG(FATAL, "not expecting hist taskwait to be larger than cur taskwait");
+      return false;
+    }
   }
+  if (histNextSegmentType == eLogical) {
+    // this corresponds to case 7, 8, 9. There is no wait clause implied. 
+    recordManagementInfo.nodeRelation = eNonSiblingParallel;
+    return false;
+  } 
+  RAW_CHECK(histNextSegmentType != eImplicit, "not expecting hist next segment type to be implicit.");
   return false;
 }
 
-
-bool analyzeExplicitTask(Label* histLabel, Label* curLabel, int diffIndex) {
+// analyze happens before relationship when T(histLabel, diffIndex + 1) is explicit task
+bool analyzeHistNextExplicitTask(Label* histLabel, Label* curLabel, int diffIndex, RecordManagementInfo& recordManagementInfo) {
   // First check if ordered by task group construct   
   if (analyzeTaskGroupSync(histLabel, curLabel, diffIndex)) {
+    recordManagementInfo.nodeRelation = eHappensBefore;
     return true;
   }
-  auto histSeg = histLabel->getKthSegment(diffIndex);      
-  auto curSeg = curLabel->getKthSegment(diffIndex);
-  auto histTaskwait = histSeg->getTaskwait();
-  auto curTaskwait = curSeg->getTaskwait();
+  auto histSegment = histLabel->getKthSegment(diffIndex);      
+  auto curSegment = curLabel->getKthSegment(diffIndex);
+  auto histTaskwait = histSegment->getTaskwait();
+  auto curTaskwait = curSegment->getTaskwait();
   if (histTaskwait == curTaskwait) {
+    // no taskwait clause   
+     
     return false;
   } else if (histTaskwait < curTaskwait) {
     // there is taskwait between creation of T(histLabel, diffIndex + 1) and 
     // T(curLabel, diffIndex + 1)  
-    return analyzeSyncChain(histLabel, diffIndex + 1); 
+    return analyzeExplicitTaskSynchronizationWithTaskWait(histLabel, diffIndex + 1, recordManagementInfo); 
   } else {
     RAW_LOG(FATAL, "not expecting hist taskwait to be larger than \
             cur taskwait");
@@ -332,8 +423,7 @@ bool analyzeTaskGroupSync(Label* histLabel, Label* curLabel, int diffIndex) {
   auto histTaskGroupLevel = histSeg->getTaskGroupLevel();
   auto curTaskGroupId = curSeg->getTaskGroupId();
   auto curTaskGroupLevel = curSeg->getTaskGroupLevel();
-  return (histTaskGroupId < curTaskGroupId) && (histTaskGroupLevel >= 
-          curTaskGroupLevel);
+  return (histTaskGroupId < curTaskGroupId) && (histTaskGroupLevel >= curTaskGroupLevel);
 }
 
 uint64_t computeExitRank(uint64_t phase) {
@@ -346,12 +436,11 @@ uint64_t computeEnterRank(uint64_t phase) {
 
 // iterate over access records in accessHistory, make access history managemnet decision 
 void manageAccessRecords(AccessHistory* accessHistory, const Record& currentRecord, ReaderWriterLockGuard& lockGuard) {
-  std::vector<int> recordsForRemoval;       
-  auto records = accessHistory->getRecords();
-  std::vector<Record>::const_iterator cit;
-  auto it = records->begin();
-  while (it != records->end()) {
-   
+//  std::vector<int> recordsForRemoval;       
+//  auto records = accessHistory->getRecords();
+//  std::vector<Record>::const_iterator cit;
+//  auto it = records->begin();
+//  while (it != records->end()) {
 //  auto histIsWrite = histRecord.isWrite();  
 //  auto curIsWrite = curRecord.isWrite();
 //  auto histLockSet = histRecord.getLockSet();
@@ -367,6 +456,7 @@ void manageAccessRecords(AccessHistory* accessHistory, const Record& currentReco
 //  return eNoOperation;
 } 
 
+/*
 bool modifyAccessHistory(AccessHistoryManagementDecision decision, 
                          std::vector<Record>* records,
                          std::vector<Record>::iterator& it, 
@@ -382,6 +472,7 @@ bool modifyAccessHistory(AccessHistoryManagementDecision decision,
   }
   return shouldRollback;
 }
+*/
 
 // return true if there is data race. 
 bool checkDataRaceForMemoryAddress(uint64_t checkedAddress, AccessHistory* accessHistory, const Record& currentRecord, std::vector<RecordManagementInfo>& recordManagementInfo) {
@@ -396,7 +487,7 @@ bool checkDataRaceForMemoryAddress(uint64_t checkedAddress, AccessHistory* acces
       accessHistory->setFlag(eDataRaceFound); 
       return true;
     }
-    records.push_back(recordManagementInfo);
+    //records->push_back(recordManagementInfo);
     it++;
   }
   return false;

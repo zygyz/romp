@@ -1,5 +1,6 @@
 #pragma once
 
+class Label;
 enum RecordManagementDecision{
   eNoOperation,
   eSkipAddCurrentRecord,
@@ -7,21 +8,23 @@ enum RecordManagementDecision{
 };
 
 enum NodeRelation {
-  eSibling = 0,
-  eNonSiblingParallel = 1,
-  eHappensBefore = 2,
-  eHasCommonLock = 3, 
+  eUndefinedNodeRelation = 0,
+  eSiblingParallel = 1,
+  eNonSiblingParallel = 2,
+  eHappensBefore = 3,
+  eSameNode = 4,
 };
 
 enum LockRelation {
-  eHasCommonLock = 0,
-  eHistoryLockSetContainsCurrentLockSet = 1,
-  eCurrentLockSetContainsHistoryLockSet = 2,
-  eNoCommonLock = 3,
+  eUndefinedLockRelation = 0,
+  eHasCommonLock = 1,
+  eHistoryLockSetContainsCurrentLockSet = 2,
+  eCurrentLockSetContainsHistoryLockSet = 3,
+  eNoCommonLock = 4,
+  eInReduction = 5,
 };
 
 typedef struct RecordManagementInfo {
-  bool historyAccessHappensBeforeCurrentAccess;
   NodeRelation nodeRelation; 
   LockRelation lockRelation; 
 } RecordManagementInfo;

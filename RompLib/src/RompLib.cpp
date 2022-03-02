@@ -71,7 +71,8 @@ rollback: // will refactor to remove the tag
     }
   }
   // check previous access records with current access, if there exists data race 
-  if (checkDataRaceForMemoryAddress(checkedAddress, accessHistory, curRecord)) {
+  std::vector<RecordManagementInfo> recordManagementInfo;
+  if (checkDataRaceForMemoryAddress(checkedAddress, accessHistory, curRecord, recordManagementInfo)) {
     gDataRaceFound = true;
     return;
   }
