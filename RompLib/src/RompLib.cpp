@@ -102,11 +102,7 @@ ompt_start_tool_result_t* ompt_start_tool(
   return &startToolResult;
 }
 
-void checkAccess(void* baseAddress,
-                 uint32_t bytesAccessed,
-                 void* instnAddr,
-                 bool hasHardwareLock,
-                 bool isWrite) {
+void checkAccess(void* baseAddress, uint32_t bytesAccessed, void* instnAddr, bool hasHardwareLock, bool isWrite) {
 #ifdef PERFORMANCE
   gPerformanceCounters.bumpNumMemoryAccessInstrumentationCall();
 #endif

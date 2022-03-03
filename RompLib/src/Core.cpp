@@ -464,15 +464,25 @@ void manageAccessRecords(AccessHistory* accessHistory, const Record& currentReco
       canSkipAddingCurrentRecord = true; 
     }
   }
-  RAW_DLOG(INFO, "records removal candidate size: %d", recordRemovalCandidates.size());
-  if (records->size() > REDUNDANT_RECORD_REMOVAL_THRESHOLD && recordRemovalCandidates.size() > 0) {
-    RAW_DLOG(INFO, "record size %d exceeds threshold %d", records->size(), REDUNDANT_RECORD_REMOVAL_THRESHOLD);
-    auto hasWriteWriteContention = lockGuard.upgradeFromReaderToWriter();
-    if (!hasWriteWriteContention) {
-      RAW_DLOG(INFO, "no write write contention, proceed to remove records");
-      accessHistory->removeRecords(recordRemovalCandidates);
+  if (recordRemovalCandidates.size() > 0) {
+    RAW_DLOG(INFO, "records removal candidate size: %d", recordRemovalCandidates.size());
+    auto didSkipRemovingRecords = false;
+    if (recordsNum < REDUNDANT_RECORD_REMOVAL_THRESHOLD) {
+      didSkipRemovingRecords = true; 
+    } else {
+      auto hasWriteWriteContention = lockGuard.upgradeFromReaderToWriter();
+      if (!hasWriteWriteContention) {
+        accessHistory->removeRecords(recordRemovalCandidates);
+      } else {
+        didSkipRemovingRecords = true; 
+      }
+    } 
+#ifdef PERFORMANCE
+    if (didSkipRemovingRecords) {
+      gPerformanceCounters.bumpNumAccessHistorySkipRemoveRecords(); 
     }
-  } 
+#endif
+  }
   if (!canSkipAddingCurrentRecord) {
     lockGuard.upgradeFromReaderToWriter();  
     accessHistory->addRecordToAccessHistory(currentRecord);     
