@@ -64,7 +64,7 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, con
     }
   }
   auto hasDataRace = !isInReduction && !hasCommonLock && !isHistoryAccessBeforeCurrentAccess && (histRecord.isWrite() || curRecord.isWrite());
-  RAW_DLOG(INFO, "has data race: %d memory address: %lx hist label: %s cur label: %s", hasDataRace, checkedAddress, histLabel->toString().c_str(), curLabel->toString().c_str()); 
+  RAW_DLOG(INFO, "has data race: %d memory address: %lx hist label: %s cur label: %s is in reduction: %d has common lock: %d happens before: %d", hasDataRace, checkedAddress, histLabel->toString().c_str(), curLabel->toString().c_str(), isInReduction, hasCommonLock, isHistoryAccessBeforeCurrentAccess); 
   return hasDataRace;
 }
 
