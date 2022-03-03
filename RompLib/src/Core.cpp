@@ -8,6 +8,8 @@
 #include "TaskInfoQuery.h"
 #include "ThreadData.h"
 
+#define REDUNDANT_RECORD_REMOVAL_THRESHOLD 32
+
 extern PerformanceCounters gPerformanceCounters;
 
 bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, const uint64_t checkedAddress, RecordManagementInfo& recordManagementInfo) {
@@ -435,60 +437,59 @@ uint64_t computeEnterRank(uint64_t phase) {
 }
 
 // iterate over access records in accessHistory, make access history managemnet decision 
-void manageAccessRecords(AccessHistory* accessHistory, const Record& currentRecord, ReaderWriterLockGuard& lockGuard) {
-//  std::vector<int> recordsForRemoval;       
-//  auto records = accessHistory->getRecords();
-//  std::vector<Record>::const_iterator cit;
-//  auto it = records->begin();
-//  while (it != records->end()) {
-//  auto histIsWrite = histRecord.isWrite();  
-//  auto curIsWrite = curRecord.isWrite();
-//  auto histLockSet = histRecord.getLockSet();
-//  auto curLockSet = curRecord.getLockSet();
-//  if (((histIsWrite && curIsWrite) || !histIsWrite) && 
-//          isHistBeforeCurrent && isSubset(curLockSet, histLockSet)) {
-//    return eDeleteHistoryRecord;  
-//  } else if (diffIndex == static_cast<int>(eSameLabel) && 
-//            ((!histIsWrite && !curIsWrite) || histIsWrite) && 
-//            isSubset(histLockSet, curLockSet)) {
-//    return eSkipAddCurrentRecord; 
-//  } 
-//  return eNoOperation;
-} 
-
-/*
-bool modifyAccessHistory(AccessHistoryManagementDecision decision, 
-                         std::vector<Record>* records,
-                         std::vector<Record>::iterator& it, 
-                         ReaderWriterLockGuard* guard) {
-  auto shouldRollback = false;
-  if (decision == eDeleteHistoryRecord) {
-    shouldRollback = guard->upgradeFromReaderToWriter();
-    if (!shouldRollback) {
-      it = records->erase(it);
+// This function is called with read lock held. ALso, this function being callled implies that 
+// there is no race condition between current access record and all existing history records. 
+// In this function, we determine what could be pruned and update record state.
+void manageAccessRecords(AccessHistory* accessHistory, const Record& currentRecord, ReaderWriterLockGuard& lockGuard, std::vector<RecordManagementInfo>& info) {
+  auto records = accessHistory->getRecords();
+  auto infoSize = info.size(); 
+  auto recordsNum = records->size();
+  RAW_CHECK(infoSize == recordsNum, "access records size is not equal to records number");
+  auto recordState = accessHistory->getRecordState();
+  std::vector<int> recordRemovalCandidates;
+  auto canSkipAddingCurrentRecord = false;
+  for (int i = 0; i < infoSize; ++i) {
+    auto recordManagementInfo = info.at(i);
+    auto historyRecord = records->at(i); 
+    RAW_DLOG(INFO, "i: %d , size: %d,  node relation: %d, lock relation: %d", i, info.size(),  recordManagementInfo.nodeRelation, recordManagementInfo.lockRelation); 
+    auto historyAccessIsWrite = historyRecord.isWrite();
+    auto currentAccessIsWrite = currentRecord.isWrite();
+    if (((historyAccessIsWrite && currentAccessIsWrite) || historyAccessIsWrite == false) && 
+          recordManagementInfo.nodeRelation == eHappensBefore && 
+          recordManagementInfo.lockRelation == eHistoryLockSetContainsCurrentLockSet) {
+      recordRemovalCandidates.push_back(i);
+    } else if (canSkipAddingCurrentRecord == false && historyAccessIsWrite == false && currentAccessIsWrite == false && recordManagementInfo.lockRelation == eCurrentLockSetContainsHistoryLockSet && recordManagementInfo.nodeRelation == eSiblingParallel) {
+      RAW_DLOG(INFO, "sibling node, skip adding current to the record");
+      // if we determine current record can be skipped, this is valid throughout the iteration. Because this state is mutual exclusive with records removal candidates case.
+      canSkipAddingCurrentRecord = true; 
     }
-  } else {
-    it++;
   }
-  return shouldRollback;
-}
-*/
+  RAW_DLOG(INFO, "records removal candidate size: %d", recordRemovalCandidates.size());
+  if (records->size() > REDUNDANT_RECORD_REMOVAL_THRESHOLD && recordRemovalCandidates.size() > 0) {
+    RAW_DLOG(INFO, "record size %d exceeds threshold %d", records->size(), REDUNDANT_RECORD_REMOVAL_THRESHOLD);
+    auto hasWriteWriteContention = lockGuard.upgradeFromReaderToWriter();
+    if (!hasWriteWriteContention) {
+      RAW_DLOG(INFO, "no write write contention, proceed to remove records");
+      accessHistory->removeRecords(recordRemovalCandidates);
+    }
+  } 
+  if (!canSkipAddingCurrentRecord) {
+    lockGuard.upgradeFromReaderToWriter();  
+    accessHistory->addRecordToAccessHistory(currentRecord);     
+  }
+} 
 
 // return true if there is data race. 
 bool checkDataRaceForMemoryAddress(uint64_t checkedAddress, AccessHistory* accessHistory, const Record& currentRecord, std::vector<RecordManagementInfo>& info) {
   auto records = accessHistory->getRecords();
-  std::vector<Record>::const_iterator cit;
-  auto it = records->begin();
-  while (it != records->end()) {
-    cit = it;
-    auto histRecord = *cit;
+  for (int i = 0; i < records->size(); ++i) { 
+    auto histRecord = records->at(i);
     RecordManagementInfo recordManagementInfo;      
     if (analyzeRaceCondition(histRecord, currentRecord, checkedAddress, recordManagementInfo)) {
       accessHistory->setFlag(eDataRaceFound); 
       return true;
     }
     info.push_back(recordManagementInfo); 
-    it++;
   }
   return false;
 }

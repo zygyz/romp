@@ -71,44 +71,12 @@ rollback: // will refactor to remove the tag
     }
   }
   // check previous access records with current access, if there exists data race 
-  std::vector<RecordManagementInfo> recordManagementInfo;
-  if (checkDataRaceForMemoryAddress(checkedAddress, accessHistory, curRecord, recordManagementInfo)) {
+  std::vector<RecordManagementInfo> info;
+  if (checkDataRaceForMemoryAddress(checkedAddress, accessHistory, curRecord, info)) {
     gDataRaceFound = true;
     return;
   }
-  manageAccessRecords(accessHistory, curRecord, guard);
-
- // while (it != records->end()) {
- //   cit = it; 
- //   auto histRecord = *cit;
- //   if (analyzeRaceCondition(histRecord, curRecord, isHistBeforeCurrent, diffIndex, checkedAddress)) {
- //     RAW_DLOG(INFO, "FOUND data race on: %lx hist: isWrite: %d %s cur: isWrite: %d %s", checkedAddress, histRecord.isWrite(), histRecord.getLabel()->toString().c_str(), curRecord.isWrite(), curLabel->toString().c_str());
- //     gDataRaceFound = true;
- //     accessHistory->setFlag(eDataRaceFound);
- //     return;
- //   }
- //   auto decision = manageAccessRecord(accessHistory->getRecordState(), histRecord, curRecord, isHistBeforeCurrent, diffIndex);
- //   if (decision == eSkipAddCurrentRecord) {
- //     skipAddCurrentRecord = true;
- //   } else if (decision == eDeleteHistoryRecord) {
- //     recordsToBeRemoved.push_back(it - records->begin());
- //   }
- //   it++;
- // } 
- // auto hasRecordsToRemove = !recordsToBeRemoved.empty();
- // if (hasRecordsToRemove && accessHistory->getNumRecords() > ACCESS_RECORD_NUM_LIMIT) {
- //   if (!guard.upgradeFromReaderToWriter()) {
- //     RAW_DLOG(INFO, "remove access records, access history number: %d", accessHistory->getNumRecords());
- //     accessHistory->removeRecords(recordsToBeRemoved);
- //   }
- // }
- // if (!skipAddCurrentRecord) {
- // // if we need to add current record to access history
- // // we just add it to the access history and not rolling back. Because if there is 
- // // write write contention, adding record to history is always safe 
- //   guard.upgradeFromReaderToWriter();
- //   accessHistory->addRecordToAccessHistory(curRecord); 
- // }
+  manageAccessRecords(accessHistory, curRecord, guard, info);
 }
 
 extern "C" {

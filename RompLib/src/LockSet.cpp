@@ -60,6 +60,7 @@ bool isSubSetImpl(const LockSet& l1, const LockSet& l2) {
   return true;
 }
 
+// return true if l1 is subet of l2
 bool isSubSet(LockSet* l1, LockSet* l2) {
   if (l1 == nullptr) {
     return true;

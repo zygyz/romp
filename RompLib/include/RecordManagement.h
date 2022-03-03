@@ -1,6 +1,5 @@
 #pragma once
 
-class Label;
 enum RecordManagementDecision{
   eNoOperation,
   eSkipAddCurrentRecord,
