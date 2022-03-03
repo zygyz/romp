@@ -70,6 +70,10 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, con
 
 // return true if has mutual exclusion
 bool analyzeMutualExclusion(const Record& histRecord, const Record& curRecord, RecordManagementInfo& recordManagementInfo) {
+  if (histRecord.hasHardwareLock() && curRecord.hasHardwareLock()) {
+    recordManagementInfo.lockRelation = eHasCommonLock;
+    return true;
+  }
   auto histLockSet = histRecord.getLockSet(); 
   auto curLockSet = curRecord.getLockSet();  
   if (isSubSet(histLockSet, curLockSet)) {
