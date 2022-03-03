@@ -444,6 +444,7 @@ void manageAccessRecords(AccessHistory* accessHistory, const Record& currentReco
   auto records = accessHistory->getRecords();
   auto infoSize = info.size(); 
   auto recordsNum = records->size();
+  RAW_DLOG(INFO, "num access records: %d", recordsNum);
   RAW_CHECK(infoSize == recordsNum, "access records size is not equal to records number");
   auto recordState = accessHistory->getRecordState();
   std::vector<int> recordRemovalCandidates;
