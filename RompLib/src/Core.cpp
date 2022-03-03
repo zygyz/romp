@@ -32,6 +32,7 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, con
   }
   if (isInReduction) {
     RAW_DLOG(INFO, "current memory access is in reduction phase. memory address: %lx", checkedAddress);
+    // only the variable being reduced to is data race free. 
     recordManagementInfo.lockRelation = eInReduction;
   }
   if (!isHistoryAccessBeforeCurrentAccess) {
@@ -63,7 +64,7 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, con
       }
     }
   }
-  auto hasDataRace = !isInReduction && !hasCommonLock && !isHistoryAccessBeforeCurrentAccess && (histRecord.isWrite() || curRecord.isWrite());
+  auto hasDataRace = !hasCommonLock && !isHistoryAccessBeforeCurrentAccess && (histRecord.isWrite() || curRecord.isWrite());
   RAW_DLOG(INFO, "has data race: %d memory address: %lx hist label: %s cur label: %s is in reduction: %d has common lock: %d happens before: %d", hasDataRace, checkedAddress, histLabel->toString().c_str(), curLabel->toString().c_str(), isInReduction, hasCommonLock, isHistoryAccessBeforeCurrentAccess); 
   return hasDataRace;
 }
