@@ -20,10 +20,16 @@ enum LockRelation {
   eHistoryLockSetContainsCurrentLockSet = 2,
   eCurrentLockSetContainsHistoryLockSet = 3,
   eNoCommonLock = 4,
-  eInReduction = 5,
+};
+
+enum OtherSynchronizationInfo {
+  eUndefinedOtherSynchronizationInfo = 0,
+  eInReduction = 1,
+  eIsMutexTask = 2,
 };
 
 typedef struct RecordManagementInfo {
   NodeRelation nodeRelation; 
   LockRelation lockRelation; 
+  OtherSynchronizationInfo otherSynchronizationInfo;
 } RecordManagementInfo;

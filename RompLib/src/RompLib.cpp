@@ -60,7 +60,7 @@ rollback: // will refactor to remove the tag
       return;
     }
   }
-  auto curRecord = Record(isWrite, curLabel, curLockSet, currentTaskData, instnAddr, hasHardwareLock);
+  auto curRecord = Record(isWrite, curLabel, curLockSet, currentTaskData, instnAddr, hasHardwareLock, static_cast<TaskData*>(currentTaskData)->inReduction);
   if (!accessHistory->hasRecords()) {
     // no access record, add current access to the record
     auto hasWriteWriteContention = guard.upgradeFromReaderToWriter();

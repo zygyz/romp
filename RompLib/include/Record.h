@@ -14,16 +14,20 @@ public:
          std::shared_ptr<LockSet> lockSet,   
          void* taskPtr, 
          void* instructionAddress,
-	 bool hasHardwareLock): 
+	 bool hasHardwareLock,
+         bool isInReduction): 
       mLabel(label), mLockSet(lockSet), mTaskPtr(taskPtr), 
       mInstructionAddress(instructionAddress) { 
-        setAccessType(isWrite); 
+        setIsWrite(isWrite); 
 	setHasHardwareLock(hasHardwareLock);
+        setIsInReduction(isInReduction);
       }
-  void setAccessType(bool isWrite);
+  void setIsWrite(bool isWrite);
+  void setIsInReduction(bool isInReduction);
   void setHasHardwareLock(bool hardwareLock);
   bool isWrite() const;
   bool hasHardwareLock() const;
+  bool isInReduction() const;
   std::string toString() const;
   Label* getLabel() const;
   LockSet* getLockSet() const;

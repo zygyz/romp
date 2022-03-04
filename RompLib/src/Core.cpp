@@ -21,50 +21,56 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, con
   // we want to set both lock set info and node relation info so we don't early return.
   auto hasCommonLock = analyzeMutualExclusion(histRecord, curRecord, recordManagementInfo);
 
-  auto curTaskData = static_cast<TaskData*>(curRecord.getTaskPtr());
-  auto isInReduction = curTaskData->inReduction;  
-  auto isMutexTask = false;  
-
   int diffIndex;
   auto isHistoryAccessBeforeCurrentAccess = happensBefore(histLabel, curLabel, diffIndex, recordManagementInfo);    
   if (diffIndex == eRightIsPrefix) {
     RAW_DLOG(FATAL, "current access is prefix: %lx", checkedAddress);
   }
-  if (isInReduction) {
-    RAW_DLOG(INFO, "current memory access is in reduction phase. memory address: %lx", checkedAddress);
-    // only the variable being reduced to is data race free. 
-    recordManagementInfo.lockRelation = eInReduction;
-  }
+
+  auto isMutexTask = false;  
+  auto isInReduction = false;
   if (!isHistoryAccessBeforeCurrentAccess) {
-    // further check explicit task dependence if current task and history task 
-    // are both explicit tasks. If no task dependence, return true
-    auto histTaskData = static_cast<TaskData*>(histRecord.getTaskPtr()); 
-    if (curTaskData->isExplicitTask && histTaskData->isExplicitTask) {
-      // first check if the two tasks are mutex tasks
-      if (curTaskData->isMutexTask && histTaskData->isMutexTask) { 
-        RAW_DLOG(INFO, "current access and history access are mutex task memory address: %lx", checkedAddress);
-        isMutexTask = true;
-      }
-      // have to get the associated parallel region
-      ParallelRegionInfo parallelRegionInfo;
-      if (!queryParallelRegionInfo(0, parallelRegionInfo)) {
-        RAW_LOG(FATAL, "cannot get parallel region data");
-      } 
-      auto parallelRegionData= static_cast<ParallelRegionData*>(parallelRegionInfo.parallelData->ptr); 
-      // have to lock the task dep graph before graph traversal
-      pfq_rwlock_node_t node;
-#ifdef PERFORMANCE
-      ReaderWriterLockGuard guard(&(parallelRegionData->lock), &node, &gPerformanceCounters);
-#else
-      ReaderWriterLockGuard guard(&(parallelRegionData->lock), &node, nullptr);
-#endif
-      if (parallelRegionData->taskDepGraph.hasPath((void*)histTaskData, (void*)curTaskData)) {
-        isHistoryAccessBeforeCurrentAccess= true;
-        recordManagementInfo.nodeRelation = eHappensBefore;
+    // if there is no happens before relation, we further determine the e
+    auto currentAccessIsInReduction = curRecord.isInReduction(); 
+    auto historyAccessIsInReduction = histRecord.isInReduction();
+    if (currentAccessIsInReduction && historyAccessIsInReduction) {
+      RAW_DLOG(INFO, "current memory access is in reduction phase. memory address: %lx", checkedAddress);
+      // only the variable being reduced to is data race free. 
+      recordManagementInfo.otherSynchronizationInfo = eInReduction;
+      isInReduction = true;
+    } else {
+      // further check explicit task dependence if current task and history task 
+      // are both explicit tasks. If no task dependence, return true
+      auto curTaskData = static_cast<TaskData*>(curRecord.getTaskPtr());
+      auto histTaskData = static_cast<TaskData*>(histRecord.getTaskPtr()); 
+      if (curTaskData->isExplicitTask && histTaskData->isExplicitTask) {
+        // first check if the two tasks are mutex tasks
+        if (curTaskData->isMutexTask && histTaskData->isMutexTask) { 
+          RAW_DLOG(INFO, "current access and history access are mutex task memory address: %lx", checkedAddress);
+          recordManagementInfo.otherSynchronizationInfo = eIsMutexTask;
+          isMutexTask = true;
+        }
+        // have to get the associated parallel region
+        ParallelRegionInfo parallelRegionInfo;
+        if (!queryParallelRegionInfo(0, parallelRegionInfo)) {
+          RAW_LOG(FATAL, "cannot get parallel region data");
+        } 
+        auto parallelRegionData= static_cast<ParallelRegionData*>(parallelRegionInfo.parallelData->ptr); 
+        // have to lock the task dep graph before graph traversal
+        pfq_rwlock_node_t node;
+  #ifdef PERFORMANCE
+        ReaderWriterLockGuard guard(&(parallelRegionData->lock), &node, &gPerformanceCounters);
+  #else
+        ReaderWriterLockGuard guard(&(parallelRegionData->lock), &node, nullptr);
+  #endif
+        if (parallelRegionData->taskDepGraph.hasPath((void*)histTaskData, (void*)curTaskData)) {
+          isHistoryAccessBeforeCurrentAccess= true;
+          recordManagementInfo.nodeRelation = eHappensBefore;
+        }
       }
     }
   }
-  auto hasDataRace = !hasCommonLock && !isHistoryAccessBeforeCurrentAccess && (histRecord.isWrite() || curRecord.isWrite()) && ((isInReduction && !curRecord.isWrite()) || !isInReduction);
+  auto hasDataRace = !isInReduction && !isMutexTask && !hasCommonLock && !isHistoryAccessBeforeCurrentAccess && (histRecord.isWrite() || curRecord.isWrite());
   RAW_DLOG(INFO, "has data race: %d memory address: %lx hist label: %s cur label: %s is in reduction: %d has common lock: %d happens before: %d", hasDataRace, checkedAddress, histLabel->toString().c_str(), curLabel->toString().c_str(), isInReduction, hasCommonLock, isHistoryAccessBeforeCurrentAccess); 
   return hasDataRace;
 }
