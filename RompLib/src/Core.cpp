@@ -28,17 +28,17 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, con
   }
 
   auto isMutexTask = false;  
-  auto isInReduction = false;
+  auto safeByReduction = false;
   if (!isHistoryAccessBeforeCurrentAccess) {
     // if there is no happens before relation, we further determine the e
     auto currentAccessIsInReduction = curRecord.isInReduction(); 
     auto historyAccessIsInReduction = histRecord.isInReduction();
     RAW_DLOG(INFO, "current access is in reduction: %d  history access is in reduction: %d", currentAccessIsInReduction, historyAccessIsInReduction);
-    if (currentAccessIsInReduction && historyAccessIsInReduction) {
+    if (histRecord.isInReduction() || curRecord.isInReduction()) {
       RAW_DLOG(INFO, "memory access is in reduction phase. memory address: %lx", checkedAddress);
       // only the variable being reduced to is data race free. 
       recordManagementInfo.otherSynchronizationInfo = eInReduction;
-      isInReduction = true;
+      safeByReduction = true;
     } else {
       // further check explicit task dependence if current task and history task 
       // are both explicit tasks. If no task dependence, return true
@@ -71,8 +71,8 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, con
       }
     }
   }
-  auto hasDataRace = !isInReduction && !isMutexTask && !hasCommonLock && !isHistoryAccessBeforeCurrentAccess && (histRecord.isWrite() || curRecord.isWrite());
-  RAW_DLOG(INFO, "has data race: %d memory address: %lx hist label: %s cur label: %s is in reduction: %d has common lock: %d happens before: %d", hasDataRace, checkedAddress, histLabel->toString().c_str(), curLabel->toString().c_str(), isInReduction, hasCommonLock, isHistoryAccessBeforeCurrentAccess); 
+  auto hasDataRace = !safeByReduction && !isMutexTask && !hasCommonLock && !isHistoryAccessBeforeCurrentAccess && (histRecord.isWrite() || curRecord.isWrite());
+  RAW_DLOG(INFO, "has data race: %d memory address: %lx hist label: %s hist is write: %d hist is in reduction: %d cur label: %s cur is write: %d cur is in reduction: %d  safe by reduction: %d has common lock: %d happens before: %d", hasDataRace, checkedAddress, histLabel->toString().c_str(), histRecord.isWrite(), histRecord.isInReduction(), curLabel->toString().c_str(), curRecord.isWrite(), curRecord.isInReduction(), safeByReduction, hasCommonLock, isHistoryAccessBeforeCurrentAccess); 
   return hasDataRace;
 }
 
@@ -482,18 +482,19 @@ void manageAccessRecords(AccessHistory* accessHistory, const Record& currentReco
     RAW_DLOG(INFO, "i: %d , size: %d,  node relation: %d, lock relation: %d", i, info.size(),  recordManagementInfo.nodeRelation, recordManagementInfo.lockRelation); 
     auto historyAccessIsWrite = historyRecord.isWrite();
     auto currentAccessIsWrite = currentRecord.isWrite();
-//    if (((historyAccessIsWrite && currentAccessIsWrite) || historyAccessIsWrite == false) && 
-//          recordManagementInfo.nodeRelation == eHappensBefore && 
-//          recordManagementInfo.lockRelation == eHistoryLockSetContainsCurrentLockSet) {
-//      recordRemovalCandidates.push_back(i);
-//    } 
+    if (((historyAccessIsWrite && currentAccessIsWrite) || historyAccessIsWrite == false) && 
+          recordManagementInfo.nodeRelation == eHappensBefore && 
+          recordManagementInfo.lockRelation == eHistoryLockSetContainsCurrentLockSet) {
+      recordRemovalCandidates.push_back(i);
+    } 
 //else if (canSkipAddingCurrentRecord == false && historyAccessIsWrite == false && currentAccessIsWrite == false && 
 //              (recordManagementInfo.lockRelation == eCurrentLockSetContainsHistoryLockSet || 
 //               recordManagementInfo.lockRelation == eBothEmptyLock || 
 //               recordManagementInfo.lockRelation == eHistoryNoLockCurrentHasLock) && 
 //               recordManagementInfo.nodeRelation == eSiblingParallel) {
+//      TODO: this criteria do not seem correct 
 //      RAW_DLOG(INFO, "sibling node, skip adding current to the record");
-      // if we determine current record can be skipped, this is valid throughout the iteration. Because this state is mutual exclusive with records removal candidates case.
+//     // if we determine current record can be skipped, this is valid throughout the iteration. Because this state is mutual exclusive with records removal candidates case.
 //      canSkipAddingCurrentRecord = true; 
 //    }
   }
