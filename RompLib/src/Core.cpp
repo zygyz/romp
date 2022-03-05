@@ -34,7 +34,7 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, con
     auto currentAccessIsInReduction = curRecord.isInReduction(); 
     auto historyAccessIsInReduction = histRecord.isInReduction();
     RAW_DLOG(INFO, "current access is in reduction: %d  history access is in reduction: %d", currentAccessIsInReduction, historyAccessIsInReduction);
-    if (histRecord.isInReduction() || curRecord.isInReduction()) {
+    if (histRecord.isInReduction() && curRecord.isInReduction()) {
       RAW_DLOG(INFO, "memory access is in reduction phase. memory address: %lx", checkedAddress);
       // only the variable being reduced to is data race free. 
       recordManagementInfo.otherSynchronizationInfo = eInReduction;
