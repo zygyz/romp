@@ -136,7 +136,7 @@ def validate_results(benchmark_root_path: str, baseline_branch: str, optimize_br
     is_correct = False;
     if '-no.c.bin' in optimize_output_file or '-no.cpp.bin' in optimize_output_file:
       is_correct = validate_result_for_benchmark(optimize_output_file_path, False);
-    elif '-yes.c.bin' in optimize_output_file or '-yes.cpp.bin' in optmize_output_file:
+    elif '-yes.c.bin' in optimize_output_file or '-yes.cpp.bin' in optimize_output_file:
       is_correct = validate_result_for_benchmark(optimize_output_file_path, True); 
     if is_correct == False:
       print('Wrong Result: ', optimize_output_file_path); 
