@@ -19,6 +19,10 @@ LockSet::LockSet(const LockSet& lockSet) {
   }
 }
 
+bool LockSet::isEmpty() const {
+  return mLock.empty();
+}
+
 void LockSet::addLock(uint64_t lock) {
   mLock[lock] = 1; 
 }

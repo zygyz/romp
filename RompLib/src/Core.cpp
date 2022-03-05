@@ -33,8 +33,9 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, con
     // if there is no happens before relation, we further determine the e
     auto currentAccessIsInReduction = curRecord.isInReduction(); 
     auto historyAccessIsInReduction = histRecord.isInReduction();
+    RAW_DLOG(INFO, "current access is in reduction: %d  history access is in reduction: %d", currentAccessIsInReduction, historyAccessIsInReduction);
     if (currentAccessIsInReduction && historyAccessIsInReduction) {
-      RAW_DLOG(INFO, "current memory access is in reduction phase. memory address: %lx", checkedAddress);
+      RAW_DLOG(INFO, "memory access is in reduction phase. memory address: %lx", checkedAddress);
       // only the variable being reduced to is data race free. 
       recordManagementInfo.otherSynchronizationInfo = eInReduction;
       isInReduction = true;
@@ -81,8 +82,23 @@ bool analyzeMutualExclusion(const Record& histRecord, const Record& curRecord, R
     recordManagementInfo.lockRelation = eHasCommonLock;
     return true;
   }
+  //now at least one of the access does not have hardware lock. 
   auto histLockSet = histRecord.getLockSet(); 
   auto curLockSet = curRecord.getLockSet();  
+  auto historyLockSetIsEmpty = histLockSet == nullptr || histLockSet->isEmpty();
+  auto currentLockSetIsEmpty = curLockSet == nullptr || curLockSet->isEmpty();
+  if (historyLockSetIsEmpty && currentLockSetIsEmpty) {
+    recordManagementInfo.lockRelation = eBothEmptyLock; 
+    return false;
+  }
+  if (!historyLockSetIsEmpty && currentLockSetIsEmpty) {
+    recordManagementInfo.lockRelation = eCurrentNoLockHistoryHasLock; 
+    return false;
+  } 
+  if (historyLockSetIsEmpty && !currentLockSetIsEmpty) {
+    recordManagementInfo.lockRelation = eHistoryNoLockCurrentHasLock;
+    return false;
+  }
   if (isSubSet(histLockSet, curLockSet)) {
     recordManagementInfo.lockRelation = eCurrentLockSetContainsHistoryLockSet;
     return true;
@@ -466,15 +482,20 @@ void manageAccessRecords(AccessHistory* accessHistory, const Record& currentReco
     RAW_DLOG(INFO, "i: %d , size: %d,  node relation: %d, lock relation: %d", i, info.size(),  recordManagementInfo.nodeRelation, recordManagementInfo.lockRelation); 
     auto historyAccessIsWrite = historyRecord.isWrite();
     auto currentAccessIsWrite = currentRecord.isWrite();
-    if (((historyAccessIsWrite && currentAccessIsWrite) || historyAccessIsWrite == false) && 
-          recordManagementInfo.nodeRelation == eHappensBefore && 
-          recordManagementInfo.lockRelation == eHistoryLockSetContainsCurrentLockSet) {
-      recordRemovalCandidates.push_back(i);
-    } else if (canSkipAddingCurrentRecord == false && historyAccessIsWrite == false && currentAccessIsWrite == false && recordManagementInfo.lockRelation == eCurrentLockSetContainsHistoryLockSet && recordManagementInfo.nodeRelation == eSiblingParallel) {
-      RAW_DLOG(INFO, "sibling node, skip adding current to the record");
+//    if (((historyAccessIsWrite && currentAccessIsWrite) || historyAccessIsWrite == false) && 
+//          recordManagementInfo.nodeRelation == eHappensBefore && 
+//          recordManagementInfo.lockRelation == eHistoryLockSetContainsCurrentLockSet) {
+//      recordRemovalCandidates.push_back(i);
+//    } 
+//else if (canSkipAddingCurrentRecord == false && historyAccessIsWrite == false && currentAccessIsWrite == false && 
+//              (recordManagementInfo.lockRelation == eCurrentLockSetContainsHistoryLockSet || 
+//               recordManagementInfo.lockRelation == eBothEmptyLock || 
+//               recordManagementInfo.lockRelation == eHistoryNoLockCurrentHasLock) && 
+//               recordManagementInfo.nodeRelation == eSiblingParallel) {
+//      RAW_DLOG(INFO, "sibling node, skip adding current to the record");
       // if we determine current record can be skipped, this is valid throughout the iteration. Because this state is mutual exclusive with records removal candidates case.
-      canSkipAddingCurrentRecord = true; 
-    }
+//      canSkipAddingCurrentRecord = true; 
+//    }
   }
   if (recordRemovalCandidates.size() > 0) {
     RAW_DLOG(INFO, "records removal candidate size: %d", recordRemovalCandidates.size());
