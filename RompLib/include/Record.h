@@ -13,11 +13,11 @@ public:
          std::shared_ptr<Label> label, 
          std::shared_ptr<LockSet> lockSet,   
          void* taskPtr, 
-         void* checkedMemoryAddress,
+         uint64_t checkedMemoryAddress,
 	 bool hasHardwareLock,
          bool isInReduction): 
       mLabel(label), mLockSet(lockSet), mTaskPtr(taskPtr), 
-      mInstructionAddress(instructionAddress) { 
+      mCheckedMemoryAddress(checkedMemoryAddress) { 
         setIsWrite(isWrite); 
 	setHasHardwareLock(hasHardwareLock);
         setIsInReduction(isInReduction);
