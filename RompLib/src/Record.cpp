@@ -69,7 +69,7 @@ LockSet* Record::getLockSet() const {
   return mLockSet? mLockSet.get() : nullptr;
 }
 
-void* Record::getCheckedMemoryAddress() const {
+uint64_t Record::getCheckedMemoryAddress() const {
   return mCheckedMemoryAddress;
 }
 
