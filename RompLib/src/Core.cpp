@@ -518,6 +518,7 @@ void manageAccessRecords(AccessHistory* accessHistory, const Record& currentReco
   }
   if (!canSkipAddingCurrentRecord) {
     lockGuard.upgradeFromReaderToWriter();  
+    RAW_DLOG(INFO, "adding record to access history at %lx, memory address: %lx  is in reduction %d\n", accessHistory, checkedAddress, currentRecord.isInReduction());
     accessHistory->addRecordToAccessHistory(currentRecord);     
   }
 } 
