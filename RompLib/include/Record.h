@@ -27,12 +27,12 @@ public:
   std::string toString() const;
   Label* getLabel() const;
   LockSet* getLockSet() const;
-  void* getCheckedMemoryAddress() const; 
+  uint64_t getCheckedMemoryAddress() const; 
   void* getTaskPtr() const;
 private:
   uint8_t mState; // store state information
   std::shared_ptr<Label> mLabel; // task label associated with the record
   std::shared_ptr<LockSet> mLockSet; // lock set associated with the record
   void* mTaskPtr; // pointer to data of encountering task
-  void* mCheckedMemoryAddress;  
+  uint64_t  mCheckedMemoryAddress;  
 };
