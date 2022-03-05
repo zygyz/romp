@@ -69,8 +69,8 @@ LockSet* Record::getLockSet() const {
   return mLockSet? mLockSet.get() : nullptr;
 }
 
-void* Record::getInstructionAddress() const {
-  return mInstructionAddress;
+void* Record::getCheckedMemoryAddress() const {
+  return mCheckedMemoryAddress;
 }
 
 void* Record::getTaskPtr() const {
