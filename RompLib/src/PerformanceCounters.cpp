@@ -2,7 +2,7 @@
 
 #include <glog/logging.h>
 
-#define ACCESS_HISTORY_RECORDS_THRESHOLD 16
+#define ACCESS_HISTORY_RECORDS_THRESHOLD 8
 
 
 PerformanceCounters gPerformanceCounters(ACCESS_HISTORY_RECORDS_THRESHOLD);

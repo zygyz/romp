@@ -8,7 +8,7 @@
 #include "TaskInfoQuery.h"
 #include "ThreadData.h"
 
-#define REDUNDANT_RECORD_REMOVAL_THRESHOLD 16
+#define REDUNDANT_RECORD_REMOVAL_THRESHOLD 10
 
 extern PerformanceCounters gPerformanceCounters;
 
