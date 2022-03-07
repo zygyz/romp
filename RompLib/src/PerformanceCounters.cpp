@@ -41,6 +41,10 @@ void PerformanceCounters::bumpNumAccessHistorySkipRemoveRecords() {
   mNumAccessHistorySkipRemoveRecords.fetch_add(1, std::memory_order_relaxed);
 }
 
+void PerformanceCounters::bumpNumAccessHistoryRemoveRecords() {
+  mNumAccessHistoryRemoveRecords.fetch_add(1, std::memory_order_relaxed);
+}
+
 void PerformanceCounters::updateMaximumAccessRecordsNum(uint64_t value_new) {
   // update the maximum value atomically  
   auto previous_value = mMaximumAccessRecordsNum.load(); 
@@ -60,6 +64,7 @@ void PerformanceCounters::printPerformanceCounters() const {
   LOG(INFO) << "# Access Control Write Read Contention: " << mNumAccessControlWriteReadContention.load();
   LOG(INFO) << "# Access Control Read Write Contention: " << mNumAccessControlReadWriteContention.load();
   LOG(INFO) << "# Access History Skip Remove Records: " << mNumAccessHistorySkipRemoveRecords.load();
+  LOG(INFO) << "# Access History Remove Records: " << mNumAccessHistoryRemoveRecords.load();
   LOG(INFO) << "# Maximum Access Records Number: " << mMaximumAccessRecordsNum.load();
   if (mNumCheckAccessFunctionCall.load() > 0) {
     LOG(INFO) << "# Average number access records traversed: " << (double) mNumTotalAccessRecordsTraversed.load() / (double) mNumCheckAccessFunctionCall.load();

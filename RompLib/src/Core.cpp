@@ -537,6 +537,8 @@ void manageAccessRecords(AccessHistory* accessHistory, const Record& currentReco
 #ifdef PERFORMANCE
     if (didSkipRemovingRecords) {
       gPerformanceCounters.bumpNumAccessHistorySkipRemoveRecords(); 
+    } else {
+      gPerformanceCounters.bumpNumAccessHistoryRemoveRecords();
     }
 #endif
   }
