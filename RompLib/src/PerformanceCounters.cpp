@@ -32,7 +32,7 @@ void PerformanceCounters::updateMaximumAccessRecordsNum(uint64_t value_new) {
 }
 
 void PerformanceCounters::bumpNumTotalAccessRecordsTraversed(uint64_t numRecordsTraversed) {
-  mNumAccessHistoryOverflow.fetch_add(numRecordsTraversed, std::memory_order_relaxed);
+  mNumTotalAccessRecordsTraversed.fetch_add(numRecordsTraversed, std::memory_order_relaxed);
 }
 
 void PerformanceCounters::printPerformanceCounters() const {
