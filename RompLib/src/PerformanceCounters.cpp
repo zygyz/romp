@@ -36,4 +36,5 @@ void PerformanceCounters::printPerformanceCounters() const {
   LOG(INFO) << "# Access History Record Overflow (threshold=" << mAccessHistoryRecordThreshold << "):  " << mNumAccessHistoryOverflow.load();
   LOG(INFO) << "# Memory Access Instrumentation Call: " << mNumMemoryAccessInstrumentationCall.load();
   LOG(INFO) << "# Access Control Contention: " << mNumAccessControlContention.load();
+  LOG(INFO) << "# Maximum Access Records Number: " << mMaximumAccessRecordsNum.load();
 }
