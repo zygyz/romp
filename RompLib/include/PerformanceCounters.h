@@ -11,9 +11,9 @@ public:
   void bumpNumAccessControlContention();
   void printPerformanceCounters() const;
 private:
-  std::atomic_long mNumMemoryAccessInstrumentationCall;
-  std::atomic_long mNumCheckAccessFunctionCall;
-  std::atomic_long mNumAccessHistoryOverflow;
-  std::atomic_long mNumAccessControlContention;
+  std::atomic_uint64_t mNumMemoryAccessInstrumentationCall;
+  std::atomic_uint64_t mNumCheckAccessFunctionCall;
+  std::atomic_uint64_t mNumAccessHistoryOverflow;
+  std::atomic_uint64_t mNumAccessControlContention;
   int mAccessHistoryRecordThreshold;
 };
