@@ -32,7 +32,9 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
   pfq_rwlock_node_t me;
   ReaderWriterLockGuard guard(&(accessHistory->getLock()), &me, &gPerformanceCounters);
 #ifdef PERFORMANCE
-  gPerformanceCounters.bumpNumAccessHistoryOverflow(accessHistory->getNumRecords());
+  auto numRecords = accessHistory->getNumRecords();
+  gPerformanceCounters.bumpNumAccessHistoryOverflow(numRecords);
+  gPerformanceCounters.updateMaximumAccessRecordsNum(numRecords); 
 #endif
 rollback: // will refactor to remove the tag 
   if (accessHistory->dataRaceFound()) {
