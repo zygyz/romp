@@ -36,7 +36,7 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
   gPerformanceCounters.bumpNumAccessHistoryOverflow(numRecords);
   gPerformanceCounters.updateMaximumAccessRecordsNum(numRecords); 
 #endif
-rollback: // will refactor to remove the tag 
+rollback: // will refactor to remove the tag. Using goto tag is actually more readable for this case.
   if (accessHistory->dataRaceFound()) {
     //  data race has already been found on this memory location, romp only 
     //  reports one data race on any memory location in one run. Once the data 

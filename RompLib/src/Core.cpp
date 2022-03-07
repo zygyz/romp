@@ -552,14 +552,25 @@ void manageAccessRecords(AccessHistory* accessHistory, const Record& currentReco
 // return true if there is data race. 
 bool checkDataRaceForMemoryAddress(uint64_t checkedAddress, AccessHistory* accessHistory, const Record& currentRecord, std::vector<RecordManagementInfo>& info) {
   auto records = accessHistory->getRecords();
+  auto dataRaceFound = false;
+#ifdef PERFORMANCE
+  uint64_t numAccessRecordsTraversed = 0;
+#endif
   for (int i = 0; i < records->size(); ++i) { 
     auto histRecord = records->at(i);
     RecordManagementInfo recordManagementInfo;      
+#ifdef PERFORMANCE
+    numAccessRecordsTraversed += 1;
+#endif
     if (analyzeRaceCondition(histRecord, currentRecord, checkedAddress, recordManagementInfo)) {
       accessHistory->setFlag(eDataRaceFound); 
-      return true;
+      dataRaceFound = true;
+      break;
     }
     info.push_back(recordManagementInfo); 
   }
-  return false;
+#ifdef PERFORMANCE
+  gPerformanceCounters.bumpNumTotalAccessRecordsTraversed(numAccessRecordsTraversed); 
+#endif
+  return dataRaceFound;
 }

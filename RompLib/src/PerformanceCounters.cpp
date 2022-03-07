@@ -47,6 +47,10 @@ void PerformanceCounters::updateMaximumAccessRecordsNum(uint64_t value_new) {
   while (previous_value < value_new && !mMaximumAccessRecordsNum.compare_exchange_weak(previous_value, value_new));
 }
 
+void PerformanceCounters::bumpNumTotalAccessRecordsTraversed(uint64_t numRecordsTraversed) {
+  mNumTotalAccessRecordsTraversed.fetch_add(numRecordsTraversed, std::memory_order_relaxed);
+}
+
 void PerformanceCounters::printPerformanceCounters() const {
   LOG(INFO) << "# Check Access Function Call: " << mNumCheckAccessFunctionCall.load();      
   LOG(INFO) << "# Access History Record Overflow (threshold=" << mAccessHistoryRecordThreshold << "):  " << mNumAccessHistoryOverflow.load();
