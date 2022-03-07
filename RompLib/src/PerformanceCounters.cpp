@@ -56,4 +56,5 @@ void PerformanceCounters::printPerformanceCounters() const {
   LOG(INFO) << "# Access Control Write Read Contention: " << mNumAccessControlWriteReadContention.load();
   LOG(INFO) << "# Access Control Read Write Contention: " << mNumAccessControlReadWriteContention.load();
   LOG(INFO) << "# Access History Skip Remove Records: " << mNumAccessHistorySkipRemoveRecords.load();
+  LOG(INFO) << "# Maximum Access Records Number: " << mMaximumAccessRecordsNum.load();
 }
