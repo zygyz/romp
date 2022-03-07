@@ -9,11 +9,13 @@ public:
   void bumpNumAccessHistoryOverflow(int numRecords);
   void bumpNumMemoryAccessInstrumentationCall();
   void bumpNumAccessControlContention();
+  void updateMaximumAccessRecordsNum(uint64_t value_new); 
   void printPerformanceCounters() const;
 private:
   std::atomic_uint64_t mNumMemoryAccessInstrumentationCall;
   std::atomic_uint64_t mNumCheckAccessFunctionCall;
   std::atomic_uint64_t mNumAccessHistoryOverflow;
   std::atomic_uint64_t mNumAccessControlContention;
+  std::atomic_uint64_t mMaximumAccessRecordsNum;
   int mAccessHistoryRecordThreshold;
 };
