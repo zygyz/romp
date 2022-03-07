@@ -15,13 +15,13 @@ public:
   void bumpNumAccessHistorySkipRemoveRecords();
   void printPerformanceCounters() const;
 private:
-  std::atomic_long mNumMemoryAccessInstrumentationCall;
-  std::atomic_long mNumCheckAccessFunctionCall;
-  std::atomic_long mNumAccessHistoryOverflow;
-  std::atomic_long mNumAccessControlContention;
-  std::atomic_long mNumAccessControlReadWriteContention;
-  std::atomic_long mNumAccessControlWriteWriteContention;
-  std::atomic_long mNumAccessControlWriteReadContention;
-  std::atomic_long mNumAccessHistorySkipRemoveRecords;
+  std::atomic_uint64_t mNumMemoryAccessInstrumentationCall;
+  std::atomic_uint64_t mNumCheckAccessFunctionCall;
+  std::atomic_uint64_t mNumAccessHistoryOverflow;
+  std::atomic_uint64_t mNumAccessControlContention;
+  std::atomic_uint64_t mNumAccessControlReadWriteContention;
+  std::atomic_uint64_t mNumAccessControlWriteWriteContention;
+  std::atomic_uint64_t mNumAccessControlWriteReadContention;
+  std::atomic_uint64_t mNumAccessHistorySkipRemoveRecords;
   int mAccessHistoryRecordThreshold;
 };
