@@ -122,6 +122,8 @@ def validate_results(benchmark_root_path: str, baseline_branch: str, optimize_br
   optimize_output_path = get_output_directory_path(benchmark_root_path, optimize_branch); 
   baseline_output_files = os.listdir(baseline_output_path);
   optimize_output_files = os.listdir(optimize_output_path);
+  print('vlidating result');
+  no_error = True;
   for baseline_output_file in baseline_output_files:
     baseline_output_file_path = os.path.join(baseline_output_path, baseline_output_file); 
     is_correct = False;
@@ -131,6 +133,7 @@ def validate_results(benchmark_root_path: str, baseline_branch: str, optimize_br
       is_correct = validate_result_for_benchmark(baseline_output_file_path, True); 
     if is_correct == False:
       print('Wrong Result: ', baseline_output_file_path); 
+      no_error = False;
   for optimize_output_file in optimize_output_files:
     optimize_output_file_path = os.path.join(optimize_output_path, optimize_output_file);
     is_correct = False;
@@ -140,6 +143,9 @@ def validate_results(benchmark_root_path: str, baseline_branch: str, optimize_br
       is_correct = validate_result_for_benchmark(optimize_output_file_path, True); 
     if is_correct == False:
       print('Wrong Result: ', optimize_output_file_path); 
+      no_error = False;
+  if no_error:
+    print('validated no error');
  
 def main() -> int:
   parser = argparse.ArgumentParser(description='Argument parsing for performance profiler');
