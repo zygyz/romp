@@ -41,6 +41,12 @@ void PerformanceCounters::bumpNumAccessHistorySkipRemoveRecords() {
   mNumAccessHistorySkipRemoveRecords.fetch_add(1, std::memory_order_relaxed);
 }
 
+void PerformanceCounters::updateMaximumAccessRecordsNum(uint64_t value_new) {
+  // update the maximum value atomically  
+  auto previous_value = mMaximumAccessRecordsNum.load(); 
+  while (previous_value < value_new && !mMaximumAccessRecordsNum.compare_exchange_weak(previous_value, value_new));
+}
+
 void PerformanceCounters::printPerformanceCounters() const {
   LOG(INFO) << "# Check Access Function Call: " << mNumCheckAccessFunctionCall.load();      
   LOG(INFO) << "# Access History Record Overflow (threshold=" << mAccessHistoryRecordThreshold << "):  " << mNumAccessHistoryOverflow.load();
