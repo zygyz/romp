@@ -7,6 +7,8 @@ KEY_NUM_ACCESS_CONTROL_WRITE_WRITE_CONTENTION="key_num_access_control_write_writ
 KEY_NUM_ACCESS_CONTROL_WRITE_READ_CONTENTION="key_num_access_control_write_read_contention";
 KEY_NUM_ACCESS_CONTROL_READ_WRITE_CONTENTION="key_num_access_control_read_write_contention";
 KEY_NUM_ACCESS_HISTORY_SKIP_REMOVE_RECORDS="key_num_access_history_skip_remove_records";
+KEY_AVERAGE_NUM_ACCESS_RECORDS_TRAVERSED="key_average_num_access_records_traversed";
+KEY_MAX_ACCESS_RECORDS_SIZE="key_max_access_records_size";
 
 metrics_key_name_map = {
   KEY_NUM_CHECK_ACCESS_CALL: 'Check Access Function Call',
@@ -16,6 +18,8 @@ metrics_key_name_map = {
   KEY_NUM_ACCESS_CONTROL_WRITE_READ_CONTENTION: 'Access Control Write Read Contention',
   KEY_NUM_ACCESS_CONTROL_READ_WRITE_CONTENTION: 'Access Control Read Write Contention', 
   KEY_NUM_ACCESS_HISTORY_SKIP_REMOVE_RECORDS: 'Access History Skip Remove Records',
+  KEY_AVERAGE_NUM_ACCESS_RECORDS_TRAVERSED: 'Average number access records traversed',
+  KEY_MAX_ACCESS_RECORDS_SIZE: "Maximum Access Records Number",
 }
 
-metrics_key_list_for_visualization  = [KEY_NUM_CHECK_ACCESS_CALL, KEY_NUM_ACCESS_CONTROL_CONTENTION];
+metrics_key_list_for_visualization  = [KEY_NUM_CHECK_ACCESS_CALL, KEY_NUM_ACCESS_CONTROL_CONTENTION, KEY_AVERAGE_NUM_ACCESS_RECORDS_TRAVERSED, KEY_MAX_ACCESS_RECORDS_SIZE];
