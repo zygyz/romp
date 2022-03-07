@@ -37,7 +37,8 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
 #endif
   auto records = accessHistory->getRecords();
 #ifdef PERFORMANCE
-  gPerformanceCounters.bumpNumAccessHistoryOverflow(accessHistory->getNumRecords());
+  auto numRecords = accessHistory->getNumRecords();
+  gPerformanceCounters.bumpNumAccessHistoryOverflow(numRecords);
   gPerformanceCounters.updateMaximumAccessRecordsNum(accessHistory->getNumRecords()); 
 #endif
   if (accessHistory->dataRaceFound()) {
