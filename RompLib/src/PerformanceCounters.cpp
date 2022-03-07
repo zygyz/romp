@@ -62,6 +62,6 @@ void PerformanceCounters::printPerformanceCounters() const {
   LOG(INFO) << "# Access History Skip Remove Records: " << mNumAccessHistorySkipRemoveRecords.load();
   LOG(INFO) << "# Maximum Access Records Number: " << mMaximumAccessRecordsNum.load();
   if (mNumCheckAccessFunctionCall.load() > 0) {
-    LOG(INFO) << "# Average number access records traversed: " << mNumTotalAccessRecordsTraversed.load() / mNumCheckAccessFunctionCall.load();
+    LOG(INFO) << "# Average number access records traversed: " << (double) mNumTotalAccessRecordsTraversed.load() / (double) mNumCheckAccessFunctionCall.load();
   }
 }
