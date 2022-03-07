@@ -72,13 +72,22 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
   std::vector<Record>::const_iterator cit;
   auto skipAddCurrentRecord = false;
   int diffIndex;
+#ifdef PERFORMANCE
+  uint64_t numAccessRecordsTraversed = 0; 
+#endif
   while (it != records->end()) {
     cit = it; 
     auto histRecord = *cit;
+#ifdef PERFORMANCE
+    numAccessRecordsTraversed++;
+#endif
     if (analyzeRaceCondition(histRecord, curRecord, isHistBeforeCurrent, diffIndex, checkedAddress)) {
       RAW_DLOG(INFO, "FOUND data race on: %lx hist: isWrite: %d %s cur: isWrite: %d %s", checkedAddress, histRecord.isWrite(), histRecord.getLabel()->toString().c_str(), curRecord.isWrite(), curLabel->toString().c_str());
       gDataRaceFound = true;
       accessHistory->setFlag(eDataRaceFound);
+#ifdef PERFORMANCE
+     gPerformanceCounters.bumpNumTotalAccessRecordsTraversed(numAccessRecordsTraversed);
+#endif
       return;
     }
     auto decision = manageAccessRecord(histRecord, curRecord, 
@@ -88,6 +97,9 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
     }
     modifyAccessHistory(decision, records, it);
   }
+#ifdef PERFORMANCE
+     gPerformanceCounters.bumpNumTotalAccessRecordsTraversed(numAccessRecordsTraversed);
+#endif
   if (!skipAddCurrentRecord) {
     accessHistory->addRecordToAccessHistory(curRecord); 
   }
