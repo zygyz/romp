@@ -17,8 +17,8 @@ enum NodeRelation {
 enum LockRelation {
   eUndefinedLockRelation = 0,
   eHasCommonLock = 1,
-  eHistoryLockSetContainsCurrentLockSet = 2, //note: both history lockset and current lockset have at lesat one lock 
-  eCurrentLockSetContainsHistoryLockSet = 3,
+  eHistoryLockSetContainsCurrentLockSetNonEmpty = 2, //note: both history lockset and current lockset have at lesat one lock 
+  eCurrentLockSetContainsHistoryLockSetNonEmpty = 3,
   eNoCommonLock = 4, // both current and history access have at least one lock, just no common lock
   eHistoryNoLockCurrentHasLock = 6, 
   eCurrentNoLockHistoryHasLock = 7,
