@@ -75,6 +75,7 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
 #ifdef PERFORMANCE
   uint64_t numAccessRecordsTraversed = 0; 
 #endif
+  auto dataRaceFound = false;
   while (it != records->end()) {
     cit = it; 
     auto histRecord = *cit;
@@ -85,10 +86,8 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
       RAW_DLOG(INFO, "FOUND data race on: %lx hist: isWrite: %d %s cur: isWrite: %d %s", checkedAddress, histRecord.isWrite(), histRecord.getLabel()->toString().c_str(), curRecord.isWrite(), curLabel->toString().c_str());
       gDataRaceFound = true;
       accessHistory->setFlag(eDataRaceFound);
-#ifdef PERFORMANCE
-     gPerformanceCounters.bumpNumTotalAccessRecordsTraversed(numAccessRecordsTraversed);
-#endif
-      return;
+      dataRaceFound = true;
+      break;
     }
     auto decision = manageAccessRecord(histRecord, curRecord, 
             isHistBeforeCurrent, diffIndex);
@@ -98,8 +97,11 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
     modifyAccessHistory(decision, records, it);
   }
 #ifdef PERFORMANCE
-     gPerformanceCounters.bumpNumTotalAccessRecordsTraversed(numAccessRecordsTraversed);
+  gPerformanceCounters.bumpNumTotalAccessRecordsTraversed(numAccessRecordsTraversed);
 #endif
+  if (dataRaceFound) {
+    return;
+  }
   if (!skipAddCurrentRecord) {
     accessHistory->addRecordToAccessHistory(curRecord); 
   }
