@@ -38,7 +38,7 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
   auto records = accessHistory->getRecords();
 #ifdef PERFORMANCE
   gPerformanceCounters.bumpNumAccessHistoryOverflow(accessHistory->getNumRecords());
-  gPerformanceCounters.updateMaximumAccessRecordsNum(records->size()); 
+  gPerformanceCounters.updateMaximumAccessRecordsNum(accessHistory->getNumRecords()); 
 #endif
   if (accessHistory->dataRaceFound()) {
     //  data race has already been found on this memory location, romp only 
