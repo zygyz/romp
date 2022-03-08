@@ -24,7 +24,7 @@ using LockSetPtr = std::shared_ptr<LockSet>;
 ShadowMemory<AccessHistory> shadowMemory;
 extern PerformanceCounters gPerformanceCounters;
 
-void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const LockSetPtr& curLockSet, void* instnAddr, 
+bool checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const LockSetPtr& curLockSet, void* instnAddr, 
                    void* currentTaskData, int taskFlags, bool isWrite, bool hasHardwareLock, uint64_t checkedAddress) {
 #ifdef PERFORMANCE
   gPerformanceCounters.bumpNumCheckAccessFunctionCall();
@@ -44,13 +44,13 @@ rollback: // will refactor to remove the tag. Using goto tag is actually more re
     //  memory location and mark this memory location as found. Future access 
     //  to this memory location does not go through data race checking.
     if (!accessHistory->hasRecords()) {
-      return; 
+      return true;
     }
     guard.upgradeFromReaderToWriter();
     if (accessHistory->hasRecords()) {
       accessHistory->clearRecords(); 
     }
-    return;
+    return true;
   }
   if (accessHistory->memIsRecycled()) {
     //  The memory slot is recycled because of the end of explicit task. 
@@ -59,7 +59,7 @@ rollback: // will refactor to remove the tag. Using goto tag is actually more re
     if (accessHistory->memIsRecycled()) {
       accessHistory->clearFlags();
       accessHistory->clearRecords();
-      return;
+      return false;
     }
   }
   auto curRecord = Record(isWrite, curLabel, curLockSet, currentTaskData, checkedAddress, hasHardwareLock, static_cast<TaskData*>(currentTaskData)->inReduction);
@@ -69,7 +69,7 @@ rollback: // will refactor to remove the tag. Using goto tag is actually more re
     if (!hasWriteWriteContention || hasWriteWriteContention && !accessHistory->hasRecords()) {
       RAW_DLOG(INFO, "add record to access history memory address: %lx in reduction %d is write: %d", curRecord.getCheckedMemoryAddress(), curRecord.isInReduction(), curRecord.isWrite());
       accessHistory->addRecordToAccessHistory(curRecord);
-      return;
+      return false;
     } else {
       goto rollback; 
     }
@@ -78,9 +78,10 @@ rollback: // will refactor to remove the tag. Using goto tag is actually more re
   std::vector<RecordManagementInfo> info;
   if (checkDataRaceForMemoryAddress(checkedAddress, accessHistory, curRecord, info)) {
     gDataRaceFound = true;
-    return;
+    return true;
   }
   manageAccessRecords(accessHistory, curRecord, guard, info);
+  return false;
 }
 
 extern "C" {
@@ -139,7 +140,9 @@ void checkAccess(void* baseAddress, uint32_t bytesAccessed, void* instnAddr, boo
     auto checkedAddress = gUseWordLevelCheck ? reinterpret_cast<uint64_t>(baseAddress) + i * 4 : reinterpret_cast<uint64_t>(baseAddress) + i;      
     if (shouldCheckMemoryAccess(threadInfo, taskMemoryInfo, taskInfo, checkedAddress, isWrite)) {
       auto accessHistory = shadowMemory.getShadowMemorySlot(checkedAddress);
-      checkDataRace(accessHistory, curLabel, curLockSet, instnAddr, static_cast<void*>(currentTaskData), taskInfo.flags, isWrite, hasHardwareLock, checkedAddress);
+      if (checkDataRace(accessHistory, curLabel, curLockSet, instnAddr, static_cast<void*>(currentTaskData), taskInfo.flags, isWrite, hasHardwareLock, checkedAddress)) {
+        return;
+      }
     }
   }
 }
