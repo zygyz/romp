@@ -99,6 +99,9 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
   }
 #ifdef PERFORMANCE
   gPerformanceCounters.bumpNumTotalAccessRecordsTraversed(numAccessRecordsTraversed);
+  if (skipAddCurrentRecord) {
+    gPerformanceCounters.bumpNumSkipAddingCurrentRecord();
+  } 
 #endif
   if (dataRaceFound) {
     return;
