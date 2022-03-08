@@ -16,6 +16,7 @@ public:
   void bumpNumAccessHistoryRemoveRecords();
   void updateMaximumAccessRecordsNum(uint64_t value_new); 
   void bumpNumTotalAccessRecordsTraversed(uint64_t numRecordsTraversed);
+  void bumpNumSkipAddingCurrentRecord();
   void printPerformanceCounters() const;
 private:
   std::atomic_uint64_t mNumMemoryAccessInstrumentationCall;
@@ -29,5 +30,6 @@ private:
   std::atomic_uint64_t mMaximumAccessRecordsNum;
   std::atomic_uint64_t mNumTotalAccessRecordsTraversed;
   std::atomic_uint64_t mNumAccessHistoryRemoveRecords;
+  std::atomic_uint64_t mNumSkipAddingCurrentRecord; 
   int mAccessHistoryRecordThreshold;
 };
