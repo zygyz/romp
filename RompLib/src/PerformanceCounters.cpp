@@ -35,6 +35,10 @@ void PerformanceCounters::bumpNumTotalAccessRecordsTraversed(uint64_t numRecords
   mNumTotalAccessRecordsTraversed.fetch_add(numRecordsTraversed, std::memory_order_relaxed);
 }
 
+void PerformanceCounters::bumpNumSkipAddingCurrentRecord() {
+  mNumSkipAddingCurrentRecord.fetch_add(1, std::memory_order_relaxed);
+}
+
 void PerformanceCounters::printPerformanceCounters() const {
   LOG(INFO) << "# Check Access Function Call: " << mNumCheckAccessFunctionCall.load();      
   LOG(INFO) << "# Access History Record Overflow (threshold=" << mAccessHistoryRecordThreshold << "):  " << mNumAccessHistoryOverflow.load();
