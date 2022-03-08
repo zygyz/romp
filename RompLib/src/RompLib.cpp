@@ -24,7 +24,7 @@ using LockSetPtr = std::shared_ptr<LockSet>;
 ShadowMemory<AccessHistory> shadowMemory;
 extern PerformanceCounters gPerformanceCounters;
 
-void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const LockSetPtr& curLockSet, void* instnAddr, 
+bool checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const LockSetPtr& curLockSet, void* instnAddr, 
                    void* currentTaskData, int taskFlags, bool isWrite, bool hasHardwareLock, uint64_t checkedAddress) {
 #ifdef PERFORMANCE
   gPerformanceCounters.bumpNumCheckAccessFunctionCall();
@@ -50,14 +50,14 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
     if (accessHistory->hasRecords()) {
       accessHistory->clearRecords();
     }
-    return;
+    return true;
   }
   if (accessHistory->memIsRecycled()) {
     //  The memory slot is recycled because of the end of explicit task. 
     //  reset the memory state flag and clear the access records.
      accessHistory->clearFlags();
      accessHistory->clearRecords();
-     return;
+     return false;
   }
 
   auto curRecord = Record(isWrite, curLabel, curLockSet, 
@@ -65,7 +65,7 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
   if (!accessHistory->hasRecords()) {
     // no access record, add current access to the record
     accessHistory->addRecordToAccessHistory(curRecord);
-    return;
+    return false;
   }
   // check previous access records with current access
   auto isHistBeforeCurrent = false;
@@ -103,12 +103,10 @@ void checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
     gPerformanceCounters.bumpNumSkipAddingCurrentRecord();
   } 
 #endif
-  if (dataRaceFound) {
-    return;
-  }
   if (!skipAddCurrentRecord) {
     accessHistory->addRecordToAccessHistory(curRecord); 
   }
+  return dataRaceFound;
 }
 
 extern "C" {
@@ -172,7 +170,9 @@ void checkAccess(void* baseAddress,
                                            reinterpret_cast<uint64_t>(baseAddress) + i;      
     if (shouldCheckMemoryAccess(threadInfo, taskMemoryInfo, checkedAddress, taskInfo.taskFrame)) {
       auto accessHistory = shadowMemory.getShadowMemorySlot(checkedAddress);
-      checkDataRace(accessHistory, curLabel, curLockSet, instnAddr, static_cast<void*>(currentTaskData), taskInfo.flags, isWrite, hasHardwareLock, checkedAddress);
+      if (checkDataRace(accessHistory, curLabel, curLockSet, instnAddr, static_cast<void*>(currentTaskData), taskInfo.flags, isWrite, hasHardwareLock, checkedAddress)) {
+        return;
+      }
     }
   }
 }
