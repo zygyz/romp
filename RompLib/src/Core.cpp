@@ -540,11 +540,13 @@ void manageAccessRecords(AccessHistory* accessHistory, const Record& currentReco
     } else {
       gPerformanceCounters.bumpNumAccessHistoryRemoveRecords();
     }
-    if (canSkipAddingCurrentRecord) {
-      gPerformanceCounters.bumpNumSkipAddingCurrentRecord(); 
-    } 
 #endif
   }
+#ifdef PERFORMANCE
+  if (canSkipAddingCurrentRecord) {
+    gPerformanceCounters.bumpNumSkipAddingCurrentRecord(); 
+  } 
+#endif
   if (!canSkipAddingCurrentRecord) {
     // if we should not skip adding current record to the access history, we need to add it to the record no matter 
     // if there is write write contention or not. 
