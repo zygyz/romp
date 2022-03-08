@@ -9,6 +9,7 @@ KEY_NUM_ACCESS_CONTROL_READ_WRITE_CONTENTION="key_num_access_control_read_write_
 KEY_NUM_ACCESS_HISTORY_SKIP_REMOVE_RECORDS="key_num_access_history_skip_remove_records";
 KEY_AVERAGE_NUM_ACCESS_RECORDS_TRAVERSED="key_average_num_access_records_traversed";
 KEY_MAX_ACCESS_RECORDS_SIZE="key_max_access_records_size";
+KEY_NUM_ACCESS_HISTORY_REMOVE_RECORDS="key_num_access_history_remove_records";
 
 metrics_key_name_map = {
   KEY_NUM_CHECK_ACCESS_CALL: 'Check Access Function Call',
@@ -20,6 +21,7 @@ metrics_key_name_map = {
   KEY_NUM_ACCESS_HISTORY_SKIP_REMOVE_RECORDS: 'Access History Skip Remove Records',
   KEY_AVERAGE_NUM_ACCESS_RECORDS_TRAVERSED: 'Average number access records traversed',
   KEY_MAX_ACCESS_RECORDS_SIZE: "Maximum Access Records Number",
+  KEY_NUM_ACCESS_HISTORY_REMOVE_RECORDS: 'Access History Remove Records',
 }
 
 metrics_key_list_for_visualization  = [KEY_NUM_CHECK_ACCESS_CALL, KEY_NUM_ACCESS_CONTROL_CONTENTION, KEY_AVERAGE_NUM_ACCESS_RECORDS_TRAVERSED, KEY_MAX_ACCESS_RECORDS_SIZE];
