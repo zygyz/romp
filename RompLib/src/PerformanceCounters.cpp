@@ -45,6 +45,7 @@ void PerformanceCounters::printPerformanceCounters() const {
   LOG(INFO) << "# Memory Access Instrumentation Call: " << mNumMemoryAccessInstrumentationCall.load();
   LOG(INFO) << "# Access Control Contention: " << mNumAccessControlContention.load();
   LOG(INFO) << "# Maximum Access Records Number: " << mMaximumAccessRecordsNum.load();
+  LOG(INFO) << "# Skip Add Current Record: " << mNumSkipAddingCurrentRecord.load();
   if (mNumCheckAccessFunctionCall.load() > 0) {
     LOG(INFO) << "# Average number access records traversed: " << (double) mNumTotalAccessRecordsTraversed.load() / (double) mNumCheckAccessFunctionCall.load();
   }
