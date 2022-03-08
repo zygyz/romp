@@ -540,6 +540,9 @@ void manageAccessRecords(AccessHistory* accessHistory, const Record& currentReco
     } else {
       gPerformanceCounters.bumpNumAccessHistoryRemoveRecords();
     }
+    if (canSkipAddingCurrentRecord) {
+      gPerformanceCounters.bumpNumSkipAddingCurrentRecord(); 
+    } 
 #endif
   }
   if (!canSkipAddingCurrentRecord) {
