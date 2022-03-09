@@ -8,8 +8,6 @@
 #include "TaskInfoQuery.h"
 #include "ThreadData.h"
 
-#define REDUNDANT_RECORD_REMOVAL_THRESHOLD 10
-
 extern PerformanceCounters gPerformanceCounters;
 
 bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, const uint64_t checkedAddress, RecordManagementInfo& recordManagementInfo) {
@@ -468,91 +466,82 @@ uint64_t computeEnterRank(uint64_t phase) {
 // there is no race condition between current access record and all existing history records. 
 // In this function, we determine what could be pruned and update record state.
 void manageAccessRecords(AccessHistory* accessHistory, const Record& currentRecord, ReaderWriterLockGuard& lockGuard, std::vector<RecordManagementInfo>& info) {
-  auto records = accessHistory->getRecords();
-  auto infoSize = info.size(); 
-  auto recordsNum = records->size();
-  RAW_DLOG(INFO, "num access records: %d", recordsNum);
-  RAW_CHECK(infoSize == recordsNum, "access records size is not equal to records number");
-  auto recordState = accessHistory->getRecordState();
-  std::vector<int> recordRemovalCandidates;
-  
-  // we define 4 combinations. Then we iterate over the record management info vector to count these values
-  // the values will be used to determine if we could skip adding current record to the access history.
-  auto histReadCurReadSiblingCurLockSetContainsHistLockSetCount = 0;
-  auto histWriteCurReadSiblingCurLockSetContainsHistLockSetCount = 0;
-  auto histWriteCurWriteSiblingCurLockSetContainsHistLockSetCount = 0;
-  auto histReadCurWriteSiblingCurLockSetContainsHistLockSetCount = 0;
-  auto canSkipAddingCurrentRecord = false;
+  while (true) { // rollback point, on first entry, we already have reader lock acquired.
+    auto records = accessHistory->getRecords();
+    auto infoSize = info.size(); 
+    auto recordsNum = records->size();
+    RAW_DLOG(INFO, "num access records: %d", recordsNum);
+    RAW_CHECK(infoSize == recordsNum, "access records size is not equal to records number");
+    auto recordState = accessHistory->getRecordState();
+    std::vector<int> recordRemovalCandidates;
+    recordRemovalCandidates.clear(); 
+    // we define 4 combinations. Then we iterate over the record management info vector to count these values
+    // the values will be used to determine if we could skip adding current record to the access history.
+    auto histReadCurReadSiblingCurLockSetContainsHistLockSetCount = 0;
+    auto histWriteCurReadSiblingCurLockSetContainsHistLockSetCount = 0;
+    auto histWriteCurWriteSiblingCurLockSetContainsHistLockSetCount = 0;
+    auto histReadCurWriteSiblingCurLockSetContainsHistLockSetCount = 0;
+    auto canSkipAddingCurrentRecord = false;
 
-  for (int i = 0; i < infoSize; ++i) {
-    auto recordManagementInfo = info.at(i);
-    auto historyRecord = records->at(i); 
-    auto historyAccessIsWrite = historyRecord.isWrite();
-    auto currentAccessIsWrite = currentRecord.isWrite();
-    auto lockRelation = recordManagementInfo.lockRelation;
-    auto historyLockSetContainsCurrentLockSet = lockRelation == eHistoryLockSetContainsCurrentLockSetNonEmpty || lockRelation == eBothEmptyLock || lockRelation == eCurrentNoLockHistoryHasLock;
-    auto currentLockSetContainsHistoryLockSet = lockRelation == eCurrentLockSetContainsHistoryLockSetNonEmpty || lockRelation == eBothEmptyLock || lockRelation == eHistoryNoLockCurrentHasLock; 
+    for (int i = 0; i < infoSize; ++i) {
+      auto recordManagementInfo = info.at(i);
+      auto historyRecord = records->at(i); 
+      auto historyAccessIsWrite = historyRecord.isWrite();
+      auto currentAccessIsWrite = currentRecord.isWrite();
+      auto lockRelation = recordManagementInfo.lockRelation;
+      auto historyLockSetContainsCurrentLockSet = lockRelation == eHistoryLockSetContainsCurrentLockSetNonEmpty || lockRelation == eBothEmptyLock || lockRelation == eCurrentNoLockHistoryHasLock;
+      auto currentLockSetContainsHistoryLockSet = lockRelation == eCurrentLockSetContainsHistoryLockSetNonEmpty || lockRelation == eBothEmptyLock || lockRelation == eHistoryNoLockCurrentHasLock; 
 
-    if (((historyAccessIsWrite && currentAccessIsWrite) || historyAccessIsWrite == false) && 
-          recordManagementInfo.nodeRelation == eHappensBefore && 
-          historyLockSetContainsCurrentLockSet) {
-      recordRemovalCandidates.push_back(i);
-    } else {
-      if (recordManagementInfo.nodeRelation == eSiblingParallel && currentLockSetContainsHistoryLockSet) {
-        if (!historyAccessIsWrite && !currentAccessIsWrite) {
-          histReadCurReadSiblingCurLockSetContainsHistLockSetCount += 1;
-        } else if (historyAccessIsWrite && !currentAccessIsWrite) {
-          // note that in this case at least a common lock is held 
-          histWriteCurReadSiblingCurLockSetContainsHistLockSetCount += 1; 
-        } else if (historyAccessIsWrite && currentAccessIsWrite) {
-          histWriteCurWriteSiblingCurLockSetContainsHistLockSetCount += 1;
-        } else if (!historyAccessIsWrite && currentAccessIsWrite) {
-          histReadCurWriteSiblingCurLockSetContainsHistLockSetCount += 1;
-        }
-      }  
+      if (((historyAccessIsWrite && currentAccessIsWrite) || historyAccessIsWrite == false) && recordManagementInfo.nodeRelation == eHappensBefore && historyLockSetContainsCurrentLockSet) {
+        recordRemovalCandidates.push_back(i); 
+      } else {
+        if (recordManagementInfo.nodeRelation == eSiblingParallel && currentLockSetContainsHistoryLockSet) {
+          if (!historyAccessIsWrite && !currentAccessIsWrite) {
+            histReadCurReadSiblingCurLockSetContainsHistLockSetCount += 1;
+          } else if (historyAccessIsWrite && !currentAccessIsWrite) {
+            // note that in this case at least a common lock is held 
+            histWriteCurReadSiblingCurLockSetContainsHistLockSetCount += 1; 
+          } else if (historyAccessIsWrite && currentAccessIsWrite) {
+            histWriteCurWriteSiblingCurLockSetContainsHistLockSetCount += 1;
+          } else if (!historyAccessIsWrite && currentAccessIsWrite) {
+            histReadCurWriteSiblingCurLockSetContainsHistLockSetCount += 1;
+          }
+        }  
+      }
+      if ((histReadCurReadSiblingCurLockSetContainsHistLockSetCount >= 2 || 
+          (histReadCurReadSiblingCurLockSetContainsHistLockSetCount > 0 && histWriteCurReadSiblingCurLockSetContainsHistLockSetCount > 0)) || 
+          histWriteCurReadSiblingCurLockSetContainsHistLockSetCount >= 2 || 
+          (histWriteCurReadSiblingCurLockSetContainsHistLockSetCount > 0 && histReadCurReadSiblingCurLockSetContainsHistLockSetCount > 0) || 
+          histWriteCurWriteSiblingCurLockSetContainsHistLockSetCount >= 2 ||
+          (histReadCurWriteSiblingCurLockSetContainsHistLockSetCount > 0 && histWriteCurWriteSiblingCurLockSetContainsHistLockSetCount > 0)) {
+        canSkipAddingCurrentRecord = true; 
+      } 
     }
-   }
-   if ((histReadCurReadSiblingCurLockSetContainsHistLockSetCount >= 2 || 
-      (histReadCurReadSiblingCurLockSetContainsHistLockSetCount > 0 && histWriteCurReadSiblingCurLockSetContainsHistLockSetCount > 0)) || 
-      histWriteCurReadSiblingCurLockSetContainsHistLockSetCount >= 2 || 
-      (histWriteCurReadSiblingCurLockSetContainsHistLockSetCount > 0 && histReadCurReadSiblingCurLockSetContainsHistLockSetCount > 0) || 
-      histWriteCurWriteSiblingCurLockSetContainsHistLockSetCount >= 2 ||
-      (histReadCurWriteSiblingCurLockSetContainsHistLockSetCount > 0 && histWriteCurWriteSiblingCurLockSetContainsHistLockSetCount > 0)) {
-     canSkipAddingCurrentRecord = true; 
-  } 
-  if (recordRemovalCandidates.size() > 0) {
-    RAW_DLOG(INFO, "records removal candidate size: %d", recordRemovalCandidates.size());
-    auto didSkipRemovingRecords = false;
-    if (recordsNum < REDUNDANT_RECORD_REMOVAL_THRESHOLD) {
-      didSkipRemovingRecords = true; 
-    } else {
+    if (recordRemovalCandidates.size() > 0) {
+      RAW_DLOG(INFO, "records removal candidate size: %d", recordRemovalCandidates.size());
       auto hasWriteWriteContention = lockGuard.upgradeFromReaderToWriter();
       if (!hasWriteWriteContention) {
         accessHistory->removeRecords(recordRemovalCandidates);
       } else {
-        // if there is contention, abort removal of the record to avoid re-computation
-        didSkipRemovingRecords = true; 
+        continue; // rolling back to the start of the function
       }
-    } 
 #ifdef PERFORMANCE
-    if (didSkipRemovingRecords) {
-      gPerformanceCounters.bumpNumAccessHistorySkipRemoveRecords(); 
-    } else {
       gPerformanceCounters.bumpNumAccessHistoryRemoveRecords();
+#endif
     }
-#endif
-  }
 #ifdef PERFORMANCE
-  if (canSkipAddingCurrentRecord) {
-    gPerformanceCounters.bumpNumSkipAddingCurrentRecord(); 
-  } 
+    if (canSkipAddingCurrentRecord) {
+      gPerformanceCounters.bumpNumSkipAddingCurrentRecord(); 
+    } 
 #endif
-  if (!canSkipAddingCurrentRecord) {
+    if (!canSkipAddingCurrentRecord) {
     // if we should not skip adding current record to the access history, we need to add it to the record no matter 
     // if there is write write contention or not. 
-    lockGuard.upgradeFromReaderToWriter();  
-    RAW_DLOG(INFO, "adding record to access history at %lx, memory address: %lx is in reduction %d\n", accessHistory, currentRecord.getCheckedMemoryAddress(), currentRecord.isInReduction());
-    accessHistory->addRecordToAccessHistory(currentRecord);
+      lockGuard.upgradeFromReaderToWriter();  
+      RAW_DLOG(INFO, "adding record to access history at %lx, memory address: %lx is in reduction %d\n", accessHistory, currentRecord.getCheckedMemoryAddress(), currentRecord.isInReduction());
+      accessHistory->addRecordToAccessHistory(currentRecord);
+    }
+    break;
   }
 } 
 
