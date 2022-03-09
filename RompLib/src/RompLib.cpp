@@ -76,11 +76,17 @@ rollback: // will refactor to remove the tag. Using goto tag is actually more re
   }
   // check previous access records with current access, if there exists data race 
   std::vector<RecordManagementInfo> info;
-  if (checkDataRaceForMemoryAddress(checkedAddress, accessHistory, curRecord, info)) {
-    gDataRaceFound = true;
-    return true;
+  while (true) { // coordinate data race checking and rolling back of access histroy managemnt
+    info.clear();
+    if (checkDataRaceForMemoryAddress(checkedAddress, accessHistory, curRecord, info)) {
+      gDataRaceFound = true;
+      return true;
+    }
+    if (manageAccessRecords(accessHistory, curRecord, guard, info)) {
+      continue;
+    } 
+    break;
   }
-  manageAccessRecords(accessHistory, curRecord, guard, info);
   return false;
 }
 

@@ -17,5 +17,5 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, con
 bool analyzeTaskGroupSync(Label* histLabel, Label* curLabel, int index);
 uint64_t computeExitRank(uint64_t phase);
 uint64_t computeEnterRank(uint64_t phase);
-void manageAccessRecords(AccessHistory* accessHistory, const Record& currentRecord, ReaderWriterLockGuard& lockGuard, std::vector<RecordManagementInfo>& info);
+bool manageAccessRecords(AccessHistory* accessHistory, const Record& currentRecord, ReaderWriterLockGuard& lockGuard, std::vector<RecordManagementInfo>& info);
 bool checkDataRaceForMemoryAddress(uint64_t checkedAddress, AccessHistory* accessHistory, const Record& accessRecord, std::vector<RecordManagementInfo>& recordManagementInfo);
