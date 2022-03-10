@@ -30,13 +30,16 @@ def create_output_directory(benchmark_root_path: str, branch: str) -> str:
   print("Create output path: ", output_path);
   return output_path;
   
-def build_romp(romp_root_path: str, branch: str) -> None:
+def build_romp(romp_root_path: str, branch: str, build_release: bool) -> None:
   print("Build romp on branch ", branch);
   cwd = os.getcwd();
   os.chdir(romp_root_path);
   try: 
     os.system('git checkout ' + branch);
-    os.system('./install.sh perf');
+    if build_release:
+      os.system('./install.sh release');
+    else:
+      os.system('./install.sh perf');
   finally:
     os.chdir(cwd);
 
@@ -51,8 +54,8 @@ def run(benchmark_root_path: str, output_path: str) -> None:
     print('running benchmark: ', binary_path);
     os.system(binary_path + ' &> ' +  output_file_path);
 
-def run_benchmarks_for_branch(romp_root_path: str, benchmark_root_path: str, branch: str) -> None:
-  build_romp(romp_root_path, branch);
+def run_benchmarks_for_branch(romp_root_path: str, benchmark_root_path: str, branch: str, build_release: bool) -> None:
+  build_romp(romp_root_path, branch, build_release);
   output_path = create_output_directory(benchmark_root_path, branch);
   run(benchmark_root_path, output_path);
 
@@ -155,6 +158,7 @@ def main() -> int:
   parser.add_argument('optimize_branch', type=str, help='optimize branch');
   parser.add_argument('-c', '--calculate', action="store_true", help="calculate the performance");
   parser.add_argument('-v', '--validate', action="store_true", help="validate data race detetion result");
+  parser.add_argument('-r', '--release', action="store_true", help="run benchmarks with release mode");
   args = parser.parse_args();
   if args.calculate:
     calculate_performance(args.benchmark_root_path, args.baseline_branch, args.optimize_branch);
@@ -162,8 +166,8 @@ def main() -> int:
   if args.validate:
     validate_results(args.benchmark_root_path, args.baseline_branch, args.optimize_branch);
     return 0;
-  run_benchmarks_for_branch(args.romp_root_path, args.benchmark_root_path, args.baseline_branch);
-  run_benchmarks_for_branch(args.romp_root_path, args.benchmark_root_path, args.optimize_branch);
+  run_benchmarks_for_branch(args.romp_root_path, args.benchmark_root_path, args.baseline_branch, args.release);
+  run_benchmarks_for_branch(args.romp_root_path, args.benchmark_root_path, args.optimize_branch, args.release);
   return 0;
 
 
