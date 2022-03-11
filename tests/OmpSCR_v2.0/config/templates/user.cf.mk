@@ -23,7 +23,7 @@ OSCR_USE_C=y
 #
 # 1.2. The name of your C compiler or front-end
 #
-OSCR_CC=gcc
+OSCR_CC=clang
 
 #
 # 1.3. Flag/s needed to activate OpenMP pragmas recognition
@@ -63,7 +63,7 @@ OSCR_USE_CPP=y
 #
 # 2.2. The name of your C++ compiler or front-end
 #
-OSCR_CPPC=g++
+OSCR_CPPC=clang++
 
 #
 # 2.3. Flag/s needed to activate OpenMP pragmas recognition
