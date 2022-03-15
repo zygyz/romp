@@ -11,13 +11,6 @@ enum AccessHistoryFlag {
   eMemoryRecycled = 0x2,
 };
 
-enum AccessRecordState {
-  eEmptyState = 0, // start state 
-  eOneReaderState = 1,
-  eOneWriterState = 2,
-  eUndefinedState = 3,
-};
-
 class AccessHistory {
 public: 
   AccessHistory(); 
@@ -29,7 +22,6 @@ public:
   void clearFlag(AccessHistoryFlag flag);
   void addRecordToAccessHistory(const Record& record);
   void removeRecords(const std::vector<int>& recordsToBeRemoved);
-  void setRecordState(AccessRecordState state);
   bool dataRaceFound() const;
   bool memIsRecycled() const;
   bool hasRecords() const;
@@ -40,5 +32,4 @@ private:
   pfq_rwlock_t mLock; 
   uint8_t mState;  
   std::unique_ptr<std::vector<Record>> mRecords; 
-  uint8_t mRecordState;
 };

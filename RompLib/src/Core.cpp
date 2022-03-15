@@ -472,7 +472,6 @@ bool manageAccessRecords(AccessHistory* accessHistory, const Record& currentReco
   auto recordsNum = records->size();
   RAW_DLOG(INFO, "num access records: %d", recordsNum);
   RAW_CHECK(infoSize == recordsNum, "access records size is not equal to records number");
-  auto recordState = accessHistory->getRecordState();
   std::vector<int> recordRemovalCandidates;
   recordRemovalCandidates.clear(); 
   // we define 4 combinations. Then we iterate over the record management info vector to count these values
