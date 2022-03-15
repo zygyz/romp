@@ -29,10 +29,6 @@ void AccessHistory::clearFlags() {
   mState = 0; 
 }
 
-void AccessHistory::setRecordState(AccessRecordState state) {
-  mRecordState |= state;
-}
-
 void AccessHistory::clearRecords() {
   if (mRecords) {
     mRecords->clear();
@@ -74,8 +70,3 @@ void AccessHistory::removeRecords(const std::vector<int>& recordsToBeRemoved) {
     mRecords->erase(mRecords->begin() + *it);
   }  
 }
-
-uint8_t AccessHistory::getRecordState() const {
-  return mRecordState;
-}
-
