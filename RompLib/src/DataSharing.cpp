@@ -50,17 +50,11 @@ bool shouldCheckMemoryAccess(const ThreadInfo& threadInfo,
 
 bool isDuplicateMemoryAccess(const uint64_t memoryAddress, const TaskInfo& taskInfo, bool isWrite) {
   const auto taskData = static_cast<TaskData*>(taskInfo.taskData->ptr);  
-  RAW_CHECK(taskData->label != nullptr, "not expecting task label is not set"); 
-  const auto labelPtr = static_cast<Label*>(taskData->label.get());
   if (taskData->duplicateMap.find(memoryAddress) == taskData->duplicateMap.end() || 
-      taskData->duplicateMap[memoryAddress].find(labelPtr) == taskData->duplicateMap[memoryAddress].end()) {
-    taskData->duplicateMap[memoryAddress][labelPtr] = isWrite;
+      (taskData->duplicateMap[memoryAddress] == false && isWrite)) {
+    taskData->duplicateMap[memoryAddress] = isWrite;
     return false;
   } 
-  if (taskData->duplicateMap[memoryAddress][labelPtr] == false && isWrite) {
-    taskData->duplicateMap[memoryAddress][labelPtr] = true;
-    return false;
-  }
   return true;  
 }
 

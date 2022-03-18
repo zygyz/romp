@@ -22,7 +22,7 @@ typedef struct TaskData {
   int expLocalId; // if the task is explicit, store its local id in par region
   bool isMutexTask;
   bool isExplicitTask; 
-  std::unordered_map<uint64_t, std::unordered_map<Label*, bool>> duplicateMap;
+  std::unordered_map<uint64_t, bool> duplicateMap;
   TaskData() {
     label = nullptr;
     lockSet = nullptr;
@@ -32,5 +32,8 @@ typedef struct TaskData {
     isMutexTask = false;
     isExplicitTask = false;
   }
-  
+  ~TaskData() {
+    duplicateMap.clear();
+  } 
+
 } TaskData;
