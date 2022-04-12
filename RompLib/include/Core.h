@@ -9,7 +9,7 @@
 bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex, RecordManagementInfo& recordManagementInfo);
 bool analyzeSiblingImplicitTask(Label* histLabel, Label* curLabel, int index, RecordManagementInfo& recordManagementInfo);
 bool analyzeSameTask(Label* histLabel, Label* curLabel, int index, RecordManagementInfo& recordManagementInfo);
-bool analyzeOrderedSection(Label* histLabel, Label* curLabel, int index, RecordManagementInfo& recordManagementInfo);
+bool analyzeOrderedSection(Label* histLabel, Label* curLabel, int index, bool isFromSiblingImplicitTasks, RecordManagementInfo& recordManagementInfo);
 bool analyzeOrderedDescendants(Label* histLabel, int index, uint64_t histPhase, RecordManagementInfo& recordManagementInfo);
 bool analyzeExplicitTaskSynchronizationWithTaskWait(Label* label, int index, RecordManagementInfo& recordManagementInfo);
 bool analyzeMutualExclusion(const Record& histRecord, const Record& curRecord, RecordManagementInfo& recordManagementInfo);

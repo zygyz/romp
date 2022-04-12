@@ -150,7 +150,7 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex, RecordMana
         recordManagementInfo.nodeRelation = eHappensBefore;
         return true;
       case eLogical:
-        return analyzeOrderedSection(histLabel, curLabel,  diffIndex, recordManagementInfo);
+        return analyzeOrderedSection(histLabel, curLabel,  diffIndex, false, recordManagementInfo);
       case eExplicit:
         // same explciit task for T(histLabel[diffIndex]) and T(curLabel[diffIndex])
         return analyzeSameTask(histLabel, curLabel, diffIndex, recordManagementInfo);
@@ -205,7 +205,7 @@ bool analyzeSiblingImplicitTask(Label* histLabel, Label* curLabel, int diffIndex
     auto histSegLoopCount = histSeg->getLoopCount();
     auto curSegLoopCount = curSeg->getLoopCount();
     if (histSegLoopCount == curSegLoopCount) {
-      return analyzeOrderedSection(histLabel, curLabel, diffIndex + 1, recordManagementInfo);
+      return analyzeOrderedSection(histLabel, curLabel, diffIndex + 1, true, recordManagementInfo);
     } 
     recordManagementInfo.nodeRelation = eNonSiblingParallel;
     return false;
@@ -215,20 +215,21 @@ bool analyzeSiblingImplicitTask(Label* histLabel, Label* curLabel, int diffIndex
 }
 
 // T(histLabel[startIndex]) and T(curLabel[startIndex]) are logical tasks
-bool analyzeOrderedSection(Label* histLabel, Label* curLabel, int startIndex, RecordManagementInfo& recordManagementInfo, bool fromSiblingImplicitTasks) {
+bool analyzeOrderedSection(Label* histLabel, Label* curLabel, int startIndex, bool isFromSiblingImplicitTasks, RecordManagementInfo& recordManagementInfo) {
   auto histBaseSeg  = histLabel->getKthSegment(startIndex);
   auto curBaseSeg = curLabel->getKthSegment(startIndex);
   auto histSegment = static_cast<WorkShareSegment*>(histBaseSeg);
   auto curSegment = static_cast<WorkShareSegment*>(curBaseSeg);
   auto histLabelLength = histLabel->getLabelLength();
   auto curLabelLength = curLabel->getLabelLength();
+  auto isSibling = isFromSiblingImplicitTasks ? false :  histLabelLength == curLabelLength && startIndex == histLabelLength - 1; 
+  if (isSibling) {
+    recordManagementInfo.nodeRelation = eSiblingParallel;  // two sibling implicit tasks
+  } else {
+    recordManagementInfo.nodeRelation = eNonSiblingParallel; 
+  }
   if (histSegment->isWorkSharePlaceHolder() || curSegment->isWorkSharePlaceHolder()) {
     // have not entered the workshare construct yet.
-    if (isSibling) {
-      recordManagementInfo.nodeRelation = eSiblingParallel;  // two sibling implicit tasks
-    } else {
-      recordManagementInfo.nodeRelation = eNonSiblingParallel; 
-    }
     return false;
   } 
   auto histPhase = histBaseSeg->getPhase();
@@ -243,18 +244,13 @@ bool analyzeOrderedSection(Label* histLabel, Label* curLabel, int startIndex, Re
     if (leftPhase % 2 == 0) {
       return false;  
     } else {
+      // recordManagementInfo will be overwritten 
       return analyzeOrderedDescendants(histLabel, startIndex, histPhase, recordManagementInfo);
     }
   } else if (leftPhase > rightPhase) {
     return false;
   } else { // leftPhase < rightPhase
     return analyzeOrderedDescendants(histLabel, startIndex, histPhase, recordManagementInfo);
-  }
-  auto isSibling = fromSiblingImplicitTasks ? false :  histLabelLength == curLabelLength && startIndex == histLabelLength - 1; 
-  if (isSibling) {
-    recordManagementInfo.nodeRelation = eSiblingParallel;
-  } else {
-    recordManagementInfo.nodeRelation = eNonSiblingParallel;
   }
   return false;
 }
