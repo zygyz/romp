@@ -1,0 +1,10 @@
+*****     Log 1 for DRB180-miniAMR-yes.c with 8 threads and input size      *****
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0412 09:54:50.980223 21810 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB180-miniAMR-yes.c.romp.out.inst
+I0412 09:54:50.983661 21810 Initialize.h:51] start initializing ompt
+I0412 09:54:50.983688 21810 Initialize.h:89] ompt intialized
+*****     Log 2 for DRB180-miniAMR-yes.c with 8 threads and input size      *****
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0412 10:00:16.166600 22066 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB180-miniAMR-yes.c.romp.out.inst
+I0412 10:00:16.198174 22066 Initialize.h:51] start initializing ompt
+I0412 10:00:16.198202 22066 Initialize.h:89] ompt intialized

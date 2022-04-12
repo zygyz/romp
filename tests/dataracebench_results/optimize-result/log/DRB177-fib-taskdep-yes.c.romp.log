@@ -1,0 +1,10 @@
+*****     Log 1 for DRB177-fib-taskdep-yes.c with 8 threads and input size      *****
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0412 09:54:04.910642 21424 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB177-fib-taskdep-yes.c.romp.out.inst
+I0412 09:54:04.913412 21424 Initialize.h:51] start initializing ompt
+I0412 09:54:04.913439 21424 Initialize.h:89] ompt intialized
+*****     Log 2 for DRB177-fib-taskdep-yes.c with 8 threads and input size      *****
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0412 09:54:22.124908 21460 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB177-fib-taskdep-yes.c.romp.out.inst
+I0412 09:54:22.128437 21460 Initialize.h:51] start initializing ompt
+I0412 09:54:22.128465 21460 Initialize.h:89] ompt intialized

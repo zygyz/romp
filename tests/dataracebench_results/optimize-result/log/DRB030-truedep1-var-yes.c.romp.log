@@ -1,0 +1,42 @@
+*****     Log 1 for DRB030-truedep1-var-yes.c with 8 threads and input size 32     *****
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0412 08:48:51.183701   469 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB030-truedep1-var-yes.c.romp.out.inst
+I0412 08:48:51.186406   469 Initialize.h:51] start initializing ompt
+I0412 08:48:51.186434   469 Initialize.h:89] ompt intialized
+I0412 08:48:51.194352   469 Initialize.h:94] finalizing ompt
+I0412 08:48:51.194373   469 Initialize.h:96] data race found:
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+*****     Log 2 for DRB030-truedep1-var-yes.c with 8 threads and input size 32     *****
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0412 08:48:51.227486   488 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB030-truedep1-var-yes.c.romp.out.inst
+I0412 08:48:51.230024   488 Initialize.h:51] start initializing ompt
+I0412 08:48:51.230051   488 Initialize.h:89] ompt intialized
+I0412 08:48:51.237139   488 Initialize.h:94] finalizing ompt
+I0412 08:48:51.237154   488 Initialize.h:96] data race found:
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'

@@ -1,0 +1,27 @@
+*****     Log 1 for DRB176-fib-taskdep-no.c with 8 threads and input size      *****
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0412 09:53:38.718832 21285 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB176-fib-taskdep-no.c.romp.out.inst
+I0412 09:53:38.722035 21285 Initialize.h:51] start initializing ompt
+I0412 09:53:38.722062 21285 Initialize.h:89] ompt intialized
+I0412 09:53:38.740073 21285 Initialize.h:94] finalizing ompt
+I0412 09:53:38.740098 21285 Initialize.h:96] data race found:
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+fib(10) = 55
+*****     Log 2 for DRB176-fib-taskdep-no.c with 8 threads and input size      *****
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0412 09:53:38.774049 21303 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB176-fib-taskdep-no.c.romp.out.inst
+I0412 09:53:38.776598 21303 Initialize.h:51] start initializing ompt
+I0412 09:53:38.776623 21303 Initialize.h:89] ompt intialized

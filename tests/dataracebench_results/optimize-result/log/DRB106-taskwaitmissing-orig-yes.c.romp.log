@@ -1,0 +1,44 @@
+*****     Log 1 for DRB106-taskwaitmissing-orig-yes.c with 8 threads and input size      *****
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0412 09:41:04.285025 12482 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB106-taskwaitmissing-orig-yes.c.romp.out.inst
+I0412 09:41:04.288450 12482 Initialize.h:51] start initializing ompt
+I0412 09:41:04.288477 12482 Initialize.h:89] ompt intialized
+I0412 09:41:04.303346 12482 Initialize.h:94] finalizing ompt
+I0412 09:41:04.303364 12482 Initialize.h:96] data race found:
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+Fib(10)=-134220752 (correct answer should be 55)
+*****     Log 2 for DRB106-taskwaitmissing-orig-yes.c with 8 threads and input size      *****
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0412 09:41:04.337024 12500 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB106-taskwaitmissing-orig-yes.c.romp.out.inst
+I0412 09:41:04.339640 12500 Initialize.h:51] start initializing ompt
+I0412 09:41:04.339665 12500 Initialize.h:89] ompt intialized
+I0412 09:41:04.353879 12500 Initialize.h:94] finalizing ompt
+I0412 09:41:04.353895 12500 Initialize.h:96] data race found:
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+Fib(10)=-1168792995 (correct answer should be 55)

@@ -1,0 +1,44 @@
+*****     Log 1 for DRB085-threadprivate-orig-no.c with 8 threads and input size      *****
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0412 09:28:01.413493  9670 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB085-threadprivate-orig-no.c.romp.out.inst
+I0412 09:28:01.416352  9670 Initialize.h:51] start initializing ompt
+I0412 09:28:01.416378  9670 Initialize.h:89] ompt intialized
+I0412 09:28:01.426072  9670 Initialize.h:94] finalizing ompt
+I0412 09:28:01.426096  9670 Initialize.h:96] data race found:
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+sum=499500; sum1=499500
+*****     Log 2 for DRB085-threadprivate-orig-no.c with 8 threads and input size      *****
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0412 09:28:01.459779  9688 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB085-threadprivate-orig-no.c.romp.out.inst
+I0412 09:28:01.462523  9688 Initialize.h:51] start initializing ompt
+I0412 09:28:01.462551  9688 Initialize.h:89] ompt intialized
+I0412 09:28:01.471668  9688 Initialize.h:94] finalizing ompt
+I0412 09:28:01.471686  9688 Initialize.h:96] data race found:
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+sum=499500; sum1=499500
