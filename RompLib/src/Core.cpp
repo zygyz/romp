@@ -159,6 +159,7 @@ bool analyzeSiblingImplicitTask(Label* histLabel, Label* curLabel, int diffIndex
   return false;
 }
 
+// startIndex-1 points to the first pair of different index
 bool analyzeOrderedSection(Label* histLabel, Label* curLabel, int startIndex) {
   auto histBaseSeg  = histLabel->getKthSegment(startIndex);
   auto curBaseSeg = curLabel->getKthSegment(startIndex);
@@ -170,14 +171,21 @@ bool analyzeOrderedSection(Label* histLabel, Label* curLabel, int startIndex) {
   } 
   auto histPhase = histBaseSeg->getPhase();
   auto curPhase = curBaseSeg->getPhase();
-  auto histExitRank = computeExitRank(histPhase);
-  auto curEnterRank = computeEnterRank(curPhase);
-  if (histExitRank < curEnterRank) {
-    auto histLen = histLabel->getLabelLength();
-    auto curLen = curLabel->getLabelLength();
-    if (startIndex == histLen - 1) {
-      return true;
-    } 
+  auto histWorkShareId = histSegment->getWorkShareId();
+  auto curWorkShareId = curSegment->getWorkShareId();
+   
+  auto leftPhase = histWorkShareId < curWorkShareId ? histPhase : curPhase; 
+  auto rightPhase = histWorkShareId < curWorkShareId ? curPhase : histPhase;
+
+  if (leftPhase == rightPhase) {
+    if (leftPhase % 2 == 0) {
+      return false;  
+    } else {
+      return analyzeOrderedDescendants(histLabel, startIndex, histPhase);
+    }
+  } else if (leftPhase > rightPhase) {
+    return false;
+  } else { // leftPhase < rightPhase
     return analyzeOrderedDescendants(histLabel, startIndex, histPhase);
   }
   return false;
