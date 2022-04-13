@@ -120,7 +120,7 @@ OSCR_timer_start(0);
 for(k=0; k<size-1; k++) {
 
 	/* 4.1. PROCESS ROWS IN PARALLEL, DISTRIBUTE WITH nthreads STRIDE */
-#pragma omp parallel for default(none) shared(M,L,size,k) private(i,j) schedule(static,1)
+#pragma omp parallel for default(none) shared(M,L,size,k) private(i,j) schedule(dynamic,1)
 	for (i=k+1; i<size; i++) {
 		/* 4.1.1. COMPUTE L COLUMN */
 		L[i][k] = M[i][k] / M[k][k];

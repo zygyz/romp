@@ -126,13 +126,13 @@ OSCR_timer_start(0);
 for(iter=0; iter<numiter; iter++) {
 
 	/* 3.1. DUPLICATE THE FULL ARRAY IN PARALLEL */
-#pragma omp parallel for default(none) shared(V,oldV,totalSize) private(i) schedule(static)
+#pragma omp parallel for default(none) shared(V,oldV,totalSize) private(i) schedule(dynamic, 1)
 	for (i=0; i<totalSize; i++) {
 		oldV[i] = V[i];
 		}
 
 	/* 3.2. INNER LOOP: PROCESS ELEMENTS IN PARALLEL */
-#pragma omp parallel for default(none) shared(V,oldV,totalSize) private(i) schedule(static)
+#pragma omp parallel for default(none) shared(V,oldV,totalSize) private(i) schedule(dynamic, 1)
 	for (i=0; i<totalSize-1; i++) {
 		V[i] = f(V[i],oldV[i+1]);
 		}
