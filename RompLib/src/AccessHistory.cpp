@@ -66,6 +66,12 @@ void AccessHistory::removeRecords(const std::vector<int>& recordsToBeRemoved) {
   if (!mRecords ||  mRecords->empty()) {
     return; 
   }
+  if (recordsToBeRemoved.size() > mRecords->size()) {
+    RAW_DLOG(WARNING, "records to be removed: %d record size: %d", recordsToBeRemoved.size(), mRecords->size());
+    //TODO: fix record removal candidate number larger than record size problem.
+    //For now we abort this removal 
+    return; 
+  }
   for (auto it = recordsToBeRemoved.rbegin(); it != recordsToBeRemoved.rend(); it++) {
     mRecords->erase(mRecords->begin() + *it);
   }  
