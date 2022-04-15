@@ -1,5 +1,5 @@
 # dynamic.py
-
+# apply schedule(dynamic, 1) to source code 
 import argparse
 import os
 import sys
