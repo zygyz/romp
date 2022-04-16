@@ -1,0 +1,37 @@
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0415 14:05:47.869350 64936 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/romp/tests/OmpSCR_v2.0/bin/c_pi.par.inst
+I0415 14:05:47.872289 64936 Initialize.h:51] start initializing ompt
+I0415 14:05:47.872316 64936 Initialize.h:89] ompt intialized
+I0415 14:05:47.962535 64936 Initialize.h:94] finalizing ompt
+I0415 14:05:47.962568 64936 Initialize.h:96] data race found:
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+
+This program is part of the OpenMP Source Code Repository (OmpSCR)
+
+Program:       /home/yg31/working-dir/romp/tests/OmpSCR_v2.0/bin/c_pi.par.inst
+Description:   Pi generator
+
+Argument Precision 1000000
+Argument NUMTHREADS 72
+
+Running ...
+
+Timer Total_time     0.081650
+
+
+ 	# THREADS INTERVAL 	TIME (secs.) 	PI 			ERROR
+	 72 	   1000000 	      0.081650 	3.14159265358987527250	-8.21565e-14
+Memory Usage: 376552 Time: 0:00.12

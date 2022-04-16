@@ -1,0 +1,94 @@
+
+This program is part of the OpenMP Source Code Repository (OmpSCR)
+
+Program:       /home/yg31/working-dir/romp/tests/OmpSCR_v2.0/bin/cpp_qsomp3.par
+Description:   QuickSort
+
+Argument Number of integer to sort: 100000
+Argument Number of threads: 72
+Argument SwitchThresh: 10000
+Argument NUMTHREADS 72
+
+Running ...
+
+
+Success, wall-clock time: 0.09382
+
+0.: gSW: 3 gSR: 3 lSO: 0
+1.: gSW: 0 gSR: 0 lSO: 0
+2.: gSW: 0 gSR: 0 lSO: 0
+3.: gSW: 0 gSR: 0 lSO: 0
+4.: gSW: 0 gSR: 0 lSO: 0
+5.: gSW: 0 gSR: 0 lSO: 0
+6.: gSW: 0 gSR: 0 lSO: 0
+7.: gSW: 0 gSR: 0 lSO: 0
+8.: gSW: 0 gSR: 0 lSO: 0
+9.: gSW: 0 gSR: 0 lSO: 0
+10.: gSW: 0 gSR: 0 lSO: 0
+11.: gSW: 0 gSR: 0 lSO: 0
+12.: gSW: 0 gSR: 0 lSO: 0
+13.: gSW: 0 gSR: 0 lSO: 0
+14.: gSW: 0 gSR: 0 lSO: 0
+15.: gSW: 1 gSR: 0 lSO: 0
+16.: gSW: 2 gSR: 1 lSO: 0
+17.: gSW: 0 gSR: 0 lSO: 0
+18.: gSW: 0 gSR: 0 lSO: 0
+19.: gSW: 0 gSR: 0 lSO: 0
+20.: gSW: 2 gSR: 1 lSO: 0
+21.: gSW: 0 gSR: 0 lSO: 0
+22.: gSW: 0 gSR: 0 lSO: 0
+23.: gSW: 0 gSR: 0 lSO: 0
+24.: gSW: 5 gSR: 3 lSO: 0
+25.: gSW: 0 gSR: 0 lSO: 0
+26.: gSW: 0 gSR: 0 lSO: 0
+27.: gSW: 0 gSR: 0 lSO: 0
+28.: gSW: 0 gSR: 0 lSO: 0
+29.: gSW: 1 gSR: 0 lSO: 0
+30.: gSW: 2 gSR: 0 lSO: 0
+31.: gSW: 2 gSR: 1 lSO: 0
+32.: gSW: 0 gSR: 0 lSO: 0
+33.: gSW: 0 gSR: 0 lSO: 0
+34.: gSW: 0 gSR: 0 lSO: 0
+35.: gSW: 0 gSR: 0 lSO: 0
+36.: gSW: 0 gSR: 0 lSO: 0
+37.: gSW: 0 gSR: 0 lSO: 0
+38.: gSW: 0 gSR: 0 lSO: 0
+39.: gSW: 0 gSR: 0 lSO: 0
+40.: gSW: 0 gSR: 0 lSO: 0
+41.: gSW: 0 gSR: 0 lSO: 0
+42.: gSW: 0 gSR: 0 lSO: 0
+43.: gSW: 0 gSR: 0 lSO: 0
+44.: gSW: 0 gSR: 0 lSO: 0
+45.: gSW: 2 gSR: 1 lSO: 0
+46.: gSW: 0 gSR: 0 lSO: 0
+47.: gSW: 0 gSR: 0 lSO: 0
+48.: gSW: 0 gSR: 0 lSO: 0
+49.: gSW: 0 gSR: 0 lSO: 0
+50.: gSW: 0 gSR: 0 lSO: 0
+51.: gSW: 0 gSR: 0 lSO: 0
+52.: gSW: 0 gSR: 0 lSO: 0
+53.: gSW: 0 gSR: 0 lSO: 0
+54.: gSW: 0 gSR: 0 lSO: 0
+55.: gSW: 0 gSR: 0 lSO: 0
+56.: gSW: 0 gSR: 0 lSO: 0
+57.: gSW: 0 gSR: 0 lSO: 0
+58.: gSW: 0 gSR: 0 lSO: 0
+59.: gSW: 0 gSR: 0 lSO: 0
+60.: gSW: 0 gSR: 0 lSO: 0
+61.: gSW: 0 gSR: 0 lSO: 0
+62.: gSW: 0 gSR: 0 lSO: 0
+63.: gSW: 0 gSR: 0 lSO: 0
+64.: gSW: 0 gSR: 0 lSO: 0
+65.: gSW: 0 gSR: 0 lSO: 0
+66.: gSW: 0 gSR: 0 lSO: 0
+67.: gSW: 0 gSR: 0 lSO: 0
+68.: gSW: 2 gSR: 1 lSO: 0
+69.: gSW: 0 gSR: 0 lSO: 0
+70.: gSW: 0 gSR: 0 lSO: 0
+71.: gSW: 0 gSR: 0 lSO: 0
+
+Total: gSW: 22 gSR: 11 lSO: 0
+
+Timer Total_time     0.093820
+
+Memory Usage: 25388 Time: 0:00.10

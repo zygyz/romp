@@ -1,0 +1,26 @@
+
+This program is part of the OpenMP Source Code Repository (OmpSCR)
+
+Program:       /home/yg31/working-dir/romp/tests/OmpSCR_v2.0/bin/c_jacobi01.par
+Description:   Jacobi Solver v1
+
+Argument Grid dimension: X dir = 100
+Argument Grid dimension: Y dir = 100
+Argument Helmhotlz constant = 0.8
+Argument Successive over-relaxation parameter = 1
+Argument error tolerance for iterative solver = 1e-07
+Argument Maximum iterations for solver = 100
+Argument NUMTHREADS 72
+
+Running ...
+
+-> 100, 100, 0.8, 1, 1e-07, 100
+Total Number of Iterations 101
+Residual                   0.000004031719788
+
+ elapsed time :     0.090368
+ MFlops       :       138.16 (100, 100, 100, 0.090368)
+Solution Error : 0.00486758
+Timer Total_time     0.090368
+
+Memory Usage: 21300 Time: 0:00.10

@@ -1,0 +1,17 @@
+
+This program is part of the OpenMP Source Code Repository (OmpSCR)
+
+Program:       /home/yg31/working-dir/romp/tests/OmpSCR_v2.0/bin/c_mandel.par
+Description:   Mandelbrot set area
+
+Argument Number of points 1000000
+Argument NUMTHREADS 72
+
+Running ...
+
+Timer Total_time     2.239897
+
+
+ 	# THREADS NPOINTS AREA 			ERROR 		TIME (secs.)
+	72 	1000000 	  1.502206875000   0.001502206875 	2.239897
+Memory Usage: 40156 Time: 0:02.27

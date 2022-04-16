@@ -1,0 +1,34 @@
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0415 14:03:52.301714 62221 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/romp/tests/OmpSCR_v2.0/bin/c_lu.par.inst
+I0415 14:03:52.304636 62221 Initialize.h:51] start initializing ompt
+I0415 14:03:52.304666 62221 Initialize.h:89] ompt intialized
+I0415 14:03:56.844893 62221 Initialize.h:94] finalizing ompt
+I0415 14:03:56.844933 62221 Initialize.h:103] data race not found
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+
+This program is part of the OpenMP Source Code Repository (OmpSCR)
+
+Program:       /home/yg31/working-dir/romp/tests/OmpSCR_v2.0/bin/c_lu.par.inst
+Description:   LU reduction of a dense matrix.
+
+Argument size 100
+Argument NUMTHREADS 72
+
+Running ...
+
+Timer EXE_TIME     4.529584
+
+Memory Usage: 779380 Time: 0:04.59

@@ -1,0 +1,40 @@
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0415 14:05:46.272789 64180 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/romp/tests/OmpSCR_v2.0/bin/c_md.par.inst
+I0415 14:05:46.275727 64180 Initialize.h:51] start initializing ompt
+I0415 14:05:46.275754 64180 Initialize.h:89] ompt intialized
+I0415 14:05:47.217245 64180 Initialize.h:94] finalizing ompt
+I0415 14:05:47.217285 64180 Initialize.h:96] data race found:
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+
+This program is part of the OpenMP Source Code Repository (OmpSCR)
+
+Program:       /home/yg31/working-dir/romp/tests/OmpSCR_v2.0/bin/c_md.par.inst
+Description:   Molecular dynamic simulation
+
+Argument Nparts 100
+Argument Nsteps 2
+Argument NUMTHREADS 72
+
+Running ...
+
+step: 0
+step: 1
+Timer Total_time     0.933118
+
+
+ 	# THREADS 	TIME (secs.) 
+	 72 		      0.933118
+Memory Usage: 440448 Time: 0:00.97

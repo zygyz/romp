@@ -1,0 +1,4 @@
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0416 10:11:26.468986 27673 RompLib.cpp:126] ompt_start_tool on executable: /home/yg31/working-dir/romp/tests/OmpSCR_v2.0/bin/c_loopA.solution1.par.inst
+I0416 10:11:26.472277 27673 Initialize.h:51] start initializing ompt
+I0416 10:11:26.472307 27673 Initialize.h:89] ompt intialized
