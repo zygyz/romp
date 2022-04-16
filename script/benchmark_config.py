@@ -2,6 +2,7 @@
 
 
 benchmark_parameter_map = {
+ "c_fft6.par" : "-test",
  "c_jacobi01.par" : " 100 100 0.8 1 1e-07 100", 
  "c_jacobi02.par" : " 100 100 0.8 1 1e-07 100", 
  "c_loopA.badSolution.par" : "-test",
