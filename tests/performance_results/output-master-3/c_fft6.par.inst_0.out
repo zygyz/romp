@@ -1,0 +1,51 @@
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0416 11:35:17.085624 42277 RompLib.cpp:126] ompt_start_tool on executable: /home/yg31/working-dir/romp/tests/OmpSCR_v2.0/bin/c_fft6.par.inst
+I0416 11:35:17.088685 42277 Initialize.h:51] start initializing ompt
+I0416 11:35:17.088713 42277 Initialize.h:89] ompt intialized
+I0416 11:44:31.835914 42277 Initialize.h:94] finalizing ompt
+I0416 11:44:31.835958 42277 Initialize.h:96] data race found:
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+
+This program is part of the OpenMP Source Code Repository (OmpSCR)
+
+Program:       /home/yg31/working-dir/romp/tests/OmpSCR_v2.0/bin/c_fft6.par.inst
+Description:   Bailey's '6-step' Fast Fourier Transform
+
+Argument Size (a power of 2). 64
+Argument No. of iterations 10
+Argument NUMTHREADS 72
+
+Running ...
+
+Input values:
+=============
+N           : 64
+ITERS       : 10
+NN          : 4096
+LOGN        : 6
+LOGNN       : 12
+Memory      : 9280.75 Kbytes
+Timer Total_time   554.642055
+Timer Tpose time     0.000000
+Timer Scale time     0.000000
+Timer Column FFTs time     0.000000
+
+============================
+# THREADS : 72
+N         : 64
+ITERS     : 10
+total TIME: 554.642055 secs.
+Memory Usage: 1861748 Time: 9:14.90
