@@ -39,7 +39,7 @@ def build_romp(romp_root_path: str, branch: str) -> None:
 def run_benchmark(output_path: str, binary_path:str, binary_name: str, parameter: str, iteration: int) -> int:
   output_file_path = os.path.join(output_path, binary_name + "_" + str(iteration) + ".out");
   run_string = assemble_run_string(binary_path, parameter);
-  print('run_string');
+  print('run: ', run_string);
   return os.system(run_string + ' &> ' + output_file_path); 
 
 def assemble_run_string(binary_path: str, parameter: str) -> str:
