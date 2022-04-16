@@ -36,14 +36,14 @@ def build_romp(romp_root_path: str, branch: str) -> None:
   finally:
     os.chdir(cwd);
 
-def run_benchmark(output_path: str, binary_path:str, binary_name: str, parameter: str, iteration: int) -> int:
+def run_benchmark(output_path: str, binary_path:str, binary_name: str, parameter: str, iteration: int, timeout: int) -> int:
   output_file_path = os.path.join(output_path, binary_name + "_" + str(iteration) + ".out");
-  run_string = assemble_run_string(binary_path, parameter);
+  run_string = assemble_run_string(binary_path, parameter, timeout);
   print('run: ', run_string);
   return os.system(run_string + ' &> ' + output_file_path); 
 
-def assemble_run_string(binary_path: str, parameter: str) -> str:
-  return "timeout 2m /usr/bin/time -f 'Memory Usage: %M Time: %E' " + binary_path + " " + parameter;
+def assemble_run_string(binary_path: str, parameter: str, timeout: int) -> str:
+  return "timeout " + str(timeout) + "m /usr/bin/time -f 'Memory Usage: %M Time: %E' " + binary_path + " " + parameter;
 
 def process_output_files(output_path: str) -> dict:  
   output_files = [f for f in listdir(output_path) if os.path.isfile(os.path.join(output_path, f))]
@@ -102,7 +102,7 @@ def calculate_metrics(output_path: str, benchmark: str) -> dict:
     
 
 
-def run(benchmark_root_path: str, output_path: str, branch: str) -> list:
+def run(benchmark_root_path: str, output_path: str, branch: str, iteration: int, timeout: int) -> list:
   print('run benchmarks');
   results = []
   for benchmark, parameter in benchmark_config.benchmark_parameter_map.items():
@@ -114,10 +114,10 @@ def run(benchmark_root_path: str, output_path: str, branch: str) -> list:
     instrument_binary_path = os.path.join(benchmark_root_path, instrument_binary_name);
     
     not_success_finish = False; 
-    for i in range(0, 5):  
+    for i in range(0, iteration):  
       print('running iteration : ', i);
-      ret_val_original = run_benchmark(output_path, original_binary_path, original_binary_name, parameter, i);
-      ret_val_instrument = run_benchmark(output_path, instrument_binary_path, instrument_binary_name, parameter, i);
+      ret_val_original = run_benchmark(output_path, original_binary_path, original_binary_name, parameter, i, timeout);
+      ret_val_instrument = run_benchmark(output_path, instrument_binary_path, instrument_binary_name, parameter, i, timeout);
       print('origin return value: ', ret_val_original, ' instrument return value: ', ret_val_instrument)
       if ret_val_original != 0 or ret_val_instrument != 0:
         not_success_finish = True
@@ -138,10 +138,10 @@ def write_results(output_path: str, results: list) -> None:
     writer.writeheader()
     writer.writerows(results) 
 
-def run_benchmarks_for_branch(romp_root_path: str, benchmark_root_path: str, branch: str) -> None:
-  #build_romp(romp_root_path, branch);
+def run_benchmarks_for_branch(romp_root_path: str, benchmark_root_path: str, branch: str, iteration: int, timeout: int) -> None:
+  build_romp(romp_root_path, branch);
   output_path = create_output_directory(benchmark_root_path, branch);
-  results = run(benchmark_root_path, output_path, branch);
+  results = run(benchmark_root_path, output_path, branch, iteration, timeout);
   write_results(output_path, results);
 
   
@@ -150,8 +150,10 @@ def main() -> int:
   parser.add_argument('benchmark_root_path', type=str, help="root path to benchmark binaries");
   parser.add_argument('romp_root_path', type=str, help='root path to romp source');
   parser.add_argument('branch', type=str, help='branch name');
+  parser.add_argument('timeout', type=int, help="time out in minute");
+  parser.add_argument('iteration', type=int, help="num iterations");
   args = parser.parse_args();
-  run_benchmarks_for_branch(args.romp_root_path, args.benchmark_root_path, args.branch);
+  run_benchmarks_for_branch(args.romp_root_path, args.benchmark_root_path, args.branch, args.iteration, args.timeout);
   return 0;
 
 
