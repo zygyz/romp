@@ -103,12 +103,12 @@ OSCR_USE_F=n
 #
 # 3.2. The name of your Frotran90/95 compiler or front-end
 #
-OSCR_FF=
+OSCR_FF=gfortran
 
 #
 # 3.3. Flag/s needed to activate OpenMP pragmas recognition
 #
-OSCR_F_OMPFLAG=
+OSCR_F_OMPFLAG=-fopenmp -lomp
 
 #
 # 3.4. Flag/s needed for serial compilation (No OpenMP)
