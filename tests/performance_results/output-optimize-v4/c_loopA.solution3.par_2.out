@@ -1,0 +1,15 @@
+
+This program is part of the OpenMP Source Code Repository (OmpSCR)
+
+Program:       /home/yg31/working-dir/romp/tests/OmpSCR_v2.0/bin/c_loopA.solution3.par
+Description:   Sinthetic loops experiment.
+
+Argument size 100
+Argument numiter 10
+Argument NUMTHREADS 72
+
+Running ...
+
+Timer EXE_TIME     0.011504
+
+Memory Usage: 22944 Time: 0:00.02
