@@ -59,18 +59,13 @@ def process_output_files(output_path: str) -> dict:
 #calculate the average time and memory overhead
 def calculate_metrics(output_path: str, benchmark: str) -> dict:
   output_files = [os.path.join(output_path, f) for f in listdir(output_path) if benchmark in f]
-  instrument_total_iterations = 0;
-  original_total_iterations = 0;
-  instrument_total_time_in_milliseconds = 0.0;
-  original_total_time_in_milliseconds = 0.0;
-  instrument_total_memory = 0.0 
-  original_total_memory = 0.0;
+  original_memory_list = [];
+  instrument_memory_list = [];
+  original_time_list = [];
+  instrument_time_list = [];
+
   for output_file in output_files:
     is_instrument_output = '.inst' in output_file 
-    if is_instrument_output:
-      instrument_total_iterations += 1;
-    else:
-      original_total_iterations += 1; 
     with open(output_file) as file:
       lines = file.readlines(); 
       for line in lines:
@@ -78,17 +73,25 @@ def calculate_metrics(output_path: str, benchmark: str) -> dict:
           result = line.split()
           time = datetime.strptime(result[-1], "%M:%S.%f")
           time_in_milliseconds = time.minute * 60 * 1000 + time.second * 1000 + time.microsecond / 1000;
+          memory_in_kb = int(result[-3]);
           if is_instrument_output:
-            instrument_total_time_in_milliseconds += time_in_milliseconds 
-            instrument_total_memory += int(result[-3])
+            instrument_time_list.append(time_in_milliseconds);   
+            instrument_memory_list.append(memory_in_kb);
           else:
-            original_total_time_in_milliseconds += time_in_milliseconds 
-            original_total_memory += int(result[-3])
+            original_time_list.append(time_in_milliseconds);
+            original_memory_list.append(memory_in_kb);
+  
+  original_memory_list.sort();
+  original_time_list.sort();
+  instrument_memory_list.sort();
+  instrument_time_list.sort();
 
-  original_time_average = original_total_time_in_milliseconds / original_total_iterations
-  instrument_time_average = instrument_total_time_in_milliseconds / instrument_total_iterations 
-  original_memory_average = original_total_memory / original_total_iterations
-  instrument_memory_average = instrument_total_memory / instrument_total_iterations 
+  original_time_average = sum(original_time_list[1:-1]) / len(original_time_list[1:-1]);
+  instrument_time_average = sum(instrument_time_list[1:-1]) / len(instrument_time_list[1:-1]);
+
+  original_memory_average = sum(original_memory_list[1:-1]) / len(original_memory_list[1:-1]);
+  instrument_memory_average = sum(instrument_memory_list[1:-1]) / len(instrument_memory_list[1:-1]);
+
   result = {
                'benchmark' : benchmark,
                'original_memory' : original_memory_average,
