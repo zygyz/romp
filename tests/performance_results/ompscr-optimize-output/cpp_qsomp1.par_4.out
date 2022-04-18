@@ -1,0 +1,94 @@
+
+This program is part of the OpenMP Source Code Repository (OmpSCR)
+
+Program:       /home/yg31/working-dir/romp/tests/OmpSCR_v2.0/bin/cpp_qsomp1.par
+Description:   QuickSort
+
+Argument Number of integer to sort: 10000
+Argument Number of threads: 72
+Argument SwitchThresh: 100
+Argument NUMTHREADS 72
+
+Running ...
+
+
+Success, wall-clock time: 0.012656
+
+0.: gSW: 7
+1.: gSW: 0
+2.: gSW: 5
+3.: gSW: 5
+4.: gSW: 6
+5.: gSW: 0
+6.: gSW: 7
+7.: gSW: 0
+8.: gSW: 6
+9.: gSW: 1
+10.: gSW: 1
+11.: gSW: 2
+12.: gSW: 8
+13.: gSW: 0
+14.: gSW: 2
+15.: gSW: 7
+16.: gSW: 4
+17.: gSW: 0
+18.: gSW: 7
+19.: gSW: 0
+20.: gSW: 0
+21.: gSW: 2
+22.: gSW: 0
+23.: gSW: 0
+24.: gSW: 5
+25.: gSW: 8
+26.: gSW: 0
+27.: gSW: 2
+28.: gSW: 0
+29.: gSW: 0
+30.: gSW: 8
+31.: gSW: 0
+32.: gSW: 1
+33.: gSW: 0
+34.: gSW: 0
+35.: gSW: 5
+36.: gSW: 0
+37.: gSW: 0
+38.: gSW: 0
+39.: gSW: 0
+40.: gSW: 0
+41.: gSW: 0
+42.: gSW: 0
+43.: gSW: 4
+44.: gSW: 3
+45.: gSW: 1
+46.: gSW: 0
+47.: gSW: 3
+48.: gSW: 4
+49.: gSW: 4
+50.: gSW: 5
+51.: gSW: 5
+52.: gSW: 5
+53.: gSW: 5
+54.: gSW: 5
+55.: gSW: 1
+56.: gSW: 5
+57.: gSW: 1
+58.: gSW: 0
+59.: gSW: 0
+60.: gSW: 4
+61.: gSW: 0
+62.: gSW: 4
+63.: gSW: 8
+64.: gSW: 7
+65.: gSW: 3
+66.: gSW: 4
+67.: gSW: 4
+68.: gSW: 4
+69.: gSW: 8
+70.: gSW: 5
+71.: gSW: 1
+
+Total: gSW: 202
+
+Timer Total_time     0.012656
+
+Memory Usage: 22968 Time: 0:00.02
