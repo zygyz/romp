@@ -1,0 +1,25 @@
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0418 15:01:19.506417 29258 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/NPB3.4.2/NPB3.4-OMP/bin/ua.S.x.inst
+I0418 15:01:19.512040 29258 Initialize.h:51] start initializing ompt
+I0418 15:01:19.512102 29258 Initialize.h:89] ompt intialized
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+
+Program received signal SIGSEGV: Segmentation fault - invalid memory reference.
+
+Backtrace for this error:
+#0  0x7f69320213ff in ???
+#1  0x9a4d50 in ???
+Memory Usage: 886384 Time: 0:47.82

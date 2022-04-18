@@ -1,0 +1,83 @@
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0418 14:52:28.830147 26599 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/NPB3.4.2/NPB3.4-OMP/bin/cg.S.x.inst
+I0418 14:52:28.833329 26599 Initialize.h:51] start initializing ompt
+I0418 14:52:28.833357 26599 Initialize.h:89] ompt intialized
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+I0418 14:52:37.926496 26599 Initialize.h:94] finalizing ompt
+I0418 14:52:37.926528 26599 Initialize.h:96] data race found:
+
+
+ NAS Parallel Benchmarks (NPB3.4-OMP) - CG Benchmark
+
+ Size:        1400
+ Iterations:                     15
+ Number of available threads:    72
+
+ Initialization time =           4.410 seconds
+
+   iteration           ||r||                 zeta
+        1       0.13676857222302E-12     9.9986441579140
+        2       0.21355892130370E-14     8.5733279203222
+        3       0.22041839659397E-14     8.5954510374058
+        4       0.19240321554502E-14     8.5969972340738
+        5       0.18748843809185E-14     8.5971549151767
+        6       0.19739206909441E-14     8.5971744311608
+        7       0.19440962722088E-14     8.5971770704913
+        8       0.18657671503461E-14     8.5971774440630
+        9       0.20596744135021E-14     8.5971774983942
+       10       0.18400404571260E-14     8.5971775064409
+       11       0.19114504902595E-14     8.5971775076486
+       12       0.18752117335990E-14     8.5971775078318
+       13       0.18325298593951E-14     8.5971775078598
+       14       0.17769984899366E-14     8.5971775078641
+       15       0.18402550442765E-14     8.5971775078648
+ Benchmark completed 
+ VERIFICATION SUCCESSFUL 
+ Zeta is     0.8597177507865E+01
+ Error is    0.1239725599088E-14
+
+
+ CG Benchmark Completed.
+ Class           =                        S
+ Size            =                     1400
+ Iterations      =                       15
+ Time in seconds =                     4.68
+ Total threads   =                       72
+ Avail threads   =                       72
+ Mop/s total     =                    14.24
+ Mop/s/thread    =                     0.20
+ Operation type  =           floating point
+ Verification    =               SUCCESSFUL
+ Version         =                    3.4.2
+ Compile date    =              17 Apr 2022
+
+ Compile options:
+    FC           = gfortran
+    FLINK        = $(FC)
+    F_LIB        = (none)
+    F_INC        = (none)
+    FFLAGS       = -O3 -fopenmp
+    FLINKFLAGS   = $(FFLAGS)
+    RAND         = randi8
+
+
+ Please send all errors/feedbacks to:
+
+ NPB Development Team
+ npb@nas.nasa.gov
+
+
+Memory Usage: 3398632 Time: 0:09.20
