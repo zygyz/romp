@@ -85,12 +85,20 @@ def calculate_metrics(output_path: str, benchmark: str) -> dict:
   original_time_list.sort();
   instrument_memory_list.sort();
   instrument_time_list.sort();
+  
+  if len(original_memory_list) > 3:
+    original_memory_list = original_memory_list[1:-1];
+  if len(original_time_list) > 3:
+    original_time_list = original_time_list[1:-1];
+  if len(instrument_memory_list) > 3:
+    instrument_memory_list = instrument_memory_list[1:-1];
+  if len(instrument_time_list) > 3:
+    instrument_time_list = instrument_time_list[1:-1];
 
-  original_time_average = sum(original_time_list[1:-1]) / len(original_time_list[1:-1]);
-  instrument_time_average = sum(instrument_time_list[1:-1]) / len(instrument_time_list[1:-1]);
-
-  original_memory_average = sum(original_memory_list[1:-1]) / len(original_memory_list[1:-1]);
-  instrument_memory_average = sum(instrument_memory_list[1:-1]) / len(instrument_memory_list[1:-1]);
+  original_time_average = sum(original_time_list) / len(original_time_list)
+  instrument_time_average = sum(instrument_time_list) / len(instrument_time_list);
+  original_memory_average = sum(original_memory_list) / len(original_memory_list);
+  instrument_memory_average = sum(instrument_memory_list) / len(instrument_memory_list);
 
   result = {
                'benchmark' : benchmark,
