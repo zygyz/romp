@@ -14,7 +14,7 @@ benchmark_parameter_map = {
 # "c_loopB.pipelineSolution.par" : "100 10",
 # "c_lu.par" : "100",
 # "c_mandel.par" : "100000", 
-# "c_md.par" :  "256 2256 2",
+# "c_md.par" :  "256 2",
 # "c_pi.par" : "1000",
 # "cpp_qsomp1.par" : "10000 72 100",
 # "cpp_qsomp2.par" : "10000 72 100",
