@@ -1,0 +1,114 @@
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0419 08:35:53.901747 37264 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/romp/tests/OmpSCR_v2.0/bin/cpp_qsomp1.par.inst
+I0419 08:35:53.905212 37264 Initialize.h:51] start initializing ompt
+I0419 08:35:53.905241 37264 Initialize.h:89] ompt intialized
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+
+This program is part of the OpenMP Source Code Repository (OmpSCR)
+
+Program:       /home/yg31/working-dir/romp/tests/OmpSCR_v2.0/bin/cpp_qsomp1.par.inst
+Description:   QuickSort
+
+Argument Number of integer to sort: 10000
+Argument Number of threads: 72
+Argument SwitchThresh: 100
+Argument NUMTHREADS 72
+
+Running ...
+
+
+Success, wall-clock time: 0.298967
+
+0.: gSW: 3
+1.: gSW: 8
+2.: gSW: 3
+3.: gSW: 5
+4.: gSW: 1
+5.: gSW: 0
+6.: gSW: 0
+7.: gSW: 3
+8.: gSW: 8
+9.: gSW: 4
+10.: gSW: 2
+11.: gSW: 5
+12.: gSW: 4
+13.: gSW: 6
+14.: gSW: 8
+15.: gSW: 5
+16.: gSW: 4
+17.: gSW: 2
+18.: gSW: 0
+19.: gSW: 1
+20.: gSW: 0
+21.: gSW: 2
+22.: gSW: 0
+23.: gSW: 7
+24.: gSW: 0
+25.: gSW: 0
+26.: gSW: 4
+27.: gSW: 12
+28.: gSW: 2
+29.: gSW: 3
+30.: gSW: 1
+31.: gSW: 0
+32.: gSW: 6
+33.: gSW: 12
+34.: gSW: 4
+35.: gSW: 0
+36.: gSW: 4
+37.: gSW: 0
+38.: gSW: 3
+39.: gSW: 5
+40.: gSW: 2
+41.: gSW: 0
+42.: gSW: 8
+43.: gSW: 3
+44.: gSW: 2
+45.: gSW: 0
+46.: gSW: 0
+47.: gSW: 2
+48.: gSW: 0
+49.: gSW: 0
+50.: gSW: 2
+51.: gSW: 4
+52.: gSW: 1
+53.: gSW: 2
+54.: gSW: 2
+55.: gSW: 1
+56.: gSW: 6
+57.: gSW: 1
+58.: gSW: 2
+59.: gSW: 12
+60.: gSW: 0
+61.: gSW: 0
+62.: gSW: 0
+63.: gSW: 0
+64.: gSW: 1
+65.: gSW: 0
+66.: gSW: 0
+67.: gSW: 5
+68.: gSW: 0
+69.: gSW: 5
+70.: gSW: 0
+71.: gSW: 4
+
+I0419 08:35:54.220659 37264 Initialize.h:94] finalizing ompt
+I0419 08:35:54.220677 37264 Initialize.h:96] data race found:
+Total: gSW: 202
+
+Timer Total_time     0.298967
+
+Memory Usage: 421756 Time: 0:00.34

@@ -1,0 +1,35 @@
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0419 08:28:19.357668  6256 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/romp/tests/OmpSCR_v2.0/bin/c_loopB.badSolution1.par.inst
+I0419 08:28:19.360285  6256 Initialize.h:51] start initializing ompt
+I0419 08:28:19.360309  6256 Initialize.h:89] ompt intialized
+I0419 08:28:19.389919  6256 Initialize.h:94] finalizing ompt
+I0419 08:28:19.389935  6256 Initialize.h:96] data race found:
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+
+This program is part of the OpenMP Source Code Repository (OmpSCR)
+
+Program:       /home/yg31/working-dir/romp/tests/OmpSCR_v2.0/bin/c_loopB.badSolution1.par.inst
+Description:   Sinthetic loops experiment.
+
+Argument size 100
+Argument numiter 10
+Argument NUMTHREADS 2
+
+Running ...
+
+Timer EXE_TIME     0.023564
+
+Memory Usage: 23588 Time: 0:00.04
