@@ -1,0 +1,17 @@
+
+This program is part of the OpenMP Source Code Repository (OmpSCR)
+
+Program:       /home/yg31/working-dir/romp/tests/OmpSCR_v2.0/bin/c_pi.par
+Description:   Pi generator
+
+Argument Precision 1000
+Argument NUMTHREADS 32
+
+Running ...
+
+Timer Total_time     0.002677
+
+
+ 	# THREADS INTERVAL 	TIME (secs.) 	PI 			ERROR
+	 32 	      1000 	      0.002677 	3.14159273692312668302	-8.33333e-08
+Memory Usage: 9648 Time: 0:00.01

@@ -1,0 +1,37 @@
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0419 05:33:14.920279  6787 RompLib.cpp:126] ompt_start_tool on executable: /home/yg31/working-dir/romp/tests/OmpSCR_v2.0/bin/c_mandel.par.inst
+I0419 05:33:14.923074  6787 Initialize.h:51] start initializing ompt
+I0419 05:33:14.923102  6787 Initialize.h:89] ompt intialized
+I0419 05:33:20.191553  6787 Initialize.h:94] finalizing ompt
+I0419 05:33:20.191586  6787 Initialize.h:103] data race not found
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+
+This program is part of the OpenMP Source Code Repository (OmpSCR)
+
+Program:       /home/yg31/working-dir/romp/tests/OmpSCR_v2.0/bin/c_mandel.par.inst
+Description:   Mandelbrot set area
+
+Argument Number of points 100000
+Argument NUMTHREADS 2
+
+Running ...
+
+Timer Total_time     5.174805
+
+
+ 	# THREADS NPOINTS AREA 			ERROR 		TIME (secs.)
+	2 	100000 	  1.490625000000   0.004713770137 	5.174805
+Memory Usage: 198108 Time: 0:05.30
