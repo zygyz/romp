@@ -1,10 +1,10 @@
 *****     Log 1 for DRB046-doall2-orig-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 08:57:53.026851  3200 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB046-doall2-orig-no.c.romp.out.inst
-I0412 08:57:53.029565  3200 Initialize.h:51] start initializing ompt
-I0412 08:57:53.029592  3200 Initialize.h:89] ompt intialized
-I0412 08:57:53.059724  3200 Initialize.h:94] finalizing ompt
-I0412 08:57:53.059751  3200 Initialize.h:103] data race not found
+I0421 07:55:40.875779 43045 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB046-doall2-orig-no.c.romp.out.inst
+I0421 07:55:40.878932 43045 Initialize.h:51] start initializing ompt
+I0421 07:55:40.878960 43045 Initialize.h:89] ompt intialized
+I0421 07:55:40.911988 43045 Initialize.h:94] finalizing ompt
+I0421 07:55:40.912030 43045 Initialize.h:103] data race not found
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'
@@ -21,11 +21,11 @@ registering callback: 'ompt_callback_thread_end'
 registering callback: 'ompt_callback_dispatch'
 *****     Log 2 for DRB046-doall2-orig-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 08:57:53.096648  3218 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB046-doall2-orig-no.c.romp.out.inst
-I0412 08:57:53.099123  3218 Initialize.h:51] start initializing ompt
-I0412 08:57:53.099148  3218 Initialize.h:89] ompt intialized
-I0412 08:57:53.131114  3218 Initialize.h:94] finalizing ompt
-I0412 08:57:53.131134  3218 Initialize.h:103] data race not found
+I0421 07:55:40.947821 43063 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB046-doall2-orig-no.c.romp.out.inst
+I0421 07:55:40.950675 43063 Initialize.h:51] start initializing ompt
+I0421 07:55:40.950700 43063 Initialize.h:89] ompt intialized
+I0421 07:55:40.984922 43063 Initialize.h:94] finalizing ompt
+I0421 07:55:40.984939 43063 Initialize.h:103] data race not found
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'

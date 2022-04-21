@@ -1,10 +1,10 @@
 *****     Log 1 for DRB057-jacobiinitialize-orig-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:03:16.660589  4920 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB057-jacobiinitialize-orig-no.c.romp.out.inst
-I0412 09:03:16.663825  4920 Initialize.h:51] start initializing ompt
-I0412 09:03:16.663853  4920 Initialize.h:89] ompt intialized
-I0412 09:03:16.965626  4920 Initialize.h:94] finalizing ompt
-I0412 09:03:16.965660  4920 Initialize.h:103] data race not found
+I0421 08:01:00.180660 44639 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB057-jacobiinitialize-orig-no.c.romp.out.inst
+I0421 08:01:00.184093 44639 Initialize.h:51] start initializing ompt
+I0421 08:01:00.184121 44639 Initialize.h:89] ompt intialized
+I0421 08:01:00.494551 44639 Initialize.h:94] finalizing ompt
+I0421 08:01:00.494585 44639 Initialize.h:103] data race not found
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'
@@ -21,11 +21,11 @@ registering callback: 'ompt_callback_thread_end'
 registering callback: 'ompt_callback_dispatch'
 *****     Log 2 for DRB057-jacobiinitialize-orig-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:03:17.089929  4938 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB057-jacobiinitialize-orig-no.c.romp.out.inst
-I0412 09:03:17.092624  4938 Initialize.h:51] start initializing ompt
-I0412 09:03:17.092651  4938 Initialize.h:89] ompt intialized
-I0412 09:03:17.416420  4938 Initialize.h:94] finalizing ompt
-I0412 09:03:17.416456  4938 Initialize.h:103] data race not found
+I0421 08:01:00.565501 44657 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB057-jacobiinitialize-orig-no.c.romp.out.inst
+I0421 08:01:00.568562 44657 Initialize.h:51] start initializing ompt
+I0421 08:01:00.568588 44657 Initialize.h:89] ompt intialized
+I0421 08:01:00.874871 44657 Initialize.h:94] finalizing ompt
+I0421 08:01:00.874904 44657 Initialize.h:103] data race not found
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'

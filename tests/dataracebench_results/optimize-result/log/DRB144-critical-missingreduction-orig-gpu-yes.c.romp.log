@@ -1,9 +1,9 @@
 *****     Log 1 for DRB144-critical-missingreduction-orig-gpu-yes.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:47:03.698551 16993 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB144-critical-missingreduction-orig-gpu-yes.c.romp.out.inst
-I0412 09:47:03.701604 16993 Initialize.h:51] start initializing ompt
-I0412 09:47:03.701632 16993 Initialize.h:89] ompt intialized
-F0000 00:00:00.000000 16993 Callbacks.cpp:332] RAW: ompt_work_distribute is not supported yet
+I0421 08:44:48.838989 56645 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB144-critical-missingreduction-orig-gpu-yes.c.romp.out.inst
+I0421 08:44:48.842135 56645 Initialize.h:51] start initializing ompt
+I0421 08:44:48.842170 56645 Initialize.h:89] ompt intialized
+F0000 00:00:00.000000 56645 Callbacks.cpp:332] RAW: ompt_work_distribute is not supported yet
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'
@@ -20,10 +20,10 @@ registering callback: 'ompt_callback_thread_end'
 registering callback: 'ompt_callback_dispatch'
 *****     Log 2 for DRB144-critical-missingreduction-orig-gpu-yes.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:47:04.471491 17014 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB144-critical-missingreduction-orig-gpu-yes.c.romp.out.inst
-I0412 09:47:04.474411 17014 Initialize.h:51] start initializing ompt
-I0412 09:47:04.474438 17014 Initialize.h:89] ompt intialized
-F0000 00:00:00.000000 17014 Callbacks.cpp:332] RAW: ompt_work_distribute is not supported yet
+I0421 08:44:49.589222 56665 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB144-critical-missingreduction-orig-gpu-yes.c.romp.out.inst
+I0421 08:44:49.592861 56665 Initialize.h:51] start initializing ompt
+I0421 08:44:49.592890 56665 Initialize.h:89] ompt intialized
+F0000 00:00:00.000000 56665 Callbacks.cpp:332] RAW: ompt_work_distribute is not supported yet
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'

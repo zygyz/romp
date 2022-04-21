@@ -1,10 +1,10 @@
 *****     Log 1 for DRB139-worksharingcritical-orig-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:46:17.747218 16395 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB139-worksharingcritical-orig-no.c.romp.out.inst
-I0412 09:46:17.750046 16395 Initialize.h:51] start initializing ompt
-I0412 09:46:17.750077 16395 Initialize.h:89] ompt intialized
-I0412 09:46:17.758643 16395 Initialize.h:94] finalizing ompt
-I0412 09:46:17.758661 16395 Initialize.h:103] data race not found
+I0421 08:44:02.638353 56043 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB139-worksharingcritical-orig-no.c.romp.out.inst
+I0421 08:44:02.641626 56043 Initialize.h:51] start initializing ompt
+I0421 08:44:02.641654 56043 Initialize.h:89] ompt intialized
+I0421 08:44:02.662335 56043 Initialize.h:94] finalizing ompt
+I0421 08:44:02.662354 56043 Initialize.h:103] data race not found
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'
@@ -22,11 +22,11 @@ registering callback: 'ompt_callback_dispatch'
 2
 *****     Log 2 for DRB139-worksharingcritical-orig-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:46:17.791729 16420 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB139-worksharingcritical-orig-no.c.romp.out.inst
-I0412 09:46:17.794376 16420 Initialize.h:51] start initializing ompt
-I0412 09:46:17.794404 16420 Initialize.h:89] ompt intialized
-I0412 09:46:17.802670 16420 Initialize.h:94] finalizing ompt
-I0412 09:46:17.802687 16420 Initialize.h:103] data race not found
+I0421 08:44:02.697935 56068 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB139-worksharingcritical-orig-no.c.romp.out.inst
+I0421 08:44:02.700975 56068 Initialize.h:51] start initializing ompt
+I0421 08:44:02.701001 56068 Initialize.h:89] ompt intialized
+I0421 08:44:02.719969 56068 Initialize.h:94] finalizing ompt
+I0421 08:44:02.719985 56068 Initialize.h:103] data race not found
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'

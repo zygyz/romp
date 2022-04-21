@@ -1,10 +1,10 @@
 *****     Log 1 for DRB108-atomic-orig-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:41:28.807018 12729 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB108-atomic-orig-no.c.romp.out.inst
-I0412 09:41:28.809649 12729 Initialize.h:51] start initializing ompt
-I0412 09:41:28.809676 12729 Initialize.h:89] ompt intialized
-I0412 09:41:28.817456 12729 Initialize.h:94] finalizing ompt
-I0412 09:41:28.817472 12729 Initialize.h:103] data race not found
+I0421 08:39:11.269094 52388 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB108-atomic-orig-no.c.romp.out.inst
+I0421 08:39:11.272240 52388 Initialize.h:51] start initializing ompt
+I0421 08:39:11.272269 52388 Initialize.h:89] ompt intialized
+I0421 08:39:11.284096 52388 Initialize.h:94] finalizing ompt
+I0421 08:39:11.284138 52388 Initialize.h:103] data race not found
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'
@@ -22,11 +22,11 @@ registering callback: 'ompt_callback_dispatch'
 a=8
 *****     Log 2 for DRB108-atomic-orig-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:41:28.848697 12747 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB108-atomic-orig-no.c.romp.out.inst
-I0412 09:41:28.851044 12747 Initialize.h:51] start initializing ompt
-I0412 09:41:28.851069 12747 Initialize.h:89] ompt intialized
-I0412 09:41:28.858047 12747 Initialize.h:94] finalizing ompt
-I0412 09:41:28.858062 12747 Initialize.h:103] data race not found
+I0421 08:39:11.319842 52406 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB108-atomic-orig-no.c.romp.out.inst
+I0421 08:39:11.322999 52406 Initialize.h:51] start initializing ompt
+I0421 08:39:11.323029 52406 Initialize.h:89] ompt intialized
+I0421 08:39:11.334542 52406 Initialize.h:94] finalizing ompt
+I0421 08:39:11.334560 52406 Initialize.h:103] data race not found
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'

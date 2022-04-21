@@ -1,10 +1,10 @@
 *****     Log 1 for DRB066-pointernoaliasing-orig-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:24:53.344702  7283 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB066-pointernoaliasing-orig-no.c.romp.out.inst
-I0412 09:24:53.347748  7283 Initialize.h:51] start initializing ompt
-I0412 09:24:53.347775  7283 Initialize.h:89] ompt intialized
-I0412 09:24:53.364506  7283 Initialize.h:94] finalizing ompt
-I0412 09:24:53.364548  7283 Initialize.h:103] data race not found
+I0421 08:22:35.070379 47002 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB066-pointernoaliasing-orig-no.c.romp.out.inst
+I0421 08:22:35.073848 47002 Initialize.h:51] start initializing ompt
+I0421 08:22:35.073877 47002 Initialize.h:89] ompt intialized
+I0421 08:22:35.094172 47002 Initialize.h:94] finalizing ompt
+I0421 08:22:35.094198 47002 Initialize.h:103] data race not found
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'
@@ -21,11 +21,11 @@ registering callback: 'ompt_callback_thread_end'
 registering callback: 'ompt_callback_dispatch'
 *****     Log 2 for DRB066-pointernoaliasing-orig-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:24:53.396788  7301 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB066-pointernoaliasing-orig-no.c.romp.out.inst
-I0412 09:24:53.399142  7301 Initialize.h:51] start initializing ompt
-I0412 09:24:53.399174  7301 Initialize.h:89] ompt intialized
-I0412 09:24:53.413332  7301 Initialize.h:94] finalizing ompt
-I0412 09:24:53.413347  7301 Initialize.h:103] data race not found
+I0421 08:22:35.131846 47020 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB066-pointernoaliasing-orig-no.c.romp.out.inst
+I0421 08:22:35.134858 47020 Initialize.h:51] start initializing ompt
+I0421 08:22:35.134887 47020 Initialize.h:89] ompt intialized
+I0421 08:22:35.150988 47020 Initialize.h:94] finalizing ompt
+I0421 08:22:35.151023 47020 Initialize.h:103] data race not found
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'

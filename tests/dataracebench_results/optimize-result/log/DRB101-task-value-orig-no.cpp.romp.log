@@ -1,10 +1,10 @@
 *****     Log 1 for DRB101-task-value-orig-no.cpp with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 10:06:52.152479 23043 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB101-task-value-orig-no.cpp.romp.out.inst
-I0412 10:06:52.155827 23043 Initialize.h:51] start initializing ompt
-I0412 10:06:52.155855 23043 Initialize.h:89] ompt intialized
-I0412 10:06:52.186671 23043 Initialize.h:94] finalizing ompt
-I0412 10:06:52.186697 23043 Initialize.h:96] data race found:
+I0421 09:04:11.859824 62528 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB101-task-value-orig-no.cpp.romp.out.inst
+I0421 09:04:11.863078 62528 Initialize.h:51] start initializing ompt
+I0421 09:04:11.863106 62528 Initialize.h:89] ompt intialized
+I0421 09:04:11.891256 62528 Initialize.h:94] finalizing ompt
+I0421 09:04:11.891314 62528 Initialize.h:96] data race found:
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'
@@ -21,11 +21,11 @@ registering callback: 'ompt_callback_thread_end'
 registering callback: 'ompt_callback_dispatch'
 *****     Log 2 for DRB101-task-value-orig-no.cpp with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 10:06:52.221511 23061 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB101-task-value-orig-no.cpp.romp.out.inst
-I0412 10:06:52.224421 23061 Initialize.h:51] start initializing ompt
-I0412 10:06:52.224447 23061 Initialize.h:89] ompt intialized
-I0412 10:06:52.251971 23061 Initialize.h:94] finalizing ompt
-I0412 10:06:52.251987 23061 Initialize.h:96] data race found:
+I0421 09:04:11.927609 62546 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB101-task-value-orig-no.cpp.romp.out.inst
+I0421 09:04:11.930909 62546 Initialize.h:51] start initializing ompt
+I0421 09:04:11.930936 62546 Initialize.h:89] ompt intialized
+I0421 09:04:11.960526 62546 Initialize.h:94] finalizing ompt
+I0421 09:04:11.960543 62546 Initialize.h:96] data race found:
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'

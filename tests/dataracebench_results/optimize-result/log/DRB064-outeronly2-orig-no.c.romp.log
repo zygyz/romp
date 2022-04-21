@@ -1,10 +1,10 @@
 *****     Log 1 for DRB064-outeronly2-orig-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:14:34.928625  6420 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB064-outeronly2-orig-no.c.romp.out.inst
-I0412 09:14:34.931239  6420 Initialize.h:51] start initializing ompt
-I0412 09:14:34.931267  6420 Initialize.h:89] ompt intialized
-I0412 09:14:34.975232  6420 Initialize.h:94] finalizing ompt
-I0412 09:14:34.975265  6420 Initialize.h:103] data race not found
+I0421 08:12:16.584569 46128 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB064-outeronly2-orig-no.c.romp.out.inst
+I0421 08:12:16.587882 46128 Initialize.h:51] start initializing ompt
+I0421 08:12:16.587911 46128 Initialize.h:89] ompt intialized
+I0421 08:12:16.632364 46128 Initialize.h:94] finalizing ompt
+I0421 08:12:16.632385 46128 Initialize.h:103] data race not found
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'
@@ -21,11 +21,11 @@ registering callback: 'ompt_callback_thread_end'
 registering callback: 'ompt_callback_dispatch'
 *****     Log 2 for DRB064-outeronly2-orig-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:14:35.016822  6438 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB064-outeronly2-orig-no.c.romp.out.inst
-I0412 09:14:35.019253  6438 Initialize.h:51] start initializing ompt
-I0412 09:14:35.019279  6438 Initialize.h:89] ompt intialized
-I0412 09:14:35.064553  6438 Initialize.h:94] finalizing ompt
-I0412 09:14:35.064572  6438 Initialize.h:103] data race not found
+I0421 08:12:16.668610 46146 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB064-outeronly2-orig-no.c.romp.out.inst
+I0421 08:12:16.671370 46146 Initialize.h:51] start initializing ompt
+I0421 08:12:16.671398 46146 Initialize.h:89] ompt intialized
+I0421 08:12:16.714457 46146 Initialize.h:94] finalizing ompt
+I0421 08:12:16.714490 46146 Initialize.h:103] data race not found
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'

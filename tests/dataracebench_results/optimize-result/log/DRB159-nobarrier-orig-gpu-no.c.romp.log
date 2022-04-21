@@ -1,16 +1,16 @@
 *****     Log 1 for DRB159-nobarrier-orig-gpu-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:50:18.222865 19062 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB159-nobarrier-orig-gpu-no.c.romp.out.inst
-I0412 09:50:18.225603 19062 Initialize.h:51] start initializing ompt
-I0412 09:50:18.225631 19062 Initialize.h:89] ompt intialized
-F0000 00:00:00.000000 19062 Segment.cpp:246] RAW: Check loopCount < 16 failed: loop count is overflowing
-F0000 00:00:00.000000 19063 Segment.cpp:246] RAW: Check loopCount < 16 failed: loop count is overflowing
-F0000 00:00:00.000000 19066 Segment.cpp:246] RAW: Check loopCount < 16 failed: loop count is overflowing
-F0000 00:00:00.000000 19068 Segment.cpp:246] RAW: Check loopCount < 16 failed: loop count is overflowing
-F0000 00:00:00.000000 19064 Segment.cpp:246] RAW: Check loopCount < 16 failed: loop count is overflowing
-F0000 00:00:00.000000 19065 Segment.cpp:246] RAW: Check loopCount < 16 failed: loop count is overflowing
-F0000 00:00:00.000000 19067 Segment.cpp:246] RAW: Check loopCount < 16 failed: loop count is overflowing
-F0000 00:00:00.000000 19069 Segment.cpp:246] RAW: Check loopCount < 16 failed: loop count is overflowing
+I0421 08:48:09.908222 58644 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB159-nobarrier-orig-gpu-no.c.romp.out.inst
+I0421 08:48:09.911339 58644 Initialize.h:51] start initializing ompt
+I0421 08:48:09.911366 58644 Initialize.h:89] ompt intialized
+F0000 00:00:00.000000 58647 Segment.cpp:246] RAW: Check loopCount < 16 failed: loop count is overflowing
+F0000 00:00:00.000000 58649 Segment.cpp:246] RAW: Check loopCount < 16 failed: loop count is overflowing
+F0000 00:00:00.000000 58648 Segment.cpp:246] RAW: Check loopCount < 16 failed: loop count is overflowing
+F0000 00:00:00.000000 58651 Segment.cpp:246] RAW: Check loopCount < 16 failed: loop count is overflowing
+F0000 00:00:00.000000 58650 Segment.cpp:246] RAW: Check loopCount < 16 failed: loop count is overflowing
+F0000 00:00:00.000000 58644 Segment.cpp:246] RAW: Check loopCount < 16 failed: loop count is overflowing
+F0000 00:00:00.000000 58645 Segment.cpp:246] RAW: Check loopCount < 16 failed: loop count is overflowing
+F0000 00:00:00.000000 58646 Segment.cpp:246] RAW: Check loopCount < 16 failed: loop count is overflowing
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'
@@ -27,17 +27,17 @@ registering callback: 'ompt_callback_thread_end'
 registering callback: 'ompt_callback_dispatch'
 *****     Log 2 for DRB159-nobarrier-orig-gpu-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:50:30.294762 19092 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB159-nobarrier-orig-gpu-no.c.romp.out.inst
-I0412 09:50:30.297798 19092 Initialize.h:51] start initializing ompt
-I0412 09:50:30.297825 19092 Initialize.h:89] ompt intialized
-F0000 00:00:00.000000 19099 Segment.cpp:246] RAW: Check loopCount < 16 failed: loop count is overflowing
-F0000 00:00:00.000000 19096 Segment.cpp:246] RAW: Check loopCount < 16 failed: loop count is overflowing
-F0000 00:00:00.000000 19100 Segment.cpp:246] RAW: Check loopCount < 16 failed: loop count is overflowing
-F0000 00:00:00.000000 19103 Segment.cpp:246] RAW: Check loopCount < 16 failed: loop count is overflowing
-F0000 00:00:00.000000 19095 Segment.cpp:246] RAW: Check loopCount < 16 failed: loop count is overflowing
-F0000 00:00:00.000000 19092 Segment.cpp:246] RAW: Check loopCount < 16 failed: loop count is overflowing
-F0000 00:00:00.000000 19102 Segment.cpp:246] RAW: Check loopCount < 16 failed: loop count is overflowing
-F0000 00:00:00.000000 19101 Segment.cpp:246] RAW: Check loopCount < 16 failed: loop count is overflowing
+I0421 08:48:17.150525 58669 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB159-nobarrier-orig-gpu-no.c.romp.out.inst
+I0421 08:48:17.153832 58669 Initialize.h:51] start initializing ompt
+I0421 08:48:17.153860 58669 Initialize.h:89] ompt intialized
+F0000 00:00:00.000000 58673 Segment.cpp:246] RAW: Check loopCount < 16 failed: loop count is overflowing
+F0000 00:00:00.000000 58677 Segment.cpp:246] RAW: Check loopCount < 16 failed: loop count is overflowing
+F0000 00:00:00.000000 58676 Segment.cpp:246] RAW: Check loopCount < 16 failed: loop count is overflowing
+F0000 00:00:00.000000 58675 Segment.cpp:246] RAW: Check loopCount < 16 failed: loop count is overflowing
+F0000 00:00:00.000000 58669 Segment.cpp:246] RAW: Check loopCount < 16 failed: loop count is overflowing
+F0000 00:00:00.000000 58674 Segment.cpp:246] RAW: Check loopCount < 16 failed: loop count is overflowing
+F0000 00:00:00.000000 58678 Segment.cpp:246] RAW: Check loopCount < 16 failed: loop count is overflowing
+F0000 00:00:00.000000 58672 Segment.cpp:246] RAW: Check loopCount < 16 failed: loop count is overflowing
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'

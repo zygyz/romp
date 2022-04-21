@@ -1,10 +1,10 @@
 *****     Log 1 for DRB099-targetparallelfor2-orig-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:30:17.782727 11187 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB099-targetparallelfor2-orig-no.c.romp.out.inst
-I0412 09:30:17.785722 11187 Initialize.h:51] start initializing ompt
-I0412 09:30:17.785750 11187 Initialize.h:89] ompt intialized
-I0412 09:30:17.800877 11187 Initialize.h:94] finalizing ompt
-I0412 09:30:17.800899 11187 Initialize.h:103] data race not found
+I0421 08:28:00.695031 50888 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB099-targetparallelfor2-orig-no.c.romp.out.inst
+I0421 08:28:00.724054 50888 Initialize.h:51] start initializing ompt
+I0421 08:28:00.724081 50888 Initialize.h:89] ompt intialized
+I0421 08:28:00.740128 50888 Initialize.h:94] finalizing ompt
+I0421 08:28:00.740144 50888 Initialize.h:103] data race not found
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'
@@ -22,11 +22,11 @@ registering callback: 'ompt_callback_dispatch'
 b[50]=1250.000000
 *****     Log 2 for DRB099-targetparallelfor2-orig-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:30:17.836012 11205 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB099-targetparallelfor2-orig-no.c.romp.out.inst
-I0412 09:30:17.838634 11205 Initialize.h:51] start initializing ompt
-I0412 09:30:17.838661 11205 Initialize.h:89] ompt intialized
-I0412 09:30:17.852047 11205 Initialize.h:94] finalizing ompt
-I0412 09:30:17.852066 11205 Initialize.h:103] data race not found
+I0421 08:28:00.775049 50906 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB099-targetparallelfor2-orig-no.c.romp.out.inst
+I0421 08:28:00.777629 50906 Initialize.h:51] start initializing ompt
+I0421 08:28:00.777655 50906 Initialize.h:89] ompt intialized
+I0421 08:28:00.791451 50906 Initialize.h:94] finalizing ompt
+I0421 08:28:00.791489 50906 Initialize.h:103] data race not found
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'

@@ -1,10 +1,10 @@
 *****     Log 1 for DRB105-taskwait-orig-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:30:55.208110 11673 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB105-taskwait-orig-no.c.romp.out.inst
-I0412 09:30:55.210865 11673 Initialize.h:51] start initializing ompt
-I0412 09:30:55.210891 11673 Initialize.h:89] ompt intialized
+I0421 08:28:37.563133 51375 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB105-taskwait-orig-no.c.romp.out.inst
+I0421 08:28:37.566087 51375 Initialize.h:51] start initializing ompt
+I0421 08:28:37.566113 51375 Initialize.h:89] ompt intialized
 *****     Log 2 for DRB105-taskwait-orig-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:35:55.231364 12066 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB105-taskwait-orig-no.c.romp.out.inst
-I0412 09:35:55.235641 12066 Initialize.h:51] start initializing ompt
-I0412 09:35:55.235667 12066 Initialize.h:89] ompt intialized
+I0421 08:33:37.587908 51717 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB105-taskwait-orig-no.c.romp.out.inst
+I0421 08:33:37.592828 51717 Initialize.h:51] start initializing ompt
+I0421 08:33:37.592854 51717 Initialize.h:89] ompt intialized

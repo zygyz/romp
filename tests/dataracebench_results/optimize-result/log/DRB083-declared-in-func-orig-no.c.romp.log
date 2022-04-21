@@ -1,10 +1,10 @@
 *****     Log 1 for DRB083-declared-in-func-orig-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:27:43.003073  9365 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB083-declared-in-func-orig-no.c.romp.out.inst
-I0412 09:27:43.005811  9365 Initialize.h:51] start initializing ompt
-I0412 09:27:43.005838  9365 Initialize.h:89] ompt intialized
-I0412 09:27:43.012993  9365 Initialize.h:94] finalizing ompt
-I0412 09:27:43.013010  9365 Initialize.h:103] data race not found
+I0421 08:25:24.177397 49072 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB083-declared-in-func-orig-no.c.romp.out.inst
+I0421 08:25:24.180545 49072 Initialize.h:51] start initializing ompt
+I0421 08:25:24.180572 49072 Initialize.h:89] ompt intialized
+I0421 08:25:24.193262 49072 Initialize.h:94] finalizing ompt
+I0421 08:25:24.193279 49072 Initialize.h:103] data race not found
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'
@@ -21,11 +21,11 @@ registering callback: 'ompt_callback_thread_end'
 registering callback: 'ompt_callback_dispatch'
 *****     Log 2 for DRB083-declared-in-func-orig-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:27:43.045918  9383 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB083-declared-in-func-orig-no.c.romp.out.inst
-I0412 09:27:43.048229  9383 Initialize.h:51] start initializing ompt
-I0412 09:27:43.048254  9383 Initialize.h:89] ompt intialized
-I0412 09:27:43.055552  9383 Initialize.h:94] finalizing ompt
-I0412 09:27:43.055568  9383 Initialize.h:103] data race not found
+I0421 08:25:24.228111 49090 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB083-declared-in-func-orig-no.c.romp.out.inst
+I0421 08:25:24.231385 49090 Initialize.h:51] start initializing ompt
+I0421 08:25:24.231415 49090 Initialize.h:89] ompt intialized
+I0421 08:25:24.243149 49090 Initialize.h:94] finalizing ompt
+I0421 08:25:24.243196 49090 Initialize.h:103] data race not found
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'

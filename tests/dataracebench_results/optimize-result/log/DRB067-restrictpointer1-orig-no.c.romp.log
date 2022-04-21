@@ -1,10 +1,10 @@
 *****     Log 1 for DRB067-restrictpointer1-orig-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:25:02.539042  7405 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB067-restrictpointer1-orig-no.c.romp.out.inst
-I0412 09:25:02.541940  7405 Initialize.h:51] start initializing ompt
-I0412 09:25:02.541970  7405 Initialize.h:89] ompt intialized
-I0412 09:25:02.556264  7405 Initialize.h:94] finalizing ompt
-I0412 09:25:02.556282  7405 Initialize.h:103] data race not found
+I0421 08:22:44.323127 47123 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB067-restrictpointer1-orig-no.c.romp.out.inst
+I0421 08:22:44.326220 47123 Initialize.h:51] start initializing ompt
+I0421 08:22:44.326248 47123 Initialize.h:89] ompt intialized
+I0421 08:22:44.346938 47123 Initialize.h:94] finalizing ompt
+I0421 08:22:44.346956 47123 Initialize.h:103] data race not found
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'
@@ -21,11 +21,11 @@ registering callback: 'ompt_callback_thread_end'
 registering callback: 'ompt_callback_dispatch'
 *****     Log 2 for DRB067-restrictpointer1-orig-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:25:02.591583  7423 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB067-restrictpointer1-orig-no.c.romp.out.inst
-I0412 09:25:02.594219  7423 Initialize.h:51] start initializing ompt
-I0412 09:25:02.594246  7423 Initialize.h:89] ompt intialized
-I0412 09:25:02.607673  7423 Initialize.h:94] finalizing ompt
-I0412 09:25:02.607692  7423 Initialize.h:103] data race not found
+I0421 08:22:44.381994 47142 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB067-restrictpointer1-orig-no.c.romp.out.inst
+I0421 08:22:44.384968 47142 Initialize.h:51] start initializing ompt
+I0421 08:22:44.384995 47142 Initialize.h:89] ompt intialized
+I0421 08:22:44.401072 47142 Initialize.h:94] finalizing ompt
+I0421 08:22:44.401096 47142 Initialize.h:103] data race not found
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'

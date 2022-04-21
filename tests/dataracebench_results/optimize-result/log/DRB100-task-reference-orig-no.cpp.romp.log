@@ -1,10 +1,10 @@
 *****     Log 1 for DRB100-task-reference-orig-no.cpp with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 10:06:40.317281 22903 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB100-task-reference-orig-no.cpp.romp.out.inst
-I0412 10:06:40.320581 22903 Initialize.h:51] start initializing ompt
-I0412 10:06:40.320609 22903 Initialize.h:89] ompt intialized
-I0412 10:06:40.348914 22903 Initialize.h:94] finalizing ompt
-I0412 10:06:40.348950 22903 Initialize.h:96] data race found:
+I0421 09:03:59.900388 62390 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB100-task-reference-orig-no.cpp.romp.out.inst
+I0421 09:03:59.903705 62390 Initialize.h:51] start initializing ompt
+I0421 09:03:59.903734 62390 Initialize.h:89] ompt intialized
+I0421 09:03:59.931499 62390 Initialize.h:94] finalizing ompt
+I0421 09:03:59.931514 62390 Initialize.h:96] data race found:
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'
@@ -21,11 +21,11 @@ registering callback: 'ompt_callback_thread_end'
 registering callback: 'ompt_callback_dispatch'
 *****     Log 2 for DRB100-task-reference-orig-no.cpp with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 10:06:40.384629 22921 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB100-task-reference-orig-no.cpp.romp.out.inst
-I0412 10:06:40.387488 22921 Initialize.h:51] start initializing ompt
-I0412 10:06:40.387516 22921 Initialize.h:89] ompt intialized
-I0412 10:06:40.416417 22921 Initialize.h:94] finalizing ompt
-I0412 10:06:40.416433 22921 Initialize.h:96] data race found:
+I0421 09:03:59.983047 62408 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB100-task-reference-orig-no.cpp.romp.out.inst
+I0421 09:03:59.985831 62408 Initialize.h:51] start initializing ompt
+I0421 09:03:59.985857 62408 Initialize.h:89] ompt intialized
+I0421 09:04:00.011715 62408 Initialize.h:94] finalizing ompt
+I0421 09:04:00.011734 62408 Initialize.h:96] data race found:
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'

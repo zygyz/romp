@@ -1,10 +1,10 @@
 *****     Log 1 for DRB060-matrixmultiply-orig-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:13:45.309801  5923 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB060-matrixmultiply-orig-no.c.romp.out.inst
-I0412 09:13:45.312434  5923 Initialize.h:51] start initializing ompt
-I0412 09:13:45.312461  5923 Initialize.h:89] ompt intialized
-I0412 09:13:46.374071  5923 Initialize.h:94] finalizing ompt
-I0412 09:13:46.374109  5923 Initialize.h:103] data race not found
+I0421 08:11:28.246728 45633 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB060-matrixmultiply-orig-no.c.romp.out.inst
+I0421 08:11:28.249909 45633 Initialize.h:51] start initializing ompt
+I0421 08:11:28.249936 45633 Initialize.h:89] ompt intialized
+I0421 08:11:29.204917 45633 Initialize.h:94] finalizing ompt
+I0421 08:11:29.204952 45633 Initialize.h:103] data race not found
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'
@@ -21,11 +21,11 @@ registering callback: 'ompt_callback_thread_end'
 registering callback: 'ompt_callback_dispatch'
 *****     Log 2 for DRB060-matrixmultiply-orig-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:13:46.446187  5942 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB060-matrixmultiply-orig-no.c.romp.out.inst
-I0412 09:13:46.449074  5942 Initialize.h:51] start initializing ompt
-I0412 09:13:46.449101  5942 Initialize.h:89] ompt intialized
-I0412 09:13:47.420226  5942 Initialize.h:94] finalizing ompt
-I0412 09:13:47.420264  5942 Initialize.h:103] data race not found
+I0421 08:11:29.252987 45652 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB060-matrixmultiply-orig-no.c.romp.out.inst
+I0421 08:11:29.256325 45652 Initialize.h:51] start initializing ompt
+I0421 08:11:29.256356 45652 Initialize.h:89] ompt intialized
+I0421 08:11:30.299393 45652 Initialize.h:94] finalizing ompt
+I0421 08:11:30.299446 45652 Initialize.h:103] data race not found
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'

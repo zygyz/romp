@@ -1,10 +1,10 @@
 *****     Log 1 for DRB106-taskwaitmissing-orig-yes.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:41:04.285025 12482 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB106-taskwaitmissing-orig-yes.c.romp.out.inst
-I0412 09:41:04.288450 12482 Initialize.h:51] start initializing ompt
-I0412 09:41:04.288477 12482 Initialize.h:89] ompt intialized
-I0412 09:41:04.303346 12482 Initialize.h:94] finalizing ompt
-I0412 09:41:04.303364 12482 Initialize.h:96] data race found:
+I0421 08:38:46.654343 52137 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB106-taskwaitmissing-orig-yes.c.romp.out.inst
+I0421 08:38:46.657739 52137 Initialize.h:51] start initializing ompt
+I0421 08:38:46.657769 52137 Initialize.h:89] ompt intialized
+I0421 08:38:46.699645 52137 Initialize.h:94] finalizing ompt
+I0421 08:38:46.699666 52137 Initialize.h:96] data race found:
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'
@@ -19,14 +19,14 @@ registering callback: 'ompt_callback_dependences'
 registering callback: 'ompt_callback_thread_begin'
 registering callback: 'ompt_callback_thread_end'
 registering callback: 'ompt_callback_dispatch'
-Fib(10)=-134220752 (correct answer should be 55)
+Fib(10)=1140831088 (correct answer should be 55)
 *****     Log 2 for DRB106-taskwaitmissing-orig-yes.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:41:04.337024 12500 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB106-taskwaitmissing-orig-yes.c.romp.out.inst
-I0412 09:41:04.339640 12500 Initialize.h:51] start initializing ompt
-I0412 09:41:04.339665 12500 Initialize.h:89] ompt intialized
-I0412 09:41:04.353879 12500 Initialize.h:94] finalizing ompt
-I0412 09:41:04.353895 12500 Initialize.h:96] data race found:
+I0421 08:38:46.736640 52155 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB106-taskwaitmissing-orig-yes.c.romp.out.inst
+I0421 08:38:46.739367 52155 Initialize.h:51] start initializing ompt
+I0421 08:38:46.739393 52155 Initialize.h:89] ompt intialized
+I0421 08:38:46.776329 52155 Initialize.h:94] finalizing ompt
+I0421 08:38:46.776347 52155 Initialize.h:96] data race found:
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'
@@ -41,4 +41,4 @@ registering callback: 'ompt_callback_dependences'
 registering callback: 'ompt_callback_thread_begin'
 registering callback: 'ompt_callback_thread_end'
 registering callback: 'ompt_callback_dispatch'
-Fib(10)=-1168792995 (correct answer should be 55)
+Fib(10)=-110275779 (correct answer should be 55)

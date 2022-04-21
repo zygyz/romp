@@ -1,16 +1,9 @@
 *****     Log 1 for DRB110-ordered-orig-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:41:47.137064 12972 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB110-ordered-orig-no.c.romp.out.inst
-I0412 09:41:47.139787 12972 Initialize.h:51] start initializing ompt
-I0412 09:41:47.139814 12972 Initialize.h:89] ompt intialized
-F0000 00:00:00.000000 12976 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
-F0000 00:00:00.000000 12977 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
-F0000 00:00:00.000000 12975 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
-F0000 00:00:00.000000 12973 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
-F0000 00:00:00.000000 12978 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
-F0000 00:00:00.000000 12974 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
-F0000 00:00:00.000000 12979 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
-F0000 00:00:00.000000 12972 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
+I0421 08:39:29.676580 52631 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB110-ordered-orig-no.c.romp.out.inst
+I0421 08:39:29.679744 52631 Initialize.h:51] start initializing ompt
+I0421 08:39:29.679769 52631 Initialize.h:89] ompt intialized
+F0000 00:00:00.000000 52631 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'
@@ -25,19 +18,19 @@ registering callback: 'ompt_callback_dependences'
 registering callback: 'ompt_callback_thread_begin'
 registering callback: 'ompt_callback_thread_end'
 registering callback: 'ompt_callback_dispatch'
+F0000 00:00:00.000000 52638 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
 *****     Log 2 for DRB110-ordered-orig-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:41:51.763211 12996 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB110-ordered-orig-no.c.romp.out.inst
-I0412 09:41:51.766595 12996 Initialize.h:51] start initializing ompt
-I0412 09:41:51.766621 12996 Initialize.h:89] ompt intialized
-F0000 00:00:00.000000 13005 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
-F0000 00:00:00.000000 13001 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
-F0000 00:00:00.000000 13004 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
-F0000 00:00:00.000000 12999 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
-F0000 00:00:00.000000 13002 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
-F0000 00:00:00.000000 13003 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
-F0000 00:00:00.000000 12996 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
-F0000 00:00:00.000000 13000 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
+I0421 08:39:34.614331 52655 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB110-ordered-orig-no.c.romp.out.inst
+I0421 08:39:34.618803 52655 Initialize.h:51] start initializing ompt
+I0421 08:39:34.618830 52655 Initialize.h:89] ompt intialized
+F0000 00:00:00.000000 52664 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
+F0000 00:00:00.000000 52655 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
+F0000 00:00:00.000000 52660 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
+F0000 00:00:00.000000 52662 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
+F0000 00:00:00.000000 52663 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
+F0000 00:00:00.000000 52658 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
+F0000 00:00:00.000000 52659 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'
@@ -52,3 +45,4 @@ registering callback: 'ompt_callback_dependences'
 registering callback: 'ompt_callback_thread_begin'
 registering callback: 'ompt_callback_thread_end'
 registering callback: 'ompt_callback_dispatch'
+F0000 00:00:00.000000 52661 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing

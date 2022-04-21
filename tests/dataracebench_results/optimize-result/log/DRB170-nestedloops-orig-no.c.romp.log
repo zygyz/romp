@@ -1,10 +1,10 @@
 *****     Log 1 for DRB170-nestedloops-orig-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:52:33.474833 20473 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB170-nestedloops-orig-no.c.romp.out.inst
-I0412 09:52:33.477593 20473 Initialize.h:51] start initializing ompt
-I0412 09:52:33.477620 20473 Initialize.h:89] ompt intialized
-I0412 09:52:33.490886 20473 Initialize.h:94] finalizing ompt
-I0412 09:52:33.490908 20473 Initialize.h:103] data race not found
+I0421 08:50:23.580801 60053 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB170-nestedloops-orig-no.c.romp.out.inst
+I0421 08:50:23.583909 60053 Initialize.h:51] start initializing ompt
+I0421 08:50:23.583936 60053 Initialize.h:89] ompt intialized
+I0421 08:50:23.600910 60053 Initialize.h:94] finalizing ompt
+I0421 08:50:23.600927 60053 Initialize.h:103] data race not found
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'
@@ -21,11 +21,11 @@ registering callback: 'ompt_callback_thread_end'
 registering callback: 'ompt_callback_dispatch'
 *****     Log 2 for DRB170-nestedloops-orig-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:52:33.524217 20491 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB170-nestedloops-orig-no.c.romp.out.inst
-I0412 09:52:33.526687 20491 Initialize.h:51] start initializing ompt
-I0412 09:52:33.526712 20491 Initialize.h:89] ompt intialized
-I0412 09:52:33.539220 20491 Initialize.h:94] finalizing ompt
-I0412 09:52:33.539237 20491 Initialize.h:103] data race not found
+I0421 08:50:23.635852 60071 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB170-nestedloops-orig-no.c.romp.out.inst
+I0421 08:50:23.638751 60071 Initialize.h:51] start initializing ompt
+I0421 08:50:23.638777 60071 Initialize.h:89] ompt intialized
+I0421 08:50:23.656205 60071 Initialize.h:94] finalizing ompt
+I0421 08:50:23.656221 60071 Initialize.h:103] data race not found
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'

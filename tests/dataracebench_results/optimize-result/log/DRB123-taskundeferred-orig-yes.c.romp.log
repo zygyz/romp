@@ -1,31 +1,10 @@
 *****     Log 1 for DRB123-taskundeferred-orig-yes.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:43:50.851498 14520 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB123-taskundeferred-orig-yes.c.romp.out.inst
-I0412 09:43:50.854143 14520 Initialize.h:51] start initializing ompt
-I0412 09:43:50.854176 14520 Initialize.h:89] ompt intialized
-I0412 09:43:50.862622 14520 Initialize.h:94] finalizing ompt
-I0412 09:43:50.862638 14520 Initialize.h:96] data race found:
-registering callback: 'ompt_callback_mutex_acquired'
-registering callback: 'ompt_callback_mutex_released'
-registering callback: 'ompt_callback_reduction'
-registering callback: 'ompt_callback_implicit_task'
-registering callback: 'ompt_callback_sync_region'
-registering callback: 'ompt_callback_work'
-registering callback: 'ompt_callback_parallel_begin'
-registering callback: 'ompt_callback_parallel_end'
-registering callback: 'ompt_callback_task_create'
-registering callback: 'ompt_callback_task_schedule'
-registering callback: 'ompt_callback_dependences'
-registering callback: 'ompt_callback_thread_begin'
-registering callback: 'ompt_callback_thread_end'
-registering callback: 'ompt_callback_dispatch'
-*****     Log 2 for DRB123-taskundeferred-orig-yes.c with 8 threads and input size      *****
-WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:43:50.895669 14539 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB123-taskundeferred-orig-yes.c.romp.out.inst
-I0412 09:43:50.898025 14539 Initialize.h:51] start initializing ompt
-I0412 09:43:50.898051 14539 Initialize.h:89] ompt intialized
-I0412 09:43:50.905656 14539 Initialize.h:94] finalizing ompt
-I0412 09:43:50.905671 14539 Initialize.h:96] data race found:
+I0421 08:41:34.254830 54190 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB123-taskundeferred-orig-yes.c.romp.out.inst
+I0421 08:41:34.257953 54190 Initialize.h:51] start initializing ompt
+I0421 08:41:34.257982 54190 Initialize.h:89] ompt intialized
+I0421 08:41:34.272773 54190 Initialize.h:94] finalizing ompt
+I0421 08:41:34.272804 54190 Initialize.h:96] data race found:
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'
@@ -41,3 +20,24 @@ registering callback: 'ompt_callback_thread_begin'
 registering callback: 'ompt_callback_thread_end'
 registering callback: 'ompt_callback_dispatch'
 9
+*****     Log 2 for DRB123-taskundeferred-orig-yes.c with 8 threads and input size      *****
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0421 08:41:34.307097 54208 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB123-taskundeferred-orig-yes.c.romp.out.inst
+I0421 08:41:34.310113 54208 Initialize.h:51] start initializing ompt
+I0421 08:41:34.310139 54208 Initialize.h:89] ompt intialized
+I0421 08:41:34.325269 54208 Initialize.h:94] finalizing ompt
+I0421 08:41:34.325304 54208 Initialize.h:96] data race found:
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'

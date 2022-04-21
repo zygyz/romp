@@ -1,10 +1,10 @@
 *****     Log 1 for DRB062-matrixvector2-orig-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:14:05.719853  6169 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB062-matrixvector2-orig-no.c.romp.out.inst
-I0412 09:14:05.722663  6169 Initialize.h:51] start initializing ompt
-I0412 09:14:05.722692  6169 Initialize.h:89] ompt intialized
-I0412 09:14:10.190245  6169 Initialize.h:94] finalizing ompt
-I0412 09:14:10.190299  6169 Initialize.h:96] data race found:
+I0421 08:11:48.728701 45878 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB062-matrixvector2-orig-no.c.romp.out.inst
+I0421 08:11:48.731788 45878 Initialize.h:51] start initializing ompt
+I0421 08:11:48.731815 45878 Initialize.h:89] ompt intialized
+I0421 08:11:53.010910 45878 Initialize.h:94] finalizing ompt
+I0421 08:11:53.010969 45878 Initialize.h:96] data race found:
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'
@@ -21,11 +21,11 @@ registering callback: 'ompt_callback_thread_end'
 registering callback: 'ompt_callback_dispatch'
 *****     Log 2 for DRB062-matrixvector2-orig-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:14:11.067492  6191 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB062-matrixvector2-orig-no.c.romp.out.inst
-I0412 09:14:11.070469  6191 Initialize.h:51] start initializing ompt
-I0412 09:14:11.070498  6191 Initialize.h:89] ompt intialized
-I0412 09:14:15.514741  6191 Initialize.h:94] finalizing ompt
-I0412 09:14:15.514786  6191 Initialize.h:96] data race found:
+I0421 08:11:53.634277 45900 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB062-matrixvector2-orig-no.c.romp.out.inst
+I0421 08:11:53.637691 45900 Initialize.h:51] start initializing ompt
+I0421 08:11:53.637718 45900 Initialize.h:89] ompt intialized
+I0421 08:11:57.705663 45900 Initialize.h:94] finalizing ompt
+I0421 08:11:57.705713 45900 Initialize.h:96] data race found:
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'

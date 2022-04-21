@@ -1,10 +1,10 @@
 *****     Log 1 for DRB055-jacobi2d-parallel-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 08:59:16.522416  4401 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB055-jacobi2d-parallel-no.c.romp.out.inst
-I0412 08:59:16.525409  4401 Initialize.h:51] start initializing ompt
-I0412 08:59:16.525436  4401 Initialize.h:89] ompt intialized
-I0412 09:00:04.354862  4401 Initialize.h:94] finalizing ompt
-I0412 09:00:04.354904  4401 Initialize.h:103] data race not found
+I0421 07:57:04.459420 44152 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB055-jacobi2d-parallel-no.c.romp.out.inst
+I0421 07:57:04.462960 44152 Initialize.h:51] start initializing ompt
+I0421 07:57:04.462986 44152 Initialize.h:89] ompt intialized
+I0421 07:57:52.160531 44152 Initialize.h:94] finalizing ompt
+I0421 07:57:52.160573 44152 Initialize.h:103] data race not found
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'
@@ -19,14 +19,14 @@ registering callback: 'ompt_callback_dependences'
 registering callback: 'ompt_callback_thread_begin'
 registering callback: 'ompt_callback_thread_end'
 registering callback: 'ompt_callback_dispatch'
-46.178930
+45.806723
 *****     Log 2 for DRB055-jacobi2d-parallel-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:00:05.019222  4466 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB055-jacobi2d-parallel-no.c.romp.out.inst
-I0412 09:00:05.022943  4466 Initialize.h:51] start initializing ompt
-I0412 09:00:05.022972  4466 Initialize.h:89] ompt intialized
-I0412 09:00:54.494138  4466 Initialize.h:94] finalizing ompt
-I0412 09:00:54.494204  4466 Initialize.h:103] data race not found
+I0421 07:57:52.591352 44208 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB055-jacobi2d-parallel-no.c.romp.out.inst
+I0421 07:57:52.594954 44208 Initialize.h:51] start initializing ompt
+I0421 07:57:52.594982 44208 Initialize.h:89] ompt intialized
+I0421 07:58:41.407614 44208 Initialize.h:94] finalizing ompt
+I0421 07:58:41.407658 44208 Initialize.h:103] data race not found
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'
@@ -41,4 +41,4 @@ registering callback: 'ompt_callback_dependences'
 registering callback: 'ompt_callback_thread_begin'
 registering callback: 'ompt_callback_thread_end'
 registering callback: 'ompt_callback_dispatch'
-47.562421
+47.038577

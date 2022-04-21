@@ -1,10 +1,10 @@
 *****     Log 1 for DRB043-adi-parallel-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 08:52:04.634186  2250 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB043-adi-parallel-no.c.romp.out.inst
-I0412 08:52:04.637203  2250 Initialize.h:51] start initializing ompt
-I0412 08:52:04.637230  2250 Initialize.h:89] ompt intialized
-I0412 08:53:15.198946  2250 Initialize.h:94] finalizing ompt
-I0412 08:53:15.198990  2250 Initialize.h:103] data race not found
+I0421 07:50:08.938426 42307 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB043-adi-parallel-no.c.romp.out.inst
+I0421 07:50:08.943035 42307 Initialize.h:51] start initializing ompt
+I0421 07:50:08.943064 42307 Initialize.h:89] ompt intialized
+I0421 07:51:19.141389 42307 Initialize.h:94] finalizing ompt
+I0421 07:51:19.141431 42307 Initialize.h:103] data race not found
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'
@@ -19,14 +19,14 @@ registering callback: 'ompt_callback_dependences'
 registering callback: 'ompt_callback_thread_begin'
 registering callback: 'ompt_callback_thread_end'
 registering callback: 'ompt_callback_dispatch'
-67.395668
+67.198912
 *****     Log 2 for DRB043-adi-parallel-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 08:53:16.224056  2419 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB043-adi-parallel-no.c.romp.out.inst
-I0412 08:53:16.227888  2419 Initialize.h:51] start initializing ompt
-I0412 08:53:16.227916  2419 Initialize.h:89] ompt intialized
-I0412 08:54:29.475497  2419 Initialize.h:94] finalizing ompt
-I0412 08:54:29.475556  2419 Initialize.h:103] data race not found
+I0421 07:51:19.516238 42446 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB043-adi-parallel-no.c.romp.out.inst
+I0421 07:51:19.519968 42446 Initialize.h:51] start initializing ompt
+I0421 07:51:19.519996 42446 Initialize.h:89] ompt intialized
+I0421 07:52:27.557271 42446 Initialize.h:94] finalizing ompt
+I0421 07:52:27.557313 42446 Initialize.h:103] data race not found
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'
@@ -41,4 +41,4 @@ registering callback: 'ompt_callback_dependences'
 registering callback: 'ompt_callback_thread_begin'
 registering callback: 'ompt_callback_thread_end'
 registering callback: 'ompt_callback_dispatch'
-70.268908
+65.136167

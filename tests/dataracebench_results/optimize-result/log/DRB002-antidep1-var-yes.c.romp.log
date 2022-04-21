@@ -1,10 +1,10 @@
 *****     Log 1 for DRB002-antidep1-var-yes.c with 8 threads and input size 32     *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 08:44:32.172250 70389 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB002-antidep1-var-yes.c.romp.out.inst
-I0412 08:44:32.174849 70389 Initialize.h:51] start initializing ompt
-I0412 08:44:32.174875 70389 Initialize.h:89] ompt intialized
-I0412 08:44:32.182750 70389 Initialize.h:94] finalizing ompt
-I0412 08:44:32.182767 70389 Initialize.h:96] data race found:
+I0421 07:42:39.658434 37195 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB002-antidep1-var-yes.c.romp.out.inst
+I0421 07:42:39.661551 37195 Initialize.h:51] start initializing ompt
+I0421 07:42:39.661579 37195 Initialize.h:89] ompt intialized
+I0421 07:42:39.674114 37195 Initialize.h:94] finalizing ompt
+I0421 07:42:39.674141 37195 Initialize.h:96] data race found:
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'
@@ -21,11 +21,11 @@ registering callback: 'ompt_callback_thread_end'
 registering callback: 'ompt_callback_dispatch'
 *****     Log 2 for DRB002-antidep1-var-yes.c with 8 threads and input size 32     *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 08:44:32.214716 70407 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB002-antidep1-var-yes.c.romp.out.inst
-I0412 08:44:32.217044 70407 Initialize.h:51] start initializing ompt
-I0412 08:44:32.217070 70407 Initialize.h:89] ompt intialized
-I0412 08:44:32.224164 70407 Initialize.h:94] finalizing ompt
-I0412 08:44:32.224197 70407 Initialize.h:96] data race found:
+I0421 07:42:39.708817 37213 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB002-antidep1-var-yes.c.romp.out.inst
+I0421 07:42:39.711493 37213 Initialize.h:51] start initializing ompt
+I0421 07:42:39.711519 37213 Initialize.h:89] ompt intialized
+I0421 07:42:39.722344 37213 Initialize.h:94] finalizing ompt
+I0421 07:42:39.722360 37213 Initialize.h:96] data race found:
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'

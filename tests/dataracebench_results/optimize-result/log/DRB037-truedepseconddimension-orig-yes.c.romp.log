@@ -1,10 +1,10 @@
 *****     Log 1 for DRB037-truedepseconddimension-orig-yes.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 08:50:05.880749  1389 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB037-truedepseconddimension-orig-yes.c.romp.out.inst
-I0412 08:50:05.883759  1389 Initialize.h:51] start initializing ompt
-I0412 08:50:05.883786  1389 Initialize.h:89] ompt intialized
-I0412 08:50:09.395409  1389 Initialize.h:94] finalizing ompt
-I0412 08:50:09.395453  1389 Initialize.h:96] data race found:
+I0421 07:48:11.359858 41511 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB037-truedepseconddimension-orig-yes.c.romp.out.inst
+I0421 07:48:11.362848 41511 Initialize.h:51] start initializing ompt
+I0421 07:48:11.362875 41511 Initialize.h:89] ompt intialized
+I0421 07:48:14.418140 41511 Initialize.h:94] finalizing ompt
+I0421 07:48:14.418192 41511 Initialize.h:96] data race found:
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'
@@ -22,11 +22,11 @@ registering callback: 'ompt_callback_dispatch'
 b[500][500]=0.000000
 *****     Log 2 for DRB037-truedepseconddimension-orig-yes.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 08:50:10.123904  1413 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB037-truedepseconddimension-orig-yes.c.romp.out.inst
-I0412 08:50:10.126701  1413 Initialize.h:51] start initializing ompt
-I0412 08:50:10.126730  1413 Initialize.h:89] ompt intialized
-I0412 08:50:13.536615  1413 Initialize.h:94] finalizing ompt
-I0412 08:50:13.536659  1413 Initialize.h:96] data race found:
+I0421 07:48:15.035624 41533 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB037-truedepseconddimension-orig-yes.c.romp.out.inst
+I0421 07:48:15.038946 41533 Initialize.h:51] start initializing ompt
+I0421 07:48:15.038975 41533 Initialize.h:89] ompt intialized
+I0421 07:48:18.314265 41533 Initialize.h:94] finalizing ompt
+I0421 07:48:18.314318 41533 Initialize.h:96] data race found:
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'

@@ -1,10 +1,10 @@
 *****     Log 1 for DRB088-dynamic-storage-orig-yes.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:28:10.806946  9792 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB088-dynamic-storage-orig-yes.c.romp.out.inst
-I0412 09:28:10.809603  9792 Initialize.h:51] start initializing ompt
-I0412 09:28:10.809630  9792 Initialize.h:89] ompt intialized
-I0412 09:28:10.817318  9792 Initialize.h:94] finalizing ompt
-I0412 09:28:10.817340  9792 Initialize.h:96] data race found:
+I0421 08:25:51.902518 49498 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB088-dynamic-storage-orig-yes.c.romp.out.inst
+I0421 08:25:51.905556 49498 Initialize.h:51] start initializing ompt
+I0421 08:25:51.905582 49498 Initialize.h:89] ompt intialized
+I0421 08:25:51.921788 49498 Initialize.h:94] finalizing ompt
+I0421 08:25:51.921805 49498 Initialize.h:96] data race found:
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'
@@ -22,11 +22,11 @@ registering callback: 'ompt_callback_dispatch'
 8 
 *****     Log 2 for DRB088-dynamic-storage-orig-yes.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:28:10.849261  9810 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB088-dynamic-storage-orig-yes.c.romp.out.inst
-I0412 09:28:10.851812  9810 Initialize.h:51] start initializing ompt
-I0412 09:28:10.851838  9810 Initialize.h:89] ompt intialized
-I0412 09:28:10.858808  9810 Initialize.h:94] finalizing ompt
-I0412 09:28:10.858825  9810 Initialize.h:96] data race found:
+I0421 08:25:51.956535 49516 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB088-dynamic-storage-orig-yes.c.romp.out.inst
+I0421 08:25:51.959455 49516 Initialize.h:51] start initializing ompt
+I0421 08:25:51.959481 49516 Initialize.h:89] ompt intialized
+I0421 08:25:51.972673 49516 Initialize.h:94] finalizing ompt
+I0421 08:25:51.972692 49516 Initialize.h:96] data race found:
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'
@@ -41,4 +41,4 @@ registering callback: 'ompt_callback_dependences'
 registering callback: 'ompt_callback_thread_begin'
 registering callback: 'ompt_callback_thread_end'
 registering callback: 'ompt_callback_dispatch'
-8 
+6 

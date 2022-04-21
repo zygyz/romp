@@ -1,10 +1,10 @@
 *****     Log 1 for DRB124-master-orig-yes.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:44:00.041399 14642 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB124-master-orig-yes.c.romp.out.inst
-I0412 09:44:00.044126 14642 Initialize.h:51] start initializing ompt
-I0412 09:44:00.044154 14642 Initialize.h:89] ompt intialized
-I0412 09:44:00.051215 14642 Initialize.h:94] finalizing ompt
-I0412 09:44:00.051250 14642 Initialize.h:96] data race found:
+I0421 08:41:43.717128 54312 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB124-master-orig-yes.c.romp.out.inst
+I0421 08:41:43.720280 54312 Initialize.h:51] start initializing ompt
+I0421 08:41:43.720309 54312 Initialize.h:89] ompt intialized
+I0421 08:41:43.732671 54312 Initialize.h:94] finalizing ompt
+I0421 08:41:43.732699 54312 Initialize.h:96] data race found:
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'
@@ -21,11 +21,11 @@ registering callback: 'ompt_callback_thread_end'
 registering callback: 'ompt_callback_dispatch'
 *****     Log 2 for DRB124-master-orig-yes.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:44:00.083370 14660 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB124-master-orig-yes.c.romp.out.inst
-I0412 09:44:00.085762 14660 Initialize.h:51] start initializing ompt
-I0412 09:44:00.085788 14660 Initialize.h:89] ompt intialized
-I0412 09:44:00.092816 14660 Initialize.h:94] finalizing ompt
-I0412 09:44:00.092830 14660 Initialize.h:96] data race found:
+I0421 08:41:43.768999 54330 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB124-master-orig-yes.c.romp.out.inst
+I0421 08:41:43.771832 54330 Initialize.h:51] start initializing ompt
+I0421 08:41:43.771860 54330 Initialize.h:89] ompt intialized
+I0421 08:41:43.781399 54330 Initialize.h:94] finalizing ompt
+I0421 08:41:43.781445 54330 Initialize.h:96] data race found:
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'

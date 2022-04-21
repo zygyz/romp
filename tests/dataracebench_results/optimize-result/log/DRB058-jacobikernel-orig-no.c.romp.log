@@ -1,10 +1,10 @@
 *****     Log 1 for DRB058-jacobikernel-orig-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:03:26.974121  5044 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB058-jacobikernel-orig-no.c.romp.out.inst
-I0412 09:03:26.976941  5044 Initialize.h:51] start initializing ompt
-I0412 09:03:26.976967  5044 Initialize.h:89] ompt intialized
+I0421 08:01:10.079674 44775 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB058-jacobikernel-orig-no.c.romp.out.inst
+I0421 08:01:10.083420 44775 Initialize.h:51] start initializing ompt
+I0421 08:01:10.083446 44775 Initialize.h:89] ompt intialized
 *****     Log 2 for DRB058-jacobikernel-orig-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:08:26.995131  5370 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB058-jacobikernel-orig-no.c.romp.out.inst
-I0412 09:08:26.999125  5370 Initialize.h:51] start initializing ompt
-I0412 09:08:26.999152  5370 Initialize.h:89] ompt intialized
+I0421 08:06:10.101446 45098 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB058-jacobikernel-orig-no.c.romp.out.inst
+I0421 08:06:10.105567 45098 Initialize.h:51] start initializing ompt
+I0421 08:06:10.105595 45098 Initialize.h:89] ompt intialized

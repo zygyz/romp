@@ -1,10 +1,10 @@
 *****     Log 1 for DRB173-non-sibling-taskdep-yes.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:53:01.189746 20843 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB173-non-sibling-taskdep-yes.c.romp.out.inst
-I0412 09:53:01.192476 20843 Initialize.h:51] start initializing ompt
-I0412 09:53:01.192502 20843 Initialize.h:89] ompt intialized
-I0412 09:53:01.201001 20843 Initialize.h:94] finalizing ompt
-I0412 09:53:01.201018 20843 Initialize.h:96] data race found:
+I0421 08:50:51.158237 60417 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB173-non-sibling-taskdep-yes.c.romp.out.inst
+I0421 08:50:51.161672 60417 Initialize.h:51] start initializing ompt
+I0421 08:50:51.161700 60417 Initialize.h:89] ompt intialized
+I0421 08:50:51.177243 60417 Initialize.h:94] finalizing ompt
+I0421 08:50:51.177273 60417 Initialize.h:96] data race found:
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'
@@ -22,11 +22,11 @@ registering callback: 'ompt_callback_dispatch'
 a=2
 *****     Log 2 for DRB173-non-sibling-taskdep-yes.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:53:01.232884 20861 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB173-non-sibling-taskdep-yes.c.romp.out.inst
-I0412 09:53:01.235298 20861 Initialize.h:51] start initializing ompt
-I0412 09:53:01.235323 20861 Initialize.h:89] ompt intialized
-I0412 09:53:01.242851 20861 Initialize.h:94] finalizing ompt
-I0412 09:53:01.242866 20861 Initialize.h:96] data race found:
+I0421 08:50:51.213325 60435 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB173-non-sibling-taskdep-yes.c.romp.out.inst
+I0421 08:50:51.216301 60435 Initialize.h:51] start initializing ompt
+I0421 08:50:51.216329 60435 Initialize.h:89] ompt intialized
+I0421 08:50:51.231462 60435 Initialize.h:94] finalizing ompt
+I0421 08:50:51.231503 60435 Initialize.h:96] data race found:
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'

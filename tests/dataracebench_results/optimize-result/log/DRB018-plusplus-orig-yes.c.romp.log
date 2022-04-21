@@ -1,10 +1,10 @@
 *****     Log 1 for DRB018-plusplus-orig-yes.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 08:47:01.037456 72335 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB018-plusplus-orig-yes.c.romp.out.inst
-I0412 08:47:01.040084 72335 Initialize.h:51] start initializing ompt
-I0412 08:47:01.040110 72335 Initialize.h:89] ompt intialized
-I0412 08:47:01.051532 72335 Initialize.h:94] finalizing ompt
-I0412 08:47:01.051548 72335 Initialize.h:96] data race found:
+I0421 07:45:08.090207 39160 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB018-plusplus-orig-yes.c.romp.out.inst
+I0421 07:45:08.093439 39160 Initialize.h:51] start initializing ompt
+I0421 07:45:08.093466 39160 Initialize.h:89] ompt intialized
+I0421 07:45:08.112049 39160 Initialize.h:94] finalizing ompt
+I0421 07:45:08.112066 39160 Initialize.h:96] data race found:
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'
@@ -19,14 +19,14 @@ registering callback: 'ompt_callback_dependences'
 registering callback: 'ompt_callback_thread_begin'
 registering callback: 'ompt_callback_thread_end'
 registering callback: 'ompt_callback_dispatch'
-output[500]=450
+output[500]=960
 *****     Log 2 for DRB018-plusplus-orig-yes.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 08:47:01.083909 72353 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB018-plusplus-orig-yes.c.romp.out.inst
-I0412 08:47:01.086244 72353 Initialize.h:51] start initializing ompt
-I0412 08:47:01.086269 72353 Initialize.h:89] ompt intialized
-I0412 08:47:01.096508 72353 Initialize.h:94] finalizing ompt
-I0412 08:47:01.096524 72353 Initialize.h:96] data race found:
+I0421 07:45:08.146718 39178 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB018-plusplus-orig-yes.c.romp.out.inst
+I0421 07:45:08.149763 39178 Initialize.h:51] start initializing ompt
+I0421 07:45:08.149791 39178 Initialize.h:89] ompt intialized
+I0421 07:45:08.166527 39178 Initialize.h:94] finalizing ompt
+I0421 07:45:08.166556 39178 Initialize.h:96] data race found:
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'
@@ -41,4 +41,4 @@ registering callback: 'ompt_callback_dependences'
 registering callback: 'ompt_callback_thread_begin'
 registering callback: 'ompt_callback_thread_end'
 registering callback: 'ompt_callback_dispatch'
-output[500]=54
+output[500]=569

@@ -1,9 +1,9 @@
 *****     Log 1 for DRB151-missinglock3-orig-gpu-yes.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:48:30.898416 17962 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB151-missinglock3-orig-gpu-yes.c.romp.out.inst
-I0412 09:48:30.901273 17962 Initialize.h:51] start initializing ompt
-I0412 09:48:30.901299 17962 Initialize.h:89] ompt intialized
-F0000 00:00:00.000000 17962 Callbacks.cpp:332] RAW: ompt_work_distribute is not supported yet
+I0421 08:46:19.962963 57614 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB151-missinglock3-orig-gpu-yes.c.romp.out.inst
+I0421 08:46:19.966135 57614 Initialize.h:51] start initializing ompt
+I0421 08:46:19.966169 57614 Initialize.h:89] ompt intialized
+F0000 00:00:00.000000 57614 Callbacks.cpp:332] RAW: ompt_work_distribute is not supported yet
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'
@@ -20,10 +20,10 @@ registering callback: 'ompt_callback_thread_end'
 registering callback: 'ompt_callback_dispatch'
 *****     Log 2 for DRB151-missinglock3-orig-gpu-yes.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:48:35.403512 17985 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB151-missinglock3-orig-gpu-yes.c.romp.out.inst
-I0412 09:48:35.406347 17985 Initialize.h:51] start initializing ompt
-I0412 09:48:35.406375 17985 Initialize.h:89] ompt intialized
-F0000 00:00:00.000000 17985 Callbacks.cpp:332] RAW: ompt_work_distribute is not supported yet
+I0421 08:46:22.638758 57636 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB151-missinglock3-orig-gpu-yes.c.romp.out.inst
+I0421 08:46:22.642004 57636 Initialize.h:51] start initializing ompt
+I0421 08:46:22.642031 57636 Initialize.h:89] ompt intialized
+F0000 00:00:00.000000 57636 Callbacks.cpp:332] RAW: ompt_work_distribute is not supported yet
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'

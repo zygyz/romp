@@ -1,39 +1,39 @@
 *****     Log 1 for DRB129-mergeable-taskwait-orig-yes.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:44:46.091744 15233 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB129-mergeable-taskwait-orig-yes.c.romp.out.inst
-I0412 09:44:46.094579 15233 Initialize.h:51] start initializing ompt
-I0412 09:44:46.094609 15233 Initialize.h:89] ompt intialized
-W0000 00:00:00.000000 15233 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15233 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15233 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15233 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15233 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15233 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15233 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15233 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15233 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15233 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15233 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15233 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15233 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15233 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15233 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15233 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15233 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15233 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15233 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15233 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15233 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15233 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15233 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15233 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15233 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15233 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15233 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15233 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15233 Callbacks.cpp:403] RAW: handleTaskComplete: task ptr is null
-I0412 09:44:46.100376 15233 Initialize.h:94] finalizing ompt
-I0412 09:44:46.100387 15233 Initialize.h:103] data race not found
+I0421 08:42:30.077100 54878 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB129-mergeable-taskwait-orig-yes.c.romp.out.inst
+I0421 08:42:30.080164 54878 Initialize.h:51] start initializing ompt
+I0421 08:42:30.080193 54878 Initialize.h:89] ompt intialized
+W0000 00:00:00.000000 54878 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54878 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54878 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54878 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54878 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54878 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54878 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54878 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54878 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54878 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54878 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54878 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54878 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54878 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54878 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54878 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54878 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54878 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54878 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54878 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54878 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54878 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54878 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54878 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54878 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54878 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54878 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54878 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54878 Callbacks.cpp:403] RAW: handleTaskComplete: task ptr is null
+I0421 08:42:30.086275 54878 Initialize.h:94] finalizing ompt
+I0421 08:42:30.086287 54878 Initialize.h:103] data race not found
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'
@@ -51,40 +51,40 @@ registering callback: 'ompt_callback_dispatch'
 2
 *****     Log 2 for DRB129-mergeable-taskwait-orig-yes.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:44:46.133131 15244 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB129-mergeable-taskwait-orig-yes.c.romp.out.inst
-I0412 09:44:46.135701 15244 Initialize.h:51] start initializing ompt
-I0412 09:44:46.135727 15244 Initialize.h:89] ompt intialized
-W0000 00:00:00.000000 15244 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15244 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15244 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15244 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15244 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15244 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15244 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15244 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15244 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15244 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15244 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15244 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15244 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15244 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15244 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15244 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15244 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15244 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15244 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15244 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15244 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15244 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15244 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15244 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15244 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15244 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15244 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15244 RompLib.cpp:133] RAW: pointer to current task data is null
-W0000 00:00:00.000000 15244 Callbacks.cpp:403] RAW: handleTaskComplete: task ptr is null
-I0412 09:44:46.141364 15244 Initialize.h:94] finalizing ompt
-I0412 09:44:46.141374 15244 Initialize.h:103] data race not found
+I0421 08:42:30.117887 54890 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB129-mergeable-taskwait-orig-yes.c.romp.out.inst
+I0421 08:42:30.120774 54890 Initialize.h:51] start initializing ompt
+I0421 08:42:30.120798 54890 Initialize.h:89] ompt intialized
+W0000 00:00:00.000000 54890 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54890 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54890 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54890 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54890 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54890 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54890 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54890 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54890 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54890 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54890 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54890 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54890 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54890 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54890 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54890 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54890 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54890 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54890 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54890 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54890 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54890 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54890 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54890 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54890 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54890 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54890 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54890 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 54890 Callbacks.cpp:403] RAW: handleTaskComplete: task ptr is null
+I0421 08:42:30.126248 54890 Initialize.h:94] finalizing ompt
+I0421 08:42:30.126260 54890 Initialize.h:103] data race not found
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'

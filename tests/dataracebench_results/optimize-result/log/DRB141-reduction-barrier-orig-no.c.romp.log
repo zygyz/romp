@@ -1,10 +1,10 @@
 *****     Log 1 for DRB141-reduction-barrier-orig-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:46:36.028996 16653 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB141-reduction-barrier-orig-no.c.romp.out.inst
-I0412 09:46:36.031751 16653 Initialize.h:51] start initializing ompt
-I0412 09:46:36.031780 16653 Initialize.h:89] ompt intialized
-I0412 09:46:36.039813 16653 Initialize.h:94] finalizing ompt
-I0412 09:46:36.039847 16653 Initialize.h:96] data race found:
+I0421 08:44:21.177862 56302 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB141-reduction-barrier-orig-no.c.romp.out.inst
+I0421 08:44:21.181162 56302 Initialize.h:51] start initializing ompt
+I0421 08:44:21.181191 56302 Initialize.h:89] ompt intialized
+I0421 08:44:21.193948 56302 Initialize.h:94] finalizing ompt
+I0421 08:44:21.193977 56302 Initialize.h:96] data race found:
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'
@@ -22,11 +22,11 @@ registering callback: 'ompt_callback_dispatch'
 Sum is 45
 *****     Log 2 for DRB141-reduction-barrier-orig-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:46:36.071373 16671 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB141-reduction-barrier-orig-no.c.romp.out.inst
-I0412 09:46:36.073827 16671 Initialize.h:51] start initializing ompt
-I0412 09:46:36.073853 16671 Initialize.h:89] ompt intialized
-I0412 09:46:36.081140 16671 Initialize.h:94] finalizing ompt
-I0412 09:46:36.081154 16671 Initialize.h:96] data race found:
+I0421 08:44:21.228273 56320 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB141-reduction-barrier-orig-no.c.romp.out.inst
+I0421 08:44:21.231410 56320 Initialize.h:51] start initializing ompt
+I0421 08:44:21.231438 56320 Initialize.h:89] ompt intialized
+I0421 08:44:21.241333 56320 Initialize.h:94] finalizing ompt
+I0421 08:44:21.241355 56320 Initialize.h:96] data race found:
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'

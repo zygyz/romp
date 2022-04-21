@@ -1,11 +1,11 @@
 *****     Log 1 for DRB097-target-teams-distribute-orig-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:29:45.568437 10906 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB097-target-teams-distribute-orig-no.c.romp.out.inst
-I0412 09:29:45.571336 10906 Initialize.h:51] start initializing ompt
-I0412 09:29:45.571364 10906 Initialize.h:89] ompt intialized
+I0421 08:27:29.376274 50619 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB097-target-teams-distribute-orig-no.c.romp.out.inst
+I0421 08:27:29.379673 50619 Initialize.h:51] start initializing ompt
+I0421 08:27:29.379699 50619 Initialize.h:89] ompt intialized
 OMP: Warning #96: Cannot form a team with 8 threads, using 7 instead.
 OMP: Hint Consider unsetting KMP_DEVICE_THREAD_LIMIT (KMP_ALL_THREADS), KMP_TEAMS_THREAD_LIMIT, and OMP_THREAD_LIMIT (if any are set).
-F0000 00:00:00.000000 10913 Callbacks.cpp:332] RAW: ompt_work_distribute is not supported yet
+F0000 00:00:00.000000 50619 Callbacks.cpp:332] RAW: ompt_work_distribute is not supported yet
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'
@@ -22,12 +22,12 @@ registering callback: 'ompt_callback_thread_end'
 registering callback: 'ompt_callback_dispatch'
 *****     Log 2 for DRB097-target-teams-distribute-orig-no.c with 8 threads and input size      *****
 WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0412 09:29:58.955603 10952 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB097-target-teams-distribute-orig-no.c.romp.out.inst
-I0412 09:29:58.958751 10952 Initialize.h:51] start initializing ompt
-I0412 09:29:58.958781 10952 Initialize.h:89] ompt intialized
+I0421 08:27:42.333315 50660 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB097-target-teams-distribute-orig-no.c.romp.out.inst
+I0421 08:27:42.337235 50660 Initialize.h:51] start initializing ompt
+I0421 08:27:42.337261 50660 Initialize.h:89] ompt intialized
 OMP: Warning #96: Cannot form a team with 8 threads, using 7 instead.
 OMP: Hint Consider unsetting KMP_DEVICE_THREAD_LIMIT (KMP_ALL_THREADS), KMP_TEAMS_THREAD_LIMIT, and OMP_THREAD_LIMIT (if any are set).
-F0000 00:00:00.000000 10952 Callbacks.cpp:332] RAW: ompt_work_distribute is not supported yet
+F0000 00:00:00.000000 50660 Callbacks.cpp:332] RAW: ompt_work_distribute is not supported yet
 registering callback: 'ompt_callback_mutex_acquired'
 registering callback: 'ompt_callback_mutex_released'
 registering callback: 'ompt_callback_reduction'
