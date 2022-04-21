@@ -1,0 +1,63 @@
+
+
+ NAS Parallel Benchmarks (NPB3.4-OMP) - LU Benchmark
+
+ Size:   12x  12x  12
+ Iterations:                     50
+ Number of available threads:    72
+
+ Time step    1
+ Time step   20
+ Time step   40
+ Time step   50
+
+ Verification being performed for class S
+ Accuracy setting for epsilon =  0.1000000000000E-07
+ Comparison of RMS-norms of residual
+           1   0.1619634321098E-01 0.1619634321098E-01 0.8889787443408E-13
+           2   0.2197674516482E-02 0.2197674516482E-02 0.1294525863255E-12
+           3   0.1517992765339E-02 0.1517992765340E-02 0.3002640089730E-12
+           4   0.1502958443601E-02 0.1502958443599E-02 0.1237164429749E-11
+           5   0.3426407315590E-01 0.3426407315590E-01 0.1437836841335E-13
+ Comparison of RMS-norms of solution error
+           1   0.6422331995796E-03 0.6422331995796E-03 0.8997973918400E-13
+           2   0.8414434204735E-04 0.8414434204735E-04 0.3768870582808E-13
+           3   0.5858826961650E-04 0.5858826961649E-04 0.3225730891670E-12
+           4   0.5847422259515E-04 0.5847422259516E-04 0.2087082164142E-12
+           5   0.1310334791411E-02 0.1310334791411E-02 0.5543739358267E-13
+ Comparison of surface integral
+               0.7841892886594E+01 0.7841892886594E+01 0.2265214362258E-15
+ Verification Successful
+
+
+ LU Benchmark Completed.
+ Class           =                        S
+ Size            =             12x  12x  12
+ Iterations      =                       50
+ Time in seconds =                     0.11
+ Total threads   =                       72
+ Avail threads   =                       72
+ Mop/s total     =                   960.54
+ Mop/s/thread    =                    13.34
+ Operation type  =           floating point
+ Verification    =               SUCCESSFUL
+ Version         =                    3.4.2
+ Compile date    =              21 Apr 2022
+
+ Compile options:
+    FC           = gfortran
+    FLINK        = $(FC)
+    F_LIB        = (none)
+    F_INC        = (none)
+    FFLAGS       = -O3 -fopenmp
+    FLINKFLAGS   = $(FFLAGS)
+    RAND         = (none)
+
+
+ Please send all errors/feedbacks to:
+
+ NPB Development Team
+ npb@nas.nasa.gov
+
+
+Memory Usage: 22564 Time: 0:00.19

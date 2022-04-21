@@ -1,0 +1,60 @@
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0421 14:59:55.436511 37419 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/NPB3.4.2/NPB3.4-OMP/bin/is.S.x.inst
+I0421 14:59:55.439949 37419 Initialize.h:51] start initializing ompt
+I0421 14:59:55.439968 37419 Initialize.h:89] ompt intialized
+I0421 15:00:45.573801 37419 Initialize.h:94] finalizing ompt
+I0421 15:00:45.573841 37419 Initialize.h:96] data race found:
+
+
+ NAS Parallel Benchmarks (NPB3.4-OMP) - IS Benchmark
+
+ Size:  65536  (class S)
+ Iterations:  10
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+ Number of available threads:  72
+
+
+
+ IS Benchmark Completed
+ Class           =                        S
+ Size            =                    65536
+ Iterations      =                       10
+ Time in seconds =                    43.60
+ Total threads   =                       72
+ Avail threads   =                       72
+ Mop/s total     =                     0.02
+ Mop/s/thread    =                     0.00
+ Operation type  =              keys ranked
+ Verification    =             UNSUCCESSFUL
+ Version         =                    3.4.2
+ Compile date    =              21 Apr 2022
+
+ Compile options:
+    CC           = clang
+    CLINK        = $(CC)
+    C_LIB        = -lm
+    C_INC        = (none)
+    CFLAGS       = -O3 -fopenmp -lomp
+    CLINKFLAGS   = $(CFLAGS)
+
+
+ Please send all errors/feedbacks to:
+
+ NPB Development Team
+ npb@nas.nasa.gov
+
+
+Memory Usage: 1805300 Time: 0:50.22
