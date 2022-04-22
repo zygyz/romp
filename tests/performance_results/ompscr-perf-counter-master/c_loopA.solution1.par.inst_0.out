@@ -1,0 +1,42 @@
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0420 06:00:14.565564 27662 RompLib.cpp:126] ompt_start_tool on executable: /home/yg31/working-dir/romp/tests/OmpSCR_v2.0/bin/c_loopA.solution1.par.inst
+I0420 06:00:14.568703 27662 Initialize.h:51] start initializing ompt
+I0420 06:00:14.568729 27662 Initialize.h:89] ompt intialized
+I0420 06:00:32.104928 27662 Initialize.h:94] finalizing ompt
+I0420 06:00:32.104959 27662 Initialize.h:103] data race not found
+I0420 06:00:32.104965 27662 PerformanceCounters.cpp:43] # Check Access Function Call: 9462880
+I0420 06:00:32.104976 27662 PerformanceCounters.cpp:44] # Access History Record Overflow (threshold=8):  4049476
+I0420 06:00:32.104984 27662 PerformanceCounters.cpp:45] # Memory Access Instrumentation Call: 1263031
+I0420 06:00:32.104990 27662 PerformanceCounters.cpp:46] # Access Control Contention: 3498555
+I0420 06:00:32.104993 27662 PerformanceCounters.cpp:47] # Maximum Access Records Number: 72
+I0420 06:00:32.104998 27662 PerformanceCounters.cpp:48] # Skip Add Current Record: 0
+I0420 06:00:32.105002 27662 PerformanceCounters.cpp:50] # Average number access records traversed: 31.4973
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+
+This program is part of the OpenMP Source Code Repository (OmpSCR)
+
+Program:       /home/yg31/working-dir/romp/tests/OmpSCR_v2.0/bin/c_loopA.solution1.par.inst
+Description:   Sinthetic loops experiment.
+
+Argument size 100
+Argument numiter 10
+Argument NUMTHREADS 72
+
+Running ...
+
+Timer EXE_TIME    17.527388
+
+Memory Usage: 142708 Time: 0:17.56
