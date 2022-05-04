@@ -148,7 +148,7 @@ InstrumentMain --program=./test
 export ROMP_REPORT_LINE=on
 ```
 ~~when enabled, this would print all data races found with line information~~
-* ~~(optional) turn on on-the-fly data race report
+~~* (optional) turn on on-the-fly data race report
 ```
 export ROMP_REPORT=on
 ```
