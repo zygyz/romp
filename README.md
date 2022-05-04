@@ -163,11 +163,4 @@ includes x bytes, ROMP checks ceil(x/4) words.
 
 * run `test.inst` to check data races for program `test`
 
-### Running DataRaceBench
-* 
-```
-git clone git@github.com:zygyz/dataracebench.git
-git checkout romp-test
-cd dataracebench
-./check-data-races.sh --romp
-```
+
