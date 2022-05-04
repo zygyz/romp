@@ -142,13 +142,13 @@ clang++ -g -fopenmp -lomp test.cpp -o test
 InstrumentMain --program=./test
 ```
 * this would generate an instrumented binary: `test.inst`
-3. check data races for a program
-* (optional) turn on line info report.
+3. check data races for a program 
+* ~~(optional) turn on line info report.~~ (Note: Line information requires additional customized patch for dyninst to write additional relocated linemap information. We temporarily disable this feature) 
 ```
 export ROMP_REPORT_LINE=on
 ```
-when enabled, this would print all data races found with line information
-* (optional) turn on on-the-fly data race report
+~~when enabled, this would print all data races found with line information~~
+* ~~(optional) turn on on-the-fly data race report
 ```
 export ROMP_REPORT=on
 ```
