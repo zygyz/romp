@@ -35,7 +35,7 @@ void TaskDependenceGraph::addDeps(const ompt_dependence_t& deps,  void* taskPtr)
     // so this flag is not set. We still implement this for being
     // future proof.
     auto taskData = static_cast<TaskData*>(taskPtr);
-    taskData->isMutexTask = true;
+    taskData->setIsMutexTask(true);
   }
   // look up tasks that share the same dependence variable
   if (_deps.find(variable) == _deps.end()) {
@@ -46,36 +46,38 @@ void TaskDependenceGraph::addDeps(const ompt_dependence_t& deps,  void* taskPtr)
   } else {
     // found the dependence variable, iterate over all pairs in the vector
     auto curTaskData = static_cast<TaskData*>(taskPtr);
-    for (const auto& pair : _deps[variable]) {
-      auto otherTaskData = static_cast<TaskData*>(pair.first);
-      auto otherTaskId = otherTaskData->expLocalId;
-      auto curTaskId = curTaskData->expLocalId;   
-      if (curTaskId > otherTaskId) {
-        auto otherDepType = pair.second;          
-        switch(depType) {
-	  case ompt_dependence_type_in:
-            if (otherDepType == ompt_dependence_type_out || 
-                otherDepType == ompt_dependence_type_inout ||
-                otherDepType == ompt_dependence_type_mutexinoutset) {
-              addEdge((void*)otherTaskData, (void*)curTaskData);   
-	    }	    
-	    break;
-	  case ompt_dependence_type_out:
-	  case ompt_dependence_type_inout:
-	    addEdge((void*)otherTaskData, (void*)curTaskData); 
-	    break;
-	  case ompt_dependence_type_mutexinoutset:
-            if (otherDepType == ompt_dependence_type_in ||
-	        otherDepType == ompt_dependence_type_inout ||
-		otherDepType == ompt_dependence_type_out) {
-              addEdge((void*)otherTaskData, (void*)curTaskData);
-	    } 
-	    break;
-	  default:
-	    break;
-	}
-      }
-    }
+    // TODO: revisit the task dependence handling 
+//    for (const auto& pair : _deps[variable]) {
+//      auto otherTaskData = static_cast<TaskData*>(pair.first);
+//      auto otherTaskId = otherTaskData->expLocalId;
+//      auto curTaskId = curTaskData->expLocalId;   
+//      if (curTaskId > otherTaskId) {
+//        auto otherDepType = pair.second;          
+//        switch(depType) {
+//	  case ompt_dependence_type_in:
+//            if (otherDepType == ompt_dependence_type_out || 
+//                otherDepType == ompt_dependence_type_inout ||
+//                otherDepType == ompt_dependence_type_mutexinoutset) {
+//              addEdge((void*)otherTaskData, (void*)curTaskData);   
+//	    }	    
+//	    break;
+//	  case ompt_dependence_type_out:
+//	  case ompt_dependence_type_inout:
+//	    addEdge((void*)otherTaskData, (void*)curTaskData); 
+//	    break;
+//	  case ompt_dependence_type_mutexinoutset:
+//            if (otherDepType == ompt_dependence_type_in ||
+//	        otherDepType == ompt_dependence_type_inout ||
+//		otherDepType == ompt_dependence_type_out) {
+//              addEdge((void*)otherTaskData, (void*)curTaskData);
+//	    } 
+//	    break;
+//	  default:
+//	    break;
+//	}
+//      }
+//    }
+
   } 
 }
 

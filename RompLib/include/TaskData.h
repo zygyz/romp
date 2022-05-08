@@ -5,28 +5,44 @@
 class Label;
 class LockSet;
 
+typedef enum TaskFlag { 
+  is_explicit_task = 0x0001,
+  is_mutex_task = 0x0002,
+  is_undeferred_task = 0x0004,
+  is_untied_task = 0x0008,
+  is_final_task = 0x0010,
+  is_mergeable_task = 0x0020,
+  is_in_reduction = 0x0040,
+} TaskFlag;
+
 /*
  * TaskData struct records information related to a task.
  * A pointer to this struct is stored in openmp runtime 
  * data structure and could be retrieved through ompt query 
- * functions.
+ * functions. Because each OpenMP task will get allocated 
+ * one TaskData structure, compact data structure is preferred.
  */
 typedef struct TaskData {
   std::shared_ptr<Label> label;
   std::shared_ptr<LockSet> lockSet;
-  bool inReduction;
   void* exitFrame;
   std::vector<void*> childrenExplicitTasksData;
-  int expLocalId; // if the task is explicit, store its local id in par region
-  bool isMutexTask;
-  bool isExplicitTask; 
-  TaskData() {
-    label = nullptr;
-    lockSet = nullptr;
-    inReduction = false;
-    exitFrame = nullptr;
-    expLocalId = 0;
-    isMutexTask = false;
-    isExplicitTask = false;
-  }
+  uint16_t metaData;
+  TaskData();
+
+  void setIsExplicitTask(bool);
+  void setIsMutexTask(bool);
+  void setIsUndeferredTask(bool);
+  void setIsUntiedTask(bool);
+  void setIsFinalTask(bool);
+  void setIsMergeableTask(bool);
+  void setIsInReduction(bool);
+
+  bool getIsExplicitTask() const;
+  bool getIsMutexTask() const;
+  bool getIsUndeferredTask() const;
+  bool getIsUntiedTask() const;
+  bool getIsFinalTask() const;
+  bool getIsMergeableTask() const;
+  bool getIsInReduction() const;
 } TaskData;

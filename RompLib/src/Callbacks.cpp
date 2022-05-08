@@ -184,9 +184,9 @@ void on_ompt_callback_sync_region(
     case ompt_sync_region_reduction:
     {
       if (endPoint == ompt_scope_begin) { 
-        taskDataPtr->inReduction = true;
+        taskDataPtr->setIsInReduction(true);
       } else if (endPoint == ompt_scope_end) {
-        taskDataPtr->inReduction = false;
+        taskDataPtr->setIsInReduction(false);
       } 
     }
     default:
@@ -367,35 +367,36 @@ void on_ompt_callback_task_create(
         int flags,
         int hasDependences,
         const void *codePtrRa) {
-  switch(flags) {
-    case ompt_task_target:
-      RAW_LOG(FATAL, "ompt_task_target is not supported yet");
-      return;
-    case ompt_task_explicit:
-      // create label for explicit task
-      auto parentTaskData = static_cast<TaskData*>(encounteringTaskData->ptr);
-      if (!parentTaskData || !parentTaskData->label) {
-        RAW_LOG(FATAL, "cannot get parent task label");
-        return;
-      }
-      auto taskData = new TaskData();
-      auto parentLabel = (parentTaskData->label).get();
-      taskData->label = generateExplicitTaskLabel(parentLabel);
-      taskData->isExplicitTask = true; // mark current task as explicit task
-      auto mutatedParentLabel = mutateParentTaskCreate(parentLabel); 
-      parentTaskData->label = std::move(mutatedParentLabel);
-      parentTaskData->childrenExplicitTasksData.push_back(static_cast<void*>(taskData));
-      // get parallel region info, atomic fetch and add the explicit task id
-      ParallelRegionInfo parallelRegionInfo;
-      if (!queryParallelRegionInfo(0, parallelRegionInfo)) {
-        RAW_LOG(FATAL, "cannot get parallel region data");
-        return;
-      }
-      auto parallelRegionData  = static_cast<ParallelRegionData*>(parallelRegionInfo.parallelData->ptr);
-      auto taskId = parallelRegionData->expTaskCount.fetch_add(1,std::memory_order_relaxed);
-      taskData->expLocalId = taskId;        
-      newTaskData->ptr = static_cast<void*>(taskData);
-   }
+  // In current llvm-openmp implementation:
+  // https://github.com/llvm/llvm-project/blob/83914ee96fc2d828e1cfb8913f5d156d39150e2c/openmp/runtime/src/kmp_tasking.cpp#L795
+  // flags is a variable where multiple bits can be set
+  // e.g., flags = ompt_task_explicit | ompt_task_undeferred | ompt_task_untied 
+  auto isExplicitTask = (flags & ompt_task_explicit) == ompt_task_explicit;
+  if (!isExplicitTask) {
+    RAW_DLOG(WARNING, "ompt_callback_task_create called on non explict task flag");
+    return;
+  }
+  auto isUndeferred = (flags & ompt_task_undeferred) == ompt_task_undeferred;
+  auto isUntied = (flags & ompt_task_untied) == ompt_task_untied; 
+  auto isFinal = (flags & ompt_task_final) == ompt_task_final;
+  auto isMergeable = (flags & ompt_task_mergeable) == ompt_task_mergeable;
+  auto parentTaskData = static_cast<TaskData*>(encounteringTaskData->ptr); 
+  if (!parentTaskData || !parentTaskData->label) {
+    RAW_LOG(FATAL, "cannot get parent task label");
+    return;
+  }  
+  auto taskData = new TaskData();
+  taskData->setIsUndeferredTask(isUndeferred);
+  taskData->setIsUntiedTask(isUntied);
+  taskData->setIsFinalTask(isFinal);
+  taskData->setIsMergeableTask(isMergeable);
+
+  auto parentLabel = (parentTaskData->label).get();
+  taskData->label = generateExplicitTaskLabel(parentLabel);
+  auto mutatedParentLabel = mutateParentTaskCreate(parentLabel); 
+  parentTaskData->label = std::move(mutatedParentLabel);
+  parentTaskData->childrenExplicitTasksData.push_back(static_cast<void*>(taskData));
+  newTaskData->ptr = static_cast<void*>(taskData);
 }
 
 void handleTaskComplete(void* taskPtr) {
@@ -547,9 +548,9 @@ void on_ompt_callback_reduction(
   auto taskDataPtr = static_cast<TaskData*>(taskData->ptr);
   switch(endPoint) {
     case ompt_scope_begin:
-      taskDataPtr->inReduction = true;
+      taskDataPtr->setIsInReduction(true);
       break;
     case ompt_scope_end:
-      taskDataPtr->inReduction = false;
+      taskDataPtr->setIsInReduction(false);
   }
 }

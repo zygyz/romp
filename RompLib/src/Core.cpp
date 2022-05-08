@@ -14,13 +14,13 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord,
         bool& isHistBeforeCur, int& diffIndex, const uint64_t checkedAddress) {
   auto histLabel = histRecord.getLabel(); 
   auto curLabel = curRecord.getLabel(); 
-  RAW_DLOG(INFO, "analyze race condition - address: %lx hist label: %s hist is write: %d cur label: %s cur is write: %d\n", checkedAddress, histLabel->toString().c_str(), histRecord.isWrite(), curLabel->toString().c_str(), curRecord.isWrite());
+  //RAW_DLOG(INFO, "analyze race condition - address: %lx hist label: %s hist is write: %d cur label: %s cur is write: %d\n", checkedAddress, histLabel->toString().c_str(), histRecord.isWrite(), curLabel->toString().c_str(), curRecord.isWrite());
   if (analyzeMutualExclusion(histRecord, curRecord)) {
     RAW_DLOG(INFO, "mutual exclusion by lock, memory address: %lx", checkedAddress);
     return false;
   }  
   auto curTaskData = static_cast<TaskData*>(curRecord.getTaskPtr());
-  if (curTaskData->inReduction) { 
+  if (curTaskData->getIsInReduction()) { 
     // current memory access is in reduction phase, we trust runtime library
     // that in this phase no data race is genereted by reduction method.
     RAW_DLOG(INFO, "current memory access is in reduction phase. memory address: %lx", checkedAddress);
@@ -35,9 +35,9 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord,
     // further check explicit task dependence if current task and history task 
     // are both explicit tasks. If no task dependence, return true
     auto histTaskData = static_cast<TaskData*>(histRecord.getTaskPtr()); 
-    if (curTaskData->isExplicitTask && histTaskData->isExplicitTask) {
+    if (curTaskData->getIsExplicitTask() && histTaskData->getIsExplicitTask()) {
       // first check if the two tasks are mutex tasks
-      if (curTaskData->isMutexTask && histTaskData->isMutexTask) { 
+      if (curTaskData->getIsMutexTask() && histTaskData->getIsMutexTask()) { 
         RAW_DLOG(INFO, "current access and history access are mutex task memory address: %lx", checkedAddress);
         return false; // mutex task does not form race condition
       }
@@ -54,14 +54,12 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord,
 #else
       LockGuard guard(&(parallelRegionData->lock), &node, nullptr);
 #endif
-      if (parallelRegionData->taskDepGraph.hasPath((void*)histTaskData, 
-				 (void*)curTaskData)) {
+      if (parallelRegionData->taskDepGraph.hasPath((void*)histTaskData, (void*)curTaskData)) {
          isHistBeforeCur = true;
 	}
     }
   }
   auto hasDataRace = !isHistBeforeCur && (histRecord.isWrite() || curRecord.isWrite());
-  RAW_DLOG(INFO, "has data race: %d memory address: %lx", hasDataRace, checkedAddress); 
   return hasDataRace;
 }
 
