@@ -13,6 +13,8 @@ typedef enum TaskFlag {
   is_final_task = 0x0010,
   is_mergeable_task = 0x0020,
   is_in_reduction = 0x0040,
+  is_taskwait = 0x0080,
+  is_merged_task = 0x0100, 
 } TaskFlag;
 
 /*
@@ -37,6 +39,8 @@ typedef struct TaskData {
   void setIsFinalTask(bool);
   void setIsMergeableTask(bool);
   void setIsInReduction(bool);
+  void setIsTaskwait(bool);  
+  void setIsMergedTask(bool);
 
   bool getIsExplicitTask() const;
   bool getIsMutexTask() const;
@@ -45,4 +49,6 @@ typedef struct TaskData {
   bool getIsFinalTask() const;
   bool getIsMergeableTask() const;
   bool getIsInReduction() const;
+  bool getIsTaskwait() const;
+  bool getIsMergedTask() const;
 } TaskData;

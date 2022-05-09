@@ -56,6 +56,17 @@ void TaskData::setIsInReduction(bool isInReduction) {
   metaData |= is_in_reduction;
 }
 
+void TaskData::setIsTaskwait(bool isTaskwait) {
+  if (!isTaskwait) {
+    return;
+  }
+  metaData |= is_taskwait;
+}
+
+void TaskData::setIsMergedTask(bool isMergedTask) {
+  metaData |= is_merged_task;
+}
+
 bool TaskData::getIsExplicitTask() const  {
   return (metaData & is_explicit_task) == is_explicit_task;
 }
@@ -83,3 +94,12 @@ bool TaskData::getIsMergeableTask() const {
 bool TaskData::getIsInReduction() const {
   return (metaData & is_in_reduction) == is_in_reduction;
 }
+
+bool TaskData::getIsTaskwait() const {
+  return (metaData & is_taskwait) == is_taskwait;
+}
+
+bool TaskData::getIsMergedTask() const {
+  return (metaData & is_mergeable_task) == is_mergeable_task;
+}
+

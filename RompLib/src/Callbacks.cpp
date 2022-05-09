@@ -373,13 +373,14 @@ void on_ompt_callback_task_create(
   // e.g., flags = ompt_task_explicit | ompt_task_undeferred | ompt_task_untied 
   auto isExplicitTask = (flags & ompt_task_explicit) == ompt_task_explicit;
   if (!isExplicitTask) {
-    RAW_DLOG(WARNING, "ompt_callback_task_create called on non explict task flag");
+    RAW_DLOG(WARNING, "ompt_callback_task_create called on non explict task flag: %lx", flags);
     return;
   }
   auto isUndeferred = (flags & ompt_task_undeferred) == ompt_task_undeferred;
   auto isUntied = (flags & ompt_task_untied) == ompt_task_untied; 
   auto isFinal = (flags & ompt_task_final) == ompt_task_final;
   auto isMergeable = (flags & ompt_task_mergeable) == ompt_task_mergeable;
+  auto isTaskWait = (flags & ompt_task_taskwait) == ompt_task_taskwait;
   auto parentTaskData = static_cast<TaskData*>(encounteringTaskData->ptr); 
   if (!parentTaskData || !parentTaskData->label) {
     RAW_LOG(FATAL, "cannot get parent task label");
