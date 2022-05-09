@@ -9,62 +9,74 @@ TaskData::TaskData() {
 
 void TaskData::setIsExplicitTask(bool isExplicitTask) {
   if (!isExplicitTask) {
-    return;
+    metaData &= ~is_explicit_task;         
+  } else {
+    metaData |= is_explicit_task; 
   }
-  metaData |= is_explicit_task; 
 }
 
 void TaskData::setIsMutexTask(bool isMutexTask) {
   if (!isMutexTask) {
-    return;
+    metaData &= ~is_mutex_task;
+  } else {
+    metaData |= is_mutex_task; 
   }
-  metaData |= is_mutex_task; 
 }
 
 void TaskData::setIsUndeferredTask(bool isUndeferredTask) {
   if (!isUndeferredTask) {
-    return;
+    metaData &= ~is_undeferred_task;
+  } else {
+    metaData |= is_undeferred_task; 
   }
-  metaData |= is_undeferred_task; 
 }
 
 void TaskData::setIsUntiedTask(bool isUntiedTask) {
   if (!isUntiedTask) {
-    return;
+    metaData &= ~is_untied_task;
+  } else {
+    metaData |= is_untied_task; 
   }
-  metaData |= is_untied_task; 
 }
 
 void TaskData::setIsFinalTask(bool isFinalTask) {
   if (!isFinalTask) {
-    return;
+    metaData &= ~is_final_task;
+  } else {
+    metaData |= is_final_task;
   }
-  metaData |= is_final_task;
 }
   
 void TaskData::setIsMergeableTask(bool isMergeableTask) {
   if (!isMergeableTask) {
-    return;
+    metaData &= ~is_mergeable_task;
+  } else {
+    metaData |= is_mergeable_task;
   }
-  metaData |= is_mergeable_task;
 }
 
 void TaskData::setIsInReduction(bool isInReduction) {
   if (!isInReduction) {
-    return;
+    metaData &= ~is_in_reduction;
+  } else {
+    metaData |= is_in_reduction;
   }
-  metaData |= is_in_reduction;
 }
 
 void TaskData::setIsTaskwait(bool isTaskwait) {
   if (!isTaskwait) {
-    return;
+    metaData &= ~is_taskwait;
+  } else {
+    metaData |= is_taskwait;
   }
-  metaData |= is_taskwait;
 }
 
 void TaskData::setIsMergedTask(bool isMergedTask) {
-  metaData |= is_merged_task;
+  if (!isMergedTask) {
+    metaData &= ~is_merged_task
+  } else {
+    metaData |= is_merged_task;
+  }
 }
 
 bool TaskData::getIsExplicitTask() const  {
