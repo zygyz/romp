@@ -73,9 +73,17 @@ void TaskData::setIsTaskwait(bool isTaskwait) {
 
 void TaskData::setIsMergedTask(bool isMergedTask) {
   if (!isMergedTask) {
-    metaData &= ~is_merged_task
+    metaData &= ~is_merged_task;
   } else {
     metaData |= is_merged_task;
+  }
+}
+
+void TaskData::setHasDependence(bool hasDependence) {
+  if (!hasDependence) {
+    metaData &= ~has_dependence;
+  } else {
+    metaData |= has_dependence;
   }
 }
 
@@ -115,3 +123,6 @@ bool TaskData::getIsMergedTask() const {
   return (metaData & is_mergeable_task) == is_mergeable_task;
 }
 
+bool TaskData::getHasDependence() const {
+  return (metaData & has_dependence) == has_dependence;
+}

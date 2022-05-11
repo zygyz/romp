@@ -372,26 +372,27 @@ void on_ompt_callback_task_create(
   // flags is a variable where multiple bits can be set
   // e.g., flags = ompt_task_explicit | ompt_task_undeferred | ompt_task_untied 
   auto isExplicitTask = (flags & ompt_task_explicit) == ompt_task_explicit;
-  if (!isExplicitTask) {
-    RAW_DLOG(WARNING, "ompt_callback_task_create called on non explict task flag: %lx", flags);
-    return;
-  }
   auto isUndeferred = (flags & ompt_task_undeferred) == ompt_task_undeferred;
   auto isUntied = (flags & ompt_task_untied) == ompt_task_untied; 
   auto isFinal = (flags & ompt_task_final) == ompt_task_final;
   auto isMergeable = (flags & ompt_task_mergeable) == ompt_task_mergeable;
-  auto isTaskWait = (flags & ompt_task_taskwait) == ompt_task_taskwait;
+  auto isTaskwait = (flags & ompt_task_taskwait) == ompt_task_taskwait;
   auto parentTaskData = static_cast<TaskData*>(encounteringTaskData->ptr); 
   if (!parentTaskData || !parentTaskData->label) {
     RAW_LOG(FATAL, "cannot get parent task label");
     return;
   }  
   auto taskData = new TaskData();
+  taskData->setIsExplicitTask(isExplicitTask);
   taskData->setIsUndeferredTask(isUndeferred);
   taskData->setIsUntiedTask(isUntied);
   taskData->setIsFinalTask(isFinal);
   taskData->setIsMergeableTask(isMergeable);
+  taskData->setIsTaskwait(isTaskwait);
+  taskData->setHasDependence(hasDependences > 0);
 
+  // there is one case where the flags == ompt_task_taskwait | ompt_task_undeferred | ompt_task_mergeable
+  // one example is #pragma omp task deps(in:x) if(0) we still treat this as explicit task.
   auto parentLabel = (parentTaskData->label).get();
   taskData->label = generateExplicitTaskLabel(parentLabel);
   auto mutatedParentLabel = mutateParentTaskCreate(parentLabel); 
@@ -438,10 +439,7 @@ void on_ompt_callback_task_schedule(
   } 
 }
 
-void on_ompt_callback_dependences(
-        ompt_data_t *taskData,
-        const ompt_dependence_t *deps,
-        int ndeps) {
+void on_ompt_callback_dependences(ompt_data_t *taskData, const ompt_dependence_t *deps, int ndeps) {
   auto taskPtr = taskData->ptr;
   if (!taskPtr) {
     RAW_LOG(WARNING, "callback dependences: current task data ptr is null");
@@ -464,7 +462,7 @@ void on_ompt_callback_dependences(
 #else
   LockGuard guard(&(parallelRegionData->lock), &node, nullptr);
 #endif
-  // while in mutual exculsion, maintain explicit task dependencies
+  // while in mutual exculsion, maintain explicit task dependences
   for (int i = 0; i < ndeps; ++i) {
     auto variable = deps[i].variable; 
     auto depType = deps[i].dependence_type;
@@ -555,3 +553,4 @@ void on_ompt_callback_reduction(
       taskDataPtr->setIsInReduction(false);
   }
 }
+
