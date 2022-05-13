@@ -16,8 +16,9 @@ typedef struct ParallelRegionData {
     expTaskCount = 0;
     mcs_init(&lock);
   } 
-  TaskDependenceGraph taskDepGraph;
+  TaskDependenceGraph taskDependenceGraph;
+  void maintainTaskDependence(void* taskPtr, const ompt_dependence_t& dependence);
 } ParallelRegionData;
 
-void maintainTaskDeps(const ompt_dependence_t& dependence, void* taskPtr, ParallelRegionData* parRegionData);
+
 

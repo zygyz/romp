@@ -10,8 +10,7 @@
 
 extern PerformanceCounters gPerformanceCounters;
 
-bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, 
-        bool& isHistBeforeCur, int& diffIndex, const uint64_t checkedAddress) {
+bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, bool& isHistBeforeCur, int& diffIndex, const uint64_t checkedAddress) {
   auto histLabel = histRecord.getLabel(); 
   auto curLabel = curRecord.getLabel(); 
   //RAW_DLOG(INFO, "analyze race condition - address: %lx hist label: %s hist is write: %d cur label: %s cur is write: %d\n", checkedAddress, histLabel->toString().c_str(), histRecord.isWrite(), curLabel->toString().c_str(), curRecord.isWrite());
@@ -20,6 +19,8 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord,
     return false;
   }  
   auto curTaskData = static_cast<TaskData*>(curRecord.getTaskPtr());
+  auto debugHistTaskData = static_cast<TaskData*>(histRecord.getTaskPtr()); 
+  RAW_DLOG(INFO, "current task data: %lx, history task data: %lx", curTaskData, debugHistTaskData);
   if (curTaskData->getIsInReduction()) { 
     // current memory access is in reduction phase, we trust runtime library
     // that in this phase no data race is genereted by reduction method.
@@ -35,6 +36,7 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord,
     // further check explicit task dependence if current task and history task 
     // are both explicit tasks. If no task dependence, return true
     auto histTaskData = static_cast<TaskData*>(histRecord.getTaskPtr()); 
+    RAW_DLOG(INFO, "cur task :%lx is explicit: %d hist task: %lx is explicit: %d", curTaskData, curTaskData->getIsExplicitTask(), histTaskData, histTaskData->getIsExplicitTask());
     if (curTaskData->getIsExplicitTask() && histTaskData->getIsExplicitTask()) {
       // first check if the two tasks are mutex tasks
       if (curTaskData->getIsMutexTask() && histTaskData->getIsMutexTask()) { 
@@ -54,9 +56,10 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord,
 #else
       LockGuard guard(&(parallelRegionData->lock), &node, nullptr);
 #endif
-      if (parallelRegionData->taskDepGraph.hasPath((void*)histTaskData, (void*)curTaskData)) {
+      RAW_DLOG(INFO, " try to find explicit task dependence hist task %lx  cur task: %lx", histTaskData, curTaskData);
+      if (parallelRegionData->taskDependenceGraph.hasPath((void*)histTaskData, (void*)curTaskData)) {
          isHistBeforeCur = true;
-	}
+      }
     }
   }
   auto hasDataRace = !isHistBeforeCur && (histRecord.isWrite() || curRecord.isWrite());

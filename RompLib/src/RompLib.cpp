@@ -60,8 +60,8 @@ bool checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
      return false;
   }
 
-  auto curRecord = Record(isWrite, curLabel, curLockSet, 
-		currentTaskData, checkedAddress, hasHardwareLock);
+  auto curRecord = Record(isWrite, curLabel, curLockSet, currentTaskData, checkedAddress, hasHardwareLock);
+
   if (!accessHistory->hasRecords()) {
     // no access record, add current access to the record
     accessHistory->addRecordToAccessHistory(curRecord);

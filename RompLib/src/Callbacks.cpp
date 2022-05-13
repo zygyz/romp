@@ -399,6 +399,7 @@ void on_ompt_callback_task_create(
   parentTaskData->label = std::move(mutatedParentLabel);
   parentTaskData->childrenExplicitTasksData.push_back(static_cast<void*>(taskData));
   newTaskData->ptr = static_cast<void*>(taskData);
+  RAW_DLOG(INFO, "task create new task ptr: %lx", newTaskData->ptr);
 }
 
 void handleTaskComplete(void* taskPtr) {
@@ -464,9 +465,9 @@ void on_ompt_callback_dependences(ompt_data_t *taskData, const ompt_dependence_t
 #endif
   // while in mutual exculsion, maintain explicit task dependences
   for (int i = 0; i < ndeps; ++i) {
-    auto variable = deps[i].variable; 
-    auto depType = deps[i].dependence_type;
-    maintainTaskDeps(deps[i], taskPtr, parallelRegionData);
+    //auto variable = deps[i].variable; 
+    //auto depType = deps[i].dependence_type;
+    parallelRegionData->maintainTaskDependence(taskPtr, deps[i]);
   }
 }
 
