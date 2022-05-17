@@ -26,6 +26,7 @@ extern PerformanceCounters gPerformanceCounters;
 
 bool checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const LockSetPtr& curLockSet, void* instnAddr, 
                    void* currentTaskData, int taskFlags, bool isWrite, bool hasHardwareLock, uint64_t checkedAddress) {
+//  RAW_DLOG(INFO, "check data race for memroy address: %lx", checkedAddress);
 #ifdef PERFORMANCE
   gPerformanceCounters.bumpNumCheckAccessFunctionCall();
 #endif
@@ -131,11 +132,7 @@ ompt_start_tool_result_t* ompt_start_tool(
   return &startToolResult;
 }
 
-void checkAccess(void* baseAddress,
-                 uint32_t bytesAccessed,
-                 void* instnAddr,
-                 bool hasHardwareLock,
-                 bool isWrite) {
+void checkAccess(void* baseAddress, uint32_t bytesAccessed, void* instnAddr, bool hasHardwareLock, bool isWrite) {
 #ifdef PERFORMANCE
   gPerformanceCounters.bumpNumMemoryAccessInstrumentationCall();
 #endif

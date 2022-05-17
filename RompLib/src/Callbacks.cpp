@@ -283,6 +283,22 @@ inline std::shared_ptr<Label> mutateTaskLabelOnWorkSectionsCallback(
   return mutatedLabel;
 }
 
+inline std::shared_ptr<Label> mutateTaskLabelOnTaskLoopCallback(
+    ompt_scope_endpoint_t endPoint,
+    const std::shared_ptr<Label>& label, 
+    uint64_t count) {
+  std::shared_ptr<Label> mutatedLabel = nullptr;
+  auto labelPtr = label.get();
+  RAW_DLOG(INFO, "mutate on task loop, count: %d", count);
+  if (endPoint == ompt_scope_begin) {
+    mutatedLabel = mutateLoopBegin(labelPtr);
+  } else if (endPoint == ompt_scope_end) {
+    mutatedLabel = mutateLoopEnd(labelPtr);
+  }  
+  return mutatedLabel;  
+}
+   
+
 inline std::shared_ptr<Label> mutateTaskLabelOnWorkSingleExecutorCallback(
         ompt_scope_endpoint_t endPoint, 
         const std::shared_ptr<Label>& label) {
@@ -332,7 +348,7 @@ void on_ompt_callback_work(
       RAW_LOG(FATAL, "ompt_work_distribute is not supported yet");
       break;
     case ompt_work_taskloop:
-      RAW_LOG(FATAL, "ompt_work_taskloop is not supported yet :(");
+      mutatedLabel = mutateTaskLabelOnTaskLoopCallback(endPoint, label, count); 
       break;
     default:
       break;

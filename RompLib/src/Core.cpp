@@ -13,34 +13,34 @@ extern PerformanceCounters gPerformanceCounters;
 bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, bool& isHistBeforeCur, int& diffIndex, const uint64_t checkedAddress) {
   auto histLabel = histRecord.getLabel(); 
   auto curLabel = curRecord.getLabel(); 
-  //RAW_DLOG(INFO, "analyze race condition - address: %lx hist label: %s hist is write: %d cur label: %s cur is write: %d\n", checkedAddress, histLabel->toString().c_str(), histRecord.isWrite(), curLabel->toString().c_str(), curRecord.isWrite());
+
+  auto histTaskData = static_cast<TaskData*>(histRecord.getTaskPtr()); 
+  auto curTaskData = static_cast<TaskData*>(curRecord.getTaskPtr());
+  RAW_DLOG(INFO, "checking data race on address: %lx, history task: %lx isExplicit: %d current task: %lx isExplicit: %d\n", (void*)checkedAddress, histTaskData, histTaskData->getIsExplicitTask(), curTaskData, curTaskData->getIsExplicitTask());
+  if (histTaskData == curTaskData) {
+    return false;
+  }
+
   if (analyzeMutualExclusion(histRecord, curRecord)) {
-    RAW_DLOG(INFO, "mutual exclusion by lock, memory address: %lx", checkedAddress);
     return false;
   }  
-  auto curTaskData = static_cast<TaskData*>(curRecord.getTaskPtr());
-  auto debugHistTaskData = static_cast<TaskData*>(histRecord.getTaskPtr()); 
-  RAW_DLOG(INFO, "current task data: %lx, history task data: %lx", curTaskData, debugHistTaskData);
   if (curTaskData->getIsInReduction()) { 
     // current memory access is in reduction phase, we trust runtime library
     // that in this phase no data race is genereted by reduction method.
-    RAW_DLOG(INFO, "current memory access is in reduction phase. memory address: %lx", checkedAddress);
     return false;
   }
   isHistBeforeCur = happensBefore(histLabel, curLabel, diffIndex);
   if (diffIndex == eRightIsPrefix) {
-    RAW_DLOG(INFO, "current access is prefix: %lx", checkedAddress);
     return false;
   }
   if (!isHistBeforeCur) {
     // further check explicit task dependence if current task and history task 
     // are both explicit tasks. If no task dependence, return true
     auto histTaskData = static_cast<TaskData*>(histRecord.getTaskPtr()); 
-    RAW_DLOG(INFO, "cur task :%lx is explicit: %d hist task: %lx is explicit: %d", curTaskData, curTaskData->getIsExplicitTask(), histTaskData, histTaskData->getIsExplicitTask());
+
     if (curTaskData->getIsExplicitTask() && histTaskData->getIsExplicitTask()) {
       // first check if the two tasks are mutex tasks
       if (curTaskData->getIsMutexTask() && histTaskData->getIsMutexTask()) { 
-        RAW_DLOG(INFO, "current access and history access are mutex task memory address: %lx", checkedAddress);
         return false; // mutex task does not form race condition
       }
       // have to get the associated parallel region
@@ -56,13 +56,15 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, boo
 #else
       LockGuard guard(&(parallelRegionData->lock), &node, nullptr);
 #endif
-      RAW_DLOG(INFO, " try to find explicit task dependence hist task %lx  cur task: %lx", histTaskData, curTaskData);
       if (parallelRegionData->taskDependenceGraph.hasPath((void*)histTaskData, (void*)curTaskData)) {
          isHistBeforeCur = true;
       }
     }
   }
   auto hasDataRace = !isHistBeforeCur && (histRecord.isWrite() || curRecord.isWrite());
+  if (hasDataRace) {
+    RAW_DLOG(INFO, "data race found: hist is explicit: %lx %d cur is explicit: %lx %d", histTaskData, histTaskData->getIsExplicitTask(), curTaskData, curTaskData->getIsExplicitTask());
+  }
   return hasDataRace;
 }
 
