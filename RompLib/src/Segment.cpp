@@ -5,12 +5,14 @@
 #include <glog/raw_logging.h>
 #include <sstream>
 
-#define SEG_TYPE_MASK        0x0000000000000003
-#define OFFSET_MASK          0xffff000000000000
-#define SPAN_MASK            0x0000ffff00000000
-#define TASKWAIT_MASK        0xffffffff0fffffff
+// mask bits are set to 1 if they represent the corresponding field location
+
+#define SEGMENT_TYPE_MASK    0x0000000000000003
+#define OFFSET_MASK          0xffc0000000000000 
+#define SPAN_MASK            0x003ff00000000000
+#define TASKWAIT_MASK        0x00000f0000000000
 #define PHASE_MASK           0x000000000f000000
-#define LOOP_CNT_MASK        0x0000000000f00000
+#define LOOP_COUNT_MASK      0x0000000000f00000
 #define TASK_CREATE_MASK     0x00000000000fff80
 #define TASKWAIT_SYNC_MASK   0x0000000000000008
 #define TASKGROUP_SYNC_MASK  0x0000000000000010
@@ -22,13 +24,13 @@
 #define WORK_SHARE_PLACEHOLDER_MASK 0xfffffffffffffffb
 
 #define WORK_SHARE_TYPE_MASK 0xc000000000000000
-#define OFFSET_SPAN_WIDTH 16
+#define OFFSET_SPAN_WIDTH 10
 
-#define OFFSET_SHIFT 48
-#define SPAN_SHIFT 32
-#define TASKWAIT_SHIFT 28
-#define PHASE_SHIFT 24
-#define LOOP_CNT_SHIFT 20
+#define OFFSET_SHIFT 54
+#define SPAN_SHIFT 44
+#define TASKWAIT_SHIFT 40
+#define PHASE_SHIFT 36
+#define LOOP_CNT_SHIFT 28
 #define TASK_CREATE_SHIFT 7
 #define WORK_SHARE_PLACE_HOLDER_SHIFT 2 
 #define SINGLE_EXECUTOR_SHIFT 5
@@ -37,11 +39,12 @@
 
 /*
  * Each segment contains a 64 bit value. From low to high, assign index 0-63
- * [48, 63]: offset 
- * [32, 47]: span 
- * [28, 31]: taskwait count
- * [24, 27]: phase count
- * [20, 23]: loop count
+ * [54, 63]: offset 
+ * [44, 53]: span 
+ * [40, 43]: taskwait count
+ * [36, 39]: phase count
+ * [28, 35]: loop count
+ * [20, 27]: reserved bits
  * [7, 19]: task create count
  * [5, 6]: bit 5 set: is single executable; bit 6 set: is single other
  * [4]: mark if current task sync by taskgroup with its parent task
@@ -244,12 +247,12 @@ uint64_t BaseSegment::getPhase() const {
 
 void BaseSegment::setLoopCount(uint64_t loopCount) {
   RAW_CHECK(loopCount < 16, "loop count is overflowing");
-  m_value &= ~LOOP_CNT_MASK;
-  m_value |= (loopCount << LOOP_CNT_SHIFT) & LOOP_CNT_MASK;
+  m_value &= ~LOOP_COUNT_MASK;
+  m_value |= (loopCount << LOOP_CNT_SHIFT) & LOOP_COUNT_MASK;
 }
 
 uint64_t BaseSegment::getLoopCount() const {
-  uint64_t loopCount = (m_value & LOOP_CNT_MASK) >> LOOP_CNT_SHIFT;
+  uint64_t loopCount = (m_value & LOOP_COUNT_MASK) >> LOOP_CNT_SHIFT;
   return loopCount;
 }
 
@@ -258,7 +261,7 @@ void BaseSegment::setType(SegmentType type) {
 }
 
 SegmentType BaseSegment::getType() const {
-  auto mask = m_value & SEG_TYPE_MASK;
+  auto mask = m_value & SEGMENT_TYPE_MASK;
   switch(mask) {
     case 0x1:
       return eImplicit;
