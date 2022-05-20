@@ -25,6 +25,7 @@ enum TaskSyncType {
 class Segment {
 public: 
   virtual std::string toString() const = 0;
+  virtual std::string toFieldsBreakdown() const = 0;
   virtual void setType(SegmentType type) = 0; 
   virtual SegmentType getType() const = 0;
   virtual std::shared_ptr<Segment> clone() const = 0;  
@@ -74,6 +75,7 @@ public:
              mTaskGroup(segment.mTaskGroup), mOrderSecVal(segment.mOrderSecVal) {}
   BaseSegment(SegmentType type, uint64_t offset, uint64_t span);
   std::string toString() const override;
+  std::string toFieldsBreakdown() const override;
   void setType(SegmentType type) override;
   SegmentType getType() const override;
   std::shared_ptr<Segment> clone() const override;
@@ -133,6 +135,7 @@ public:
   WorkShareType getWorkShareType() const;
   uint64_t getWorkShareId() const;
   std::string toString() const override;
+  std::string toFieldsBreakdown() const override;
   std::shared_ptr<Segment> clone() const override;
   bool operator==(const Segment& rhs) const override;
   bool operator!=(const Segment& rhs) const override;

@@ -74,6 +74,34 @@ std::string BaseSegment::toString() const {
   return "[" + stream.str() + "]";
 }
 
+std::string BaseSegment::toFieldsBreakdown() const {
+  std::stringstream stream;
+  uint64_t offset, span;
+  getOffsetSpan(offset, span);
+  auto loopCount = getLoopCount();
+  auto taskCreateCount = getTaskcreate();
+  stream << "offset: " << offset << " span: " << span;
+  if (isTaskwaited()) {
+    stream << " taskwaited";
+  }
+  if (isSingleExecutor()) {
+    stream << " single executor"; 
+  }
+  if (isSingleOther()) {
+    stream << " single other";
+  }
+  if (isTaskGroupSync()) { 
+    stream << " task group sync";
+  } 
+  if (loopCount > 0) {
+    stream << " loop count: " << loopCount;
+  } 
+  if (taskCreateCount > 0) {
+    stream << " task create count: " << taskCreateCount;
+  }
+  return "[" + stream.str() + "]";
+}
+
 BaseSegment::BaseSegment(SegmentType type, uint64_t offset, uint64_t span) {
   RAW_CHECK(span < (1 << OFFSET_SPAN_WIDTH), "span is overflowing");
   mValue = 0;
@@ -100,6 +128,7 @@ void BaseSegment::setOffsetSpan(uint64_t offset, uint64_t span) {
 void BaseSegment::getOffsetSpan(uint64_t& offset, uint64_t& span) const {
   offset = (mValue & OFFSET_MASK) >> OFFSET_SHIFT;
   span = (mValue & SPAN_MASK) >> SPAN_SHIFT;
+  RAW_DLOG(INFO, "offset: %lu span: %lu", offset, span);
 }
 
 /* 
@@ -204,13 +233,14 @@ bool BaseSegment::operator!=(const Segment& segment) const {
  * Taskwait field is four bits. So if taskwait is more than 16, it overflows.
  */
 void BaseSegment::setTaskwait(uint64_t taskwait) {
+  RAW_DLOG(INFO, "task wait count: %lu\n", taskwait);
   RAW_CHECK(taskwait < 16, "taskwait count is overflowing");
-  mValue &= TASKWAIT_MASK; // clear the taskwait field
-  mValue |= (taskwait << TASKWAIT_SHIFT) & ~TASKWAIT_MASK;
+  mValue &= ~TASKWAIT_MASK; // clear the taskwait field 
+  mValue |= (taskwait << TASKWAIT_SHIFT) & TASKWAIT_MASK;
 }
 
 uint64_t BaseSegment::getTaskwait() const {
-  uint64_t taskwait = (mValue & ~TASKWAIT_MASK) >> TASKWAIT_SHIFT;
+  uint64_t taskwait = (mValue & TASKWAIT_MASK) >> TASKWAIT_SHIFT;
   return taskwait;
 }
 
@@ -222,6 +252,7 @@ void BaseSegment::setTaskcreate(uint64_t taskcreate) {
 
 uint64_t BaseSegment::getTaskcreate() const {
   uint64_t taskcreate = (mValue & TASK_CREATE_MASK) >> TASK_CREATE_SHIFT;
+  RAW_DLOG(INFO, "task create count: %lu", taskcreate);
   return taskcreate;
 }
 
@@ -269,6 +300,18 @@ SegmentType BaseSegment::getType() const {
 std::string WorkShareSegment::toString() const {
   std::stringstream stream;
   auto baseResult = BaseSegment::toString();
+  stream << "ws:" << std::hex << std::setw(16) << std::setfill('0') << mWorkShareID;
+  auto result = "[" + baseResult + stream.str() + "]";
+  return result;
+}
+
+std::string WorkShareSegment::toFieldsBreakdown() const {
+  std::stringstream stream;
+  auto baseResult = BaseSegment::toFieldsBreakdown();
+  if (isWorkSharePlaceHolder()) {
+    stream << " is workshare placeholder";
+  }
+  stream << " workshare type: " << getWorkShareType() << " work share id: " << getWorkShareId();
   stream << "ws:" << std::hex << std::setw(16) << std::setfill('0') << mWorkShareID;
   auto result = "[" + baseResult + stream.str() + "]";
   return result;

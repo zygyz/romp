@@ -85,7 +85,7 @@ bool checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
     numAccessRecordsTraversed++;
 #endif
     if (analyzeRaceCondition(histRecord, curRecord, isHistBeforeCurrent, diffIndex, checkedAddress)) {
-      RAW_DLOG(INFO, "FOUND data race on: %lx hist: isWrite: %d %s cur: isWrite: %d %s", checkedAddress, histRecord.isWrite(), histRecord.getLabel()->toString().c_str(), curRecord.isWrite(), curLabel->toString().c_str());
+      RAW_DLOG(INFO, "FOUND data race on: %lx instnAddr: %lx hist: isWrite: %d %s cur: isWrite: %d %s", checkedAddress, instnAddr, histRecord.isWrite(), histRecord.getLabel()->toString().c_str(), curRecord.isWrite(), curLabel->toString().c_str());
       gDataRaceFound = true;
       accessHistory->setFlag(eDataRaceFound);
       dataRaceFound = true;
