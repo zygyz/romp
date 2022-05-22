@@ -14,26 +14,26 @@ InstrumentClient::InstrumentClient(
         const string& rompLibPath,
         shared_ptr<BPatch> bpatchPtr,
         const string& arch,
-        const string& modSuffix) : m_bPatchPtr(move(bpatchPtr)), 
-                                   m_programName(programName),
-                                   m_architecture(arch),
-                                   m_moduleSuffix(modSuffix) {
-  m_addressSpacePtr = initInstrumenter(programName, rompLibPath);
-  m_checkAccessFunctions = getCheckAccessFuncs(m_addressSpacePtr);
-  if (m_checkAccessFunctions.size() == 0)  {
-      LOG(FATAL) << "error empty m_checkAccessFunctions vector";
+        const string& modSuffix) : mBpatchPtr(move(bpatchPtr)), 
+                                   mProgramName(programName),
+                                   mArchitecture(arch),
+                                   mModuleSuffix(modSuffix) {
+  mAddressSpacePtr = initInstrumenter(programName, rompLibPath);
+  mCheckAccessFunctions = getCheckAccessFuncs(mAddressSpacePtr);
+  if (mCheckAccessFunctions.size() == 0)  {
+      LOG(FATAL) << "error empty mCheckAccessFunctions vector";
   }
-  if (!m_checkAccessFunctions[0]) {
-      LOG(FATAL) << "error empty first m_checkAccessFunctions element";
+  if (!mCheckAccessFunctions[0]) {
+      LOG(FATAL) << "error empty first mCheckAccessFunctions element";
   }
-  LOG(INFO) << "InstrumentClient initialized with arch: " << m_architecture;
+  LOG(INFO) << "InstrumentClient initialized with arch: " << mArchitecture;
 }
 
 unique_ptr<BPatch_addressSpace> 
 InstrumentClient::initInstrumenter(
         const string& programName,
         const string& rompLibPath) {
-  auto handle = m_bPatchPtr->openBinary(programName.c_str(), true);
+  auto handle = mBpatchPtr->openBinary(programName.c_str(), true);
   if (!handle) {
     LOG(FATAL) << "cannot open binary: " << programName;    
   }
@@ -108,9 +108,9 @@ InstrumentClient::getFunctionsVector(
  */
 void
 InstrumentClient::instrumentMemoryAccess() {  
-  auto functions = getFunctionsVector(m_addressSpacePtr);
-  instrumentMemoryAccessInternal(m_addressSpacePtr, functions);
-  finishInstrumentation(m_addressSpacePtr);
+  auto functions = getFunctionsVector(mAddressSpacePtr);
+  instrumentMemoryAccessInternal(mAddressSpacePtr, functions);
+  finishInstrumentation(mAddressSpacePtr);
 }
 
 /*
@@ -159,6 +159,10 @@ InstrumentClient::hasHardwareLock(
   return false;
 }
 
+bool InstrumentClient::isCallInstruction(const InstructionAPI::Instruction& instruction) {
+  return instruction.getCategory() == Dyninst::InstructionAPI::c_CallInsn;
+}
+
 /*
  * Insert checkAccess code snippet to load/store point
  */
@@ -194,7 +198,10 @@ InstrumentClient::insertSnippet(
 
     auto instructionAddress = point->getAddress();         
     auto instruction = point->getInsnAtPoint();
-    auto hardWareLock = hasHardwareLock(instruction, m_architecture);
+    if (isCallInstruction(instruction)) {
+      continue;
+    }
+    auto hardWareLock = hasHardwareLock(instruction, mArchitecture);
 
     vector<BPatch_snippet*> funcArgs;
     // memory address 
@@ -207,7 +214,8 @@ InstrumentClient::insertSnippet(
     funcArgs.push_back(new BPatch_constExpr(hardWareLock));
     // is write access or not
     funcArgs.push_back(new BPatch_constExpr(isWrite));
-    BPatch_funcCallExpr checkAccessCall(*(m_checkAccessFunctions[0]), funcArgs);
+    BPatch_funcCallExpr checkAccessCall(*(mCheckAccessFunctions[0]), funcArgs);
+
     if (!addrSpacePtr->insertSnippet(
                 checkAccessCall, *point, BPatch_callBefore)) {
         LOG(FATAL) << "snippet insertion failed";
@@ -229,10 +237,10 @@ InstrumentClient::finishInstrumentation(
         LOG(WARNING) << "continue exeuction failed";
     }
     while (!appProc->isTerminated()) {
-      m_bPatchPtr->waitForStatusChange();
+      mBpatchPtr->waitForStatusChange();
     }
   } else if (appBin) {
-    if (!appBin->writeFile((m_programName + m_moduleSuffix).c_str())) {
+    if (!appBin->writeFile((mProgramName + mModuleSuffix).c_str())) {
       LOG(FATAL) << "failed to write instrumented binary to file";
     }
   } 
