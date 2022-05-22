@@ -168,6 +168,7 @@ void on_ompt_callback_sync_region(
       if (endPoint == ompt_scope_begin) {
         mutatedLabel = mutateTaskWait(labelPtr);
         markExpChildSyncTaskwait(taskDataPtr, labelPtr);
+        RAW_DLOG(INFO, "mutated task wait: %s taskptr: %lx ", mutatedLabel->toFieldsBreakdown().c_str(), taskDataPtr);
       }
       break;
     }
@@ -457,6 +458,7 @@ void on_ompt_callback_task_schedule(
 }
 
 void on_ompt_callback_dependences(ompt_data_t *taskData, const ompt_dependence_t *deps, int ndeps) {
+  RAW_DLOG(INFO, "ompt_callback_dependences");
   auto taskPtr = taskData->ptr;
   if (!taskPtr) {
     RAW_LOG(WARNING, "callback dependences: current task data ptr is null");

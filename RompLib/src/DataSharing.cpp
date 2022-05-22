@@ -24,7 +24,7 @@ bool shouldCheckMemoryAccess(const ThreadInfo& threadInfo,
                              const uint64_t memoryAddress,
                              const ompt_frame_t* taskFrame) {
   const auto dataSharingType = analyzeDataSharingType(threadInfo, taskMemoryInfo, memoryAddress, taskFrame);
-  RAW_DLOG(INFO, "data sharing checking, memory address: %lx sharing type: %d", (void*)memoryAddress, dataSharingType);
+  //RAW_DLOG(INFO, "data sharing checking, memory address: %lx sharing type: %d", (void*)memoryAddress, dataSharingType);
   switch(dataSharingType) {
     case eNonThreadPrivate:
     case eThreadPrivateAccessOtherTask:
@@ -68,7 +68,7 @@ DataSharingType analyzeDataSharingType(const ThreadInfo& threadInfo,
     // memory access is checked when thread has not called the thread begin callback yet.
     return eThreadMetaDataNotSet;  
   }
-  RAW_DLOG(INFO, "thread base address: %lx thread top address: %lx", threadData->stackBaseAddress, threadData->stackTopAddress);
+  //RAW_DLOG(INFO, "thread base address: %lx thread top address: %lx", threadData->stackBaseAddress, threadData->stackTopAddress);
   if (memoryAddress > reinterpret_cast<const uint64_t>(threadData->stackTopAddress) ||
       memoryAddress < reinterpret_cast<const uint64_t>(threadData->stackBaseAddress)) {
     // memory address does not fall in current thread stack range, must not be thread private access.

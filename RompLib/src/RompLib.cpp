@@ -84,8 +84,9 @@ bool checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
 #ifdef PERFORMANCE
     numAccessRecordsTraversed++;
 #endif
+    //RAW_DLOG(INFO, "analyze race condition on memory address: %lx instnAddr: %lx hist: isWrite: %d %s %s cur: isWrite: %d %s %s", checkedAddress, instnAddr, histRecord.isWrite(), histRecord.getLabel()->toString().c_str(), histRecord.getLabel()->toFieldsBreakdown().c_str(), curRecord.isWrite(), curLabel->toString().c_str(), curLabel->toFieldsBreakdown().c_str());
     if (analyzeRaceCondition(histRecord, curRecord, isHistBeforeCurrent, diffIndex, checkedAddress)) {
-      RAW_DLOG(INFO, "FOUND data race on: %lx instnAddr: %lx hist: isWrite: %d %s cur: isWrite: %d %s", checkedAddress, instnAddr, histRecord.isWrite(), histRecord.getLabel()->toString().c_str(), curRecord.isWrite(), curLabel->toString().c_str());
+      RAW_DLOG(INFO, "FOUND data race on: %lx instnAddr: %lx hist: isWrite: %d %s %s cur: isWrite: %d %s %s", checkedAddress, instnAddr, histRecord.isWrite(), histRecord.getLabel()->toString().c_str(), histRecord.getLabel()->toFieldsBreakdown().c_str(), curRecord.isWrite(), curLabel->toString().c_str(), curLabel->toFieldsBreakdown().c_str());
       gDataRaceFound = true;
       accessHistory->setFlag(eDataRaceFound);
       dataRaceFound = true;

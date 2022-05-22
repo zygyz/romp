@@ -21,6 +21,16 @@ std::string Label::toString() const {
   return result;
 }
 
+std::string Label::toFieldsBreakdown() const {
+  auto result = std::string("");
+  for (const auto& segment : _label) {
+    result += segment->toFieldsBreakdown();
+    result += std::string(" | ");
+  }
+  result += "\n";
+  return result;
+}
+
 void Label::appendSegment(const std::shared_ptr<Segment>& segment) {
   _label.push_back(segment);
 }

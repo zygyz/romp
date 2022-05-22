@@ -20,6 +20,7 @@ public:
   Label(const Label& label);
   ~Label() {} 
   std::string toString() const;
+  std::string toFieldsBreakdown() const;
   void appendSegment(const std::shared_ptr<Segment>& segment);
   std::shared_ptr<Segment> popSegment();
   std::shared_ptr<Segment> getLastKthSegment(int k);

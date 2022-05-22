@@ -78,8 +78,6 @@ std::string BaseSegment::toFieldsBreakdown() const {
   std::stringstream stream;
   uint64_t offset, span;
   getOffsetSpan(offset, span);
-  auto loopCount = getLoopCount();
-  auto taskCreateCount = getTaskcreate();
   stream << "offset: " << offset << " span: " << span;
   if (isTaskwaited()) {
     stream << " taskwaited";
@@ -93,12 +91,21 @@ std::string BaseSegment::toFieldsBreakdown() const {
   if (isTaskGroupSync()) { 
     stream << " task group sync";
   } 
-  if (loopCount > 0) {
-    stream << " loop count: " << loopCount;
+  stream << " loop count: " << getLoopCount();
+  stream << " task create count: " << getTaskcreate();
+  stream << " task wait: " << getTaskwait();
+  auto segmentType = getType();
+  switch(segmentType) {
+    case eImplicit:
+      stream << " type: imp";
+      break;
+    case eExplicit:
+      stream << " type: exp";
+      break;
+    case eLogical:
+      stream << " type: logi";
+      break;
   } 
-  if (taskCreateCount > 0) {
-    stream << " task create count: " << taskCreateCount;
-  }
   return "[" + stream.str() + "]";
 }
 
@@ -128,7 +135,6 @@ void BaseSegment::setOffsetSpan(uint64_t offset, uint64_t span) {
 void BaseSegment::getOffsetSpan(uint64_t& offset, uint64_t& span) const {
   offset = (mValue & OFFSET_MASK) >> OFFSET_SHIFT;
   span = (mValue & SPAN_MASK) >> SPAN_SHIFT;
-  RAW_DLOG(INFO, "offset: %lu span: %lu", offset, span);
 }
 
 /* 
@@ -233,7 +239,6 @@ bool BaseSegment::operator!=(const Segment& segment) const {
  * Taskwait field is four bits. So if taskwait is more than 16, it overflows.
  */
 void BaseSegment::setTaskwait(uint64_t taskwait) {
-  RAW_DLOG(INFO, "task wait count: %lu\n", taskwait);
   RAW_CHECK(taskwait < 16, "taskwait count is overflowing");
   mValue &= ~TASKWAIT_MASK; // clear the taskwait field 
   mValue |= (taskwait << TASKWAIT_SHIFT) & TASKWAIT_MASK;
@@ -252,7 +257,6 @@ void BaseSegment::setTaskcreate(uint64_t taskcreate) {
 
 uint64_t BaseSegment::getTaskcreate() const {
   uint64_t taskcreate = (mValue & TASK_CREATE_MASK) >> TASK_CREATE_SHIFT;
-  RAW_DLOG(INFO, "task create count: %lu", taskcreate);
   return taskcreate;
 }
 
