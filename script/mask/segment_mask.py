@@ -10,7 +10,7 @@ base_segment_mask_specs = {
   "TASKGROUP_SYNC_MASK" : [4, 4],
   "SINGLE_MASK": [5, 6],
   "TASK_CREATE_MASK" : [7, 19],
-  "RESERVED" : [20, 23],
+  "UNDEFERRED_TASK_COUNT_MASK" : [20, 23],
   "LOOP_COUNT_MASK" : [24, 35], # 12 bits, 2^12 
   "PHASE_MASK" : [36, 39],
   "TASKWAIT_MASK" : [40, 43],

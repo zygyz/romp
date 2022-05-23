@@ -21,15 +21,15 @@ public:
   ~Label() {} 
   std::string toString() const;
   std::string toFieldsBreakdown() const;
-  void appendSegment(const std::shared_ptr<Segment>& segment);
-  std::shared_ptr<Segment> popSegment();
-  std::shared_ptr<Segment> getLastKthSegment(int k);
-  void setLastKthSegment(int k, const std::shared_ptr<Segment>& segment);
-  Segment* getKthSegment(int k);
+  void appendSegment(const std::shared_ptr<BaseSegment>& segment);
+  std::shared_ptr<BaseSegment> popSegment();
+  std::shared_ptr<BaseSegment> getLastKthSegment(int k);
+  void setLastKthSegment(int k, const std::shared_ptr<BaseSegment>& segment);
+  BaseSegment * getKthSegment(int k);
   friend int compareLabels(Label* left, Label* right);
   int getLabelLength() const;
 private:
-  std::vector<std::shared_ptr<Segment> > _label;
+  std::vector<std::shared_ptr<BaseSegment> > _label;
 };
 
 int compareLabels(Label* left, Label* right);

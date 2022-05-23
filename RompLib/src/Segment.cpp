@@ -12,6 +12,7 @@
 #define TASKGROUP_SYNC_MASK 0x0000000000000010
 #define SINGLE_MASK 0x0000000000000060
 #define TASK_CREATE_MASK 0x00000000000fff80
+#define UNDEFERRED_TASK_COUNT_MASK 0x0000000000f00000
 #define LOOP_COUNT_MASK 0x0000000fff000000
 #define PHASE_MASK 0x000000f000000000
 #define TASKWAIT_MASK 0x00000f0000000000
@@ -32,6 +33,7 @@
 #define TASKWAIT_SHIFT 40
 #define PHASE_SHIFT 36
 #define LOOP_COUNT_SHIFT 24
+#define UNDEFERRED_TASK_COUNT_SHIFT 20
 #define TASK_CREATE_SHIFT 7
 #define WORK_SHARE_PLACEHOLDER_SHIFT 2 
 #define SINGLE_EXECUTOR_SHIFT 5
@@ -46,8 +48,8 @@
  * [44, 53]: span 
  * [40, 43]: taskwait count
  * [36, 39]: phase count
- * [28, 35]: loop count
- * [20, 27]: reserved bits
+ * [24, 35]: loop count 
+ * [20, 23]: undeferred explicit task count
  * [7, 19]: task create count
  * [5, 6]: bit 5 set: is single executable; bit 6 set: is single other
  * [4]: mark if current task sync by taskgroup with its parent task
@@ -118,7 +120,7 @@ BaseSegment::BaseSegment(SegmentType type, uint64_t offset, uint64_t span) {
   setOffsetSpan(offset, span);
 }
 
-std::shared_ptr<Segment> BaseSegment::clone() const {
+std::shared_ptr<BaseSegment> BaseSegment::clone() const {
   return std::make_shared<BaseSegment>(*this);
 }
 
@@ -235,11 +237,9 @@ bool BaseSegment::operator==(const Segment& segment) const {
 bool BaseSegment::operator!=(const Segment& segment) const {
   return !(*this == segment);
 }
-/*
- * Taskwait field is four bits. So if taskwait is more than 16, it overflows.
- */
+
 void BaseSegment::setTaskwait(uint64_t taskwait) {
-  RAW_CHECK(taskwait < 16, "taskwait count is overflowing");
+  RAW_CHECK(taskwait < (1 << 4), "taskwait count is overflowing");
   mValue &= ~TASKWAIT_MASK; // clear the taskwait field 
   mValue |= (taskwait << TASKWAIT_SHIFT) & TASKWAIT_MASK;
 }
@@ -249,27 +249,34 @@ uint64_t BaseSegment::getTaskwait() const {
   return taskwait;
 }
 
-void BaseSegment::setTaskcreate(uint64_t taskcreate) { 
+void BaseSegment::setTaskCreateCount(uint64_t taskcreate) { 
   RAW_CHECK(taskcreate < (1 << 13), "taskcreate count is overflowing");
   mValue &= ~TASK_CREATE_MASK;
   mValue |= (taskcreate << TASK_CREATE_SHIFT) & TASK_CREATE_MASK;
 }
 
+void BaseSegment::setUndeferredTaskCount(uint16_t undeferredTaskCount) {
+  RAW_CHECK(undeferredTaskCount < (1 << 4), "undeferred task count is overflowing");
+  mValue &= ~UNDEFERRED_TASK_COUNT_MASK;
+  mValue |= (undeferredTaskCount << UNDEFERRED_TASK_COUNT_SHIFT) & UNDEFERRED_TASK_COUNT_MASK;
+}
+
+uint16_t BaseSegment::getUndeferredTaskCount() const {
+  return static_cast<uint16_t>((mValue & UNDEFERRED_TASK_COUNT_MASK) >> UNDEFERRED_TASK_COUNT_SHIFT);
+}
+
 uint64_t BaseSegment::getTaskcreate() const {
-  uint64_t taskcreate = (mValue & TASK_CREATE_MASK) >> TASK_CREATE_SHIFT;
-  return taskcreate;
+  return static_cast<uint64_t>((mValue & TASK_CREATE_MASK) >> TASK_CREATE_SHIFT);
 }
 
 void BaseSegment::setPhase(uint64_t phase) {
   RAW_CHECK(phase < 16, "phase count is overflowing");
   mValue &= ~PHASE_MASK;
   mValue |= (phase << PHASE_SHIFT) & PHASE_MASK;
-
 }
 
 uint64_t BaseSegment::getPhase() const {
-  uint64_t phase = (mValue & PHASE_MASK) >> PHASE_SHIFT;
-  return phase;
+  return static_cast<uint64_t>((mValue & PHASE_MASK) >> PHASE_SHIFT);
 }
 
 void BaseSegment::setLoopCount(uint64_t loopCount) {
@@ -279,8 +286,7 @@ void BaseSegment::setLoopCount(uint64_t loopCount) {
 }
 
 uint64_t BaseSegment::getLoopCount() const {
-  uint64_t loopCount = (mValue & LOOP_COUNT_MASK) >> LOOP_COUNT_SHIFT;
-  return loopCount;
+  return static_cast<uint64_t>((mValue & LOOP_COUNT_MASK) >> LOOP_COUNT_SHIFT);
 }
 
 void BaseSegment::setType(SegmentType type) {
@@ -321,7 +327,7 @@ std::string WorkShareSegment::toFieldsBreakdown() const {
   return result;
 }
 
-std::shared_ptr<Segment> WorkShareSegment::clone() const {
+std::shared_ptr<BaseSegment> WorkShareSegment::clone() const {
   return std::make_shared<WorkShareSegment>(*this);
 }
 

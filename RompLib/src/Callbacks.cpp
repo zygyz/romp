@@ -84,7 +84,7 @@ void on_ompt_callback_implicit_task(
   }
 }
 
-inline Segment* getLastSegment(Label* label) {
+inline BaseSegment* getLastSegment(Label* label) {
   auto lenLabel = label->getLabelLength();
   return label->getKthSegment(lenLabel - 1);
 }
@@ -407,7 +407,9 @@ void on_ompt_callback_task_create(
   taskData->setIsMergeableTask(isMergeable);
   taskData->setIsTaskwait(isTaskwait);
   taskData->setHasDependence(hasDependences > 0);
-
+  if (isUndeferred) {
+    RAW_DLOG(INFO, "is undeferred");
+  } 
   // there is one case where the flags == ompt_task_taskwait | ompt_task_undeferred | ompt_task_mergeable
   // one example is #pragma omp task deps(in:x) if(0) we still treat this as explicit task.
   auto parentLabel = (parentTaskData->label).get();

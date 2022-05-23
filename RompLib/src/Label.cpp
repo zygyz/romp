@@ -31,11 +31,11 @@ std::string Label::toFieldsBreakdown() const {
   return result;
 }
 
-void Label::appendSegment(const std::shared_ptr<Segment>& segment) {
+void Label::appendSegment(const std::shared_ptr<BaseSegment>& segment) {
   _label.push_back(segment);
 }
 
-std::shared_ptr<Segment> Label::popSegment() {
+std::shared_ptr<BaseSegment> Label::popSegment() {
   if (_label.empty()) {
     RAW_LOG(FATAL, "label is empty");
   }
@@ -44,7 +44,7 @@ std::shared_ptr<Segment> Label::popSegment() {
   return lastSegment;
 }
 
-std::shared_ptr<Segment> Label::getLastKthSegment(int k) {
+std::shared_ptr<BaseSegment> Label::getLastKthSegment(int k) {
   if (k > _label.size()) {
     RAW_LOG(FATAL, "index is out of bound");
     return nullptr;
@@ -53,7 +53,7 @@ std::shared_ptr<Segment> Label::getLastKthSegment(int k) {
   return _label.at(len - k);
 }
 
-void Label::setLastKthSegment(int k, const std::shared_ptr<Segment>& segment) { 
+void Label::setLastKthSegment(int k, const std::shared_ptr<BaseSegment>& segment) { 
   if (k > _label.size()) {
     RAW_LOG(FATAL, "%s %d", "set value out of bound", k);
     return;
@@ -62,7 +62,7 @@ void Label::setLastKthSegment(int k, const std::shared_ptr<Segment>& segment) {
   _label[len - k] = std::move(segment);
 }
 
-Segment* Label::getKthSegment(int k) {
+BaseSegment* Label::getKthSegment(int k) {
   if (k > _label.size()) {
     RAW_LOG(FATAL, "index %d out of bound", k);
   }
@@ -140,7 +140,7 @@ std::shared_ptr<Label> mutateParentTaskCreate(Label* parentLabel) {
   auto lastSegment = newLabel->popSegment();
   auto taskCreate = lastSegment->getTaskcreate();
   auto newSegment = lastSegment->clone();
-  newSegment->setTaskcreate(taskCreate + 1);  
+  newSegment->setTaskCreateCount(taskCreate + 1);  
   newLabel->appendSegment(newSegment);
   return newLabel;
 }

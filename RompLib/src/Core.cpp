@@ -16,7 +16,7 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, boo
 
   auto histTaskData = static_cast<TaskData*>(histRecord.getTaskPtr()); 
   auto curTaskData = static_cast<TaskData*>(curRecord.getTaskPtr());
-  //RAW_DLOG(INFO, "checking data race on address: %lx, history task: %lx isExplicit: %d current task: %lx isExplicit: %d\n", (void*)checkedAddress, histTaskData, histTaskData->getIsExplicitTask(), curTaskData, curTaskData->getIsExplicitTask());
+  RAW_DLOG(INFO, "checking data race on address: %lx, history task: %lx isExplicit: %d current task: %lx isExplicit: %d\n", (void*)checkedAddress, histTaskData, histTaskData->getIsExplicitTask(), curTaskData, curTaskData->getIsExplicitTask());
   if (histTaskData == curTaskData) {
     return false;
   }

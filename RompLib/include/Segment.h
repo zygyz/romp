@@ -20,7 +20,7 @@ enum TaskSyncType {
   eTaskGroupEnd,
 };
 /*
- *  The abstract class definition for label segment 
+ *  The abstract class definition for label segment. 
  */
 class Segment {
 public: 
@@ -28,33 +28,6 @@ public:
   virtual std::string toFieldsBreakdown() const = 0;
   virtual void setType(SegmentType type) = 0; 
   virtual SegmentType getType() const = 0;
-  virtual std::shared_ptr<Segment> clone() const = 0;  
-  virtual void setOffsetSpan(uint64_t offset, uint64_t span) = 0;
-  virtual void setTaskwait(uint64_t taskwait) = 0;
-  virtual void setTaskcreate(uint64_t taskcreate) = 0; 
-  virtual void setPhase(uint64_t phase) = 0;
-  virtual void setLoopCount(uint64_t loopCount) = 0;
-  virtual void setTaskGroupId(uint16_t taskGroupId) = 0;
-  virtual void setTaskGroupLevel(uint16_t taskGroupLevel) = 0;
-  virtual void setTaskGroupPhase(uint16_t phase) = 0;
-  virtual void setTaskwaitPhase(uint16_t phase) = 0;
-  virtual void toggleSingleExecutor() = 0;
-  virtual void toggleSingleOther() = 0;
-  virtual void getOffsetSpan(uint64_t& offset, uint64_t& span) const = 0;
-  virtual void setTaskwaited() = 0;
-  virtual void setTaskGroupSync() = 0;
-  virtual uint64_t getTaskwait() const = 0;
-  virtual uint64_t getTaskcreate() const = 0;
-  virtual uint64_t getPhase() const = 0;
-  virtual uint64_t getLoopCount() const = 0;  
-  virtual uint16_t getTaskGroupId() const = 0;
-  virtual uint16_t getTaskGroupLevel() const = 0;
-  virtual uint16_t getTaskGroupPhase() const = 0;
-  virtual uint16_t getTaskwaitPhase() const = 0;
-  virtual bool isSingleExecutor() const = 0;
-  virtual bool isSingleOther() const = 0; 
-  virtual bool isTaskwaited() const = 0;
-  virtual bool isTaskGroupSync() const = 0;
   virtual bool operator==(const Segment& rhs) const = 0;
   virtual bool operator!=(const Segment& rhs) const = 0;
   virtual ~Segment() = default;
@@ -74,42 +47,50 @@ public:
   BaseSegment(const BaseSegment& segment): mValue(segment.mValue), 
              mTaskGroup(segment.mTaskGroup), mOrderSecVal(segment.mOrderSecVal) {}
   BaseSegment(SegmentType type, uint64_t offset, uint64_t span);
+
   std::string toString() const override;
   std::string toFieldsBreakdown() const override;
   void setType(SegmentType type) override;
   SegmentType getType() const override;
-  std::shared_ptr<Segment> clone() const override;
-  void setOffsetSpan(uint64_t offset, uint64_t span) override;
-  void setTaskwait(uint64_t taskwait) override;
-  void setTaskcreate(uint64_t taskcreate) override;
-  void setPhase(uint64_t phase) override;
-  void setLoopCount(uint64_t loopCount) override;
-  void setTaskGroupId(uint16_t taskGroupId) override;
-  void setTaskGroupLevel(uint16_t taskGroupLevel) override;
-  void setTaskGroupPhase(uint16_t phase) override;
-  void setTaskwaitPhase(uint16_t phase) override;
-  void setTaskwaited() override;
-  void setTaskGroupSync() override; 
-  void toggleSingleExecutor();
-  void toggleSingleOther();
-  void getOffsetSpan(uint64_t& offset, uint64_t& span) const override;
-  uint64_t getTaskwait() const override;
-  uint64_t getTaskcreate() const override;
-  uint64_t getPhase() const override;
-  uint64_t getLoopCount() const override;
-  uint16_t getTaskGroupId() const override;
-  uint16_t getTaskGroupLevel() const override;
-  uint16_t getTaskGroupPhase() const override;
-  uint16_t getTaskwaitPhase() const override;
-  bool isTaskwaited() const override;
-  bool isTaskGroupSync() const override;
-  bool isSingleExecutor() const override;
-  bool isSingleOther() const override; 
   bool operator==(const Segment& rhs) const override; 
   bool operator!=(const Segment& rhs) const override;
+
+  std::shared_ptr<BaseSegment> clone() const;
+
+  void setOffsetSpan(uint64_t offset, uint64_t span);
+  void setTaskwait(uint64_t taskwait);
+  void setTaskCreateCount(uint64_t taskcreate);
+  void setUndeferredTaskCount(uint16_t undeferredTaskCount);
+  void setPhase(uint64_t phase);
+  void setLoopCount(uint64_t loopCount);
+  void setTaskGroupId(uint16_t taskGroupId);
+  void setTaskGroupLevel(uint16_t taskGroupLevel);
+  void setTaskGroupPhase(uint16_t phase);
+  void setTaskwaitPhase(uint16_t phase);
+  void setTaskwaited();
+  void setTaskGroupSync(); 
+
+  void toggleSingleExecutor();
+  void toggleSingleOther();
+
+  void getOffsetSpan(uint64_t& offset, uint64_t& span) const;
+  uint64_t getTaskwait() const;
+  uint64_t getTaskcreate() const;
+  uint16_t getUndeferredTaskCount() const;
+  uint64_t getPhase() const;
+  uint64_t getLoopCount() const;
+  uint16_t getTaskGroupId() const ;
+  uint16_t getTaskGroupLevel() const ;
+  uint16_t getTaskGroupPhase() const ;
+  uint16_t getTaskwaitPhase() const;
+  bool isTaskwaited() const;
+  bool isTaskGroupSync() const;
+  bool isSingleExecutor() const;
+  bool isSingleOther() const; 
   uint64_t getValue() const;
+
 protected:
-  uint64_t mValue;
+  uint64_t mValue; // store most of the label segment fields.
   uint32_t mTaskGroup;
   uint32_t mOrderSecVal; 
 };
@@ -134,9 +115,10 @@ public:
   void setWorkShareType(WorkShareType workShareType);
   WorkShareType getWorkShareType() const;
   uint64_t getWorkShareId() const;
+  std::shared_ptr<BaseSegment> clone() const;
+
   std::string toString() const override;
   std::string toFieldsBreakdown() const override;
-  std::shared_ptr<Segment> clone() const override;
   bool operator==(const Segment& rhs) const override;
   bool operator!=(const Segment& rhs) const override;
 private: 
