@@ -96,14 +96,14 @@ inline BaseSegment* getLastSegment(Label* label) {
 void markExpChildSyncTaskwait(TaskData* taskData, Label* curLabel) {
   auto seg = getLastSegment(curLabel);
   auto phase = seg->getPhase();
-  for (const auto& child : taskData->childrenExplicitTasksData) {
+  for (const auto& child : taskData->childrenExplicitTasks) {
     auto childTaskData = static_cast<const TaskData*>(child); 
     auto lenLabel = childTaskData->label->getLabelLength(); 
     auto lastSeg = childTaskData->label->getKthSegment(lenLabel - 1);
     lastSeg->setTaskwaited();
     lastSeg->setTaskwaitPhase(phase);
   }
-  taskData->childrenExplicitTasksData.clear(); // clear the children after taskwait
+  taskData->childrenExplicitTasks.clear(); // clear the children after taskwait
 }
 
 /*
@@ -115,9 +115,9 @@ void markExpChildSyncTaskGroupEnd(TaskData* taskData, Label* curLabel) {
   auto phase = seg->getPhase();
   auto taskGroupLevel = seg->getTaskGroupLevel();
   auto taskGroupId = seg->getTaskGroupId(); 
-  auto it = taskData->childrenExplicitTasksData.begin();
+  auto it = taskData->childrenExplicitTasks.begin();
   auto lenParentLabel = curLabel->getLabelLength();
-  while (it != taskData->childrenExplicitTasksData.end()) {
+  while (it != taskData->childrenExplicitTasks.end()) {
     auto childTaskData = static_cast<TaskData*>(*it);
     auto childLabel = childTaskData->label;
     auto lenChildLabel = childLabel->getLabelLength();
@@ -131,7 +131,7 @@ void markExpChildSyncTaskGroupEnd(TaskData* taskData, Label* curLabel) {
       if (childTaskGroupId == taskGroupId) {
         auto mutatedChildLabel = mutateTaskGroupSyncChild(childLabel.get());
         childTaskData->label = std::move(mutatedChildLabel);
-        it = taskData->childrenExplicitTasksData.erase(it);
+        it = taskData->childrenExplicitTasks.erase(it);
       } else {
         it++;
       }
@@ -407,16 +407,16 @@ void on_ompt_callback_task_create(
   taskData->setIsMergeableTask(isMergeable);
   taskData->setIsTaskwait(isTaskwait);
   taskData->setHasDependence(hasDependences > 0);
-  if (isUndeferred) {
-    RAW_DLOG(INFO, "is undeferred");
-  } 
   // there is one case where the flags == ompt_task_taskwait | ompt_task_undeferred | ompt_task_mergeable
   // one example is #pragma omp task deps(in:x) if(0) we still treat this as explicit task.
   auto parentLabel = (parentTaskData->label).get();
   taskData->label = generateExplicitTaskLabel(parentLabel);
-  auto mutatedParentLabel = mutateParentTaskCreate(parentLabel); 
+  auto mutatedParentLabel = mutateParentTaskCreate(parentLabel, isUndeferred); 
   parentTaskData->label = std::move(mutatedParentLabel);
-  parentTaskData->childrenExplicitTasksData.push_back(static_cast<void*>(taskData));
+  parentTaskData->recordExplicitTaskData(taskData); 
+  if (isUndeferred) {
+    parentTaskData->recordUndeferredTaskData(taskData);
+  } 
   newTaskData->ptr = static_cast<void*>(taskData);
   RAW_DLOG(INFO, "task create new task ptr: %lx", newTaskData->ptr);
 }

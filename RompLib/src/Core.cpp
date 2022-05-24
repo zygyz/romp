@@ -56,10 +56,33 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, boo
 #else
       LockGuard guard(&(parallelRegionData->lock), &node, nullptr);
 #endif
-      if (parallelRegionData->taskDependenceGraph.hasPath((void*)histTaskData, (void*)curTaskData)) {
+      if (parallelRegionData->taskDependenceGraph.hasPath(static_cast<void*>(histTaskData), static_cast<void*>(curTaskData))) {
          isHistBeforeCur = true;
       }
-    }
+    } else if (!curTaskData->getIsExplicitTask() && histTaskData->getIsExplicitTask()) {
+      // current task is implicit task, history task is explicit task, check if there exists order by undeferred task 
+      RAW_DLOG(INFO, "cur is implicit, hist is explicit");
+      ParallelRegionInfo parallelRegionInfo;
+      if (!queryParallelRegionInfo(0, parallelRegionInfo)) {
+        RAW_LOG(FATAL, "cannot get parallel region data");
+      } 
+      auto parallelRegionData= static_cast<ParallelRegionData*>(parallelRegionInfo.parallelData->ptr); 
+      // have to lock the task dep graph before graph traversal
+      mcs_node_t node;
+#ifdef PERFORMANCE
+      LockGuard guard(&(parallelRegionData->lock), &node, &gPerformanceCounters);
+#else
+      LockGuard guard(&(parallelRegionData->lock), &node, nullptr);
+#endif
+      RAW_DLOG(INFO, "undeferred task number: %lu", curTaskData->undeferredTasks.size());
+      for (auto undeferredTask : curTaskData->undeferredTasks) {
+        RAW_DLOG(INFO, "undeferred task: %lx", undeferredTask);
+        if (parallelRegionData->taskDependenceGraph.hasPath(static_cast<void*>(histTaskData), undeferredTask)) {
+          isHistBeforeCur = true;
+          break; 
+        }
+      }
+    } 
   }
   auto hasDataRace = !isHistBeforeCur && (histRecord.isWrite() || curRecord.isWrite());
   if (hasDataRace) {

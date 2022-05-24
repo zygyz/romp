@@ -42,7 +42,7 @@ std::shared_ptr<Label> generateInitialTaskLabel();
 std::shared_ptr<Label> generateExplicitTaskLabel(Label* parentLabel);
 
 std::shared_ptr<Label> mutateParentImpEnd(Label* childLabel);
-std::shared_ptr<Label> mutateParentTaskCreate(Label* parentLabel);
+std::shared_ptr<Label> mutateParentTaskCreate(Label* parentLabel, bool isUndeferred);
 
 std::shared_ptr<Label> mutateBarrierEnd(Label* label);
 std::shared_ptr<Label> mutateTaskWait(Label* label);

@@ -29,10 +29,13 @@ typedef struct TaskData {
   std::shared_ptr<Label> label;
   std::shared_ptr<LockSet> lockSet;
   void* exitFrame;
-  std::vector<void*> childrenExplicitTasksData;
+  std::vector<void*> childrenExplicitTasks;
+  std::vector<void*> undeferredTasks; // record the TaskData pointers for undeferred task encountered.
   uint16_t metaData;
   TaskData();
 
+  void recordExplicitTaskData(TaskData*);
+  void recordUndeferredTaskData(TaskData*);
   void setIsExplicitTask(bool);
   void setIsMutexTask(bool);
   void setIsUndeferredTask(bool);

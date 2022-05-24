@@ -96,6 +96,7 @@ std::string BaseSegment::toFieldsBreakdown() const {
   stream << " loop count: " << getLoopCount();
   stream << " task create count: " << getTaskcreate();
   stream << " task wait: " << getTaskwait();
+  stream << " undeferrred task count: " << getUndeferredTaskCount();
   auto segmentType = getType();
   switch(segmentType) {
     case eImplicit:

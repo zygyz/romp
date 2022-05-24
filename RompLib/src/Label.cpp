@@ -133,13 +133,17 @@ std::shared_ptr<Label> mutateParentImpEnd(Label* childLabel) {
 
 /*
  * Upon creating explicit task, increase the task create count in the segment 
- * of parent task.
+ * of parent task. If the created task is undeferred task, increment the undeferred task count
  */
-std::shared_ptr<Label> mutateParentTaskCreate(Label* parentLabel) {
+std::shared_ptr<Label> mutateParentTaskCreate(Label* parentLabel, bool isUndeferred) {
   auto newLabel = std::make_shared<Label>(*parentLabel);  
   auto lastSegment = newLabel->popSegment();
   auto taskCreate = lastSegment->getTaskcreate();
   auto newSegment = lastSegment->clone();
+  if (isUndeferred) {
+    auto undeferredTaskCount = lastSegment->getUndeferredTaskCount();
+    newSegment->setUndeferredTaskCount(undeferredTaskCount + 1);
+  }
   newSegment->setTaskCreateCount(taskCreate + 1);  
   newLabel->appendSegment(newSegment);
   return newLabel;

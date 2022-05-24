@@ -7,6 +7,14 @@ TaskData::TaskData() {
   metaData = 0;
 }
 
+void TaskData::recordExplicitTaskData(TaskData* taskData) {
+  childrenExplicitTasks.push_back(static_cast<void*>(taskData));
+}
+
+void TaskData::recordUndeferredTaskData(TaskData* taskData) {
+  undeferredTasks.push_back(static_cast<void*>(taskData));
+}
+
 void TaskData::setIsExplicitTask(bool isExplicitTask) {
   if (!isExplicitTask) {
     metaData &= ~is_explicit_task;         
