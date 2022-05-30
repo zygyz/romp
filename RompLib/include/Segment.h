@@ -112,6 +112,7 @@ public:
   bool operator==(const Segment& rhs) const override;
   bool operator!=(const Segment& rhs) const override;
 
+  std::shared_ptr<BaseSegment> clone() const;
   void* getTaskPtr() const;
 private:
   void initialize();  

@@ -365,3 +365,35 @@ void ExplicitTaskSegment::initialize() {
 void* ExplicitTaskSegment::getTaskPtr() const {
   return mTaskDataPtr;
 }
+
+std::string ExplicitTaskSegment::toString() const {
+  std::stringstream stream;
+  auto baseResult = BaseSegment::toString();
+  stream << "explicit task data ptr:" << std::hex << std::setw(16) << std::setfill('0') << mTaskDataPtr;
+  auto result = "[" + baseResult + stream.str() + "]";
+  return result;
+}
+
+std::shared_ptr<BaseSegment> ExplicitTaskSegment::clone() const {
+  return std::make_shared<ExplicitTaskSegment>(*this);
+}
+  
+std::string ExplicitTaskSegment::toFieldsBreakdown() const {
+  std::stringstream stream;
+  auto baseResult = BaseSegment::toFieldsBreakdown();
+  stream << "explicit task data ptr:" << std::hex << std::setw(16) << std::setfill('0') << mTaskDataPtr;
+  auto result = "[" + baseResult + stream.str() + "]";
+  return result;
+}
+
+bool ExplicitTaskSegment::operator==(const Segment& segment) const {
+  if (mValue == dynamic_cast<const BaseSegment&>(segment).getValue()) {
+    // we know `segment` is also a workshare segment 
+    return mTaskDataPtr == dynamic_cast<const ExplicitTaskSegment&>(segment).mTaskDataPtr;
+  } 
+  return false;
+}
+
+bool ExplicitTaskSegment::operator!=(const Segment& segment) const {
+  return !(*this == segment);
+}

@@ -60,11 +60,9 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex, TaskData* 
   if (diffIndex < 0) {
     switch(diffIndex) {
       case static_cast<int>(eSameLabel):
-        histHappensBeforeCur = true;
-        break;
+        return true;
       case static_cast<int>(eLeftIsPrefix):
-        histHappensBeforeCur = true;
-        break;
+        return true;
       case static_cast<int>(eRightIsPrefix):
 	// current record -> hist record
 	RAW_LOG(FATAL, "cur -> hist, cur: %s hist: %s", curLabel->toString().c_str(), histLabel->toString().c_str());
@@ -89,8 +87,7 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex, TaskData* 
             != cur seg type");
     switch(histType) {
       case eImplicit:
-        histHappensBeforeCur = true;
-        break;
+        return true;
       case eLogical:
         histHappensBeforeCur = analyzeOrderedSection(histLabel, curLabel,  diffIndex);
       case eExplicit:
@@ -132,7 +129,7 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex, TaskData* 
       if (curTaskData->getIsExplicitTask()) {
         // both history task and current task are explicit task. Check if there exists explicit task dependence between them. 
         if (parallelRegionData->taskDependenceGraph.hasPath(static_cast<void*>(histTaskData), static_cast<void*>(curTaskData))) {
-          histHappensBeforeCur = true;
+          return true;
         }
       } else {
         // current task is implicit task, history task is explicit task, check if there exists order by undeferred task 
@@ -141,8 +138,7 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex, TaskData* 
         for (auto undeferredTask : curTaskData->undeferredTasks) {
           RAW_DLOG(INFO, "undeferred task: %lx", undeferredTask);
           if (parallelRegionData->taskDependenceGraph.hasPath(static_cast<void*>(histTaskData), undeferredTask)) {
-            histHappensBeforeCur = true;
-            break; 
+            return true;
           }
         }
       }
