@@ -96,8 +96,10 @@ inline BaseSegment* getLastSegment(Label* label) {
 void markExpChildSyncTaskwait(TaskData* taskData, Label* curLabel) {
   auto seg = getLastSegment(curLabel);
   auto phase = seg->getPhase();
-  for (const auto& child : taskData->childrenExplicitTasks) {
-    auto childTaskData = static_cast<const TaskData*>(child); 
+  for (auto& child : taskData->childrenExplicitTasks) {
+    auto childTaskData = static_cast<TaskData*>(child); 
+    RAW_DLOG(INFO, "marking explicit children task: %lx", childTaskData);
+    childTaskData->setIsTaskwait(true); 
     auto lenLabel = childTaskData->label->getLabelLength(); 
     auto lastSeg = childTaskData->label->getKthSegment(lenLabel - 1);
     lastSeg->setTaskwaited();
@@ -410,8 +412,8 @@ void on_ompt_callback_task_create(
   // there is one case where the flags == ompt_task_taskwait | ompt_task_undeferred | ompt_task_mergeable
   // one example is #pragma omp task deps(in:x) if(0) we still treat this as explicit task.
   auto parentLabel = (parentTaskData->label).get();
-  taskData->label = generateExplicitTaskLabel(parentLabel);
-  auto mutatedParentLabel = mutateParentTaskCreate(parentLabel, isUndeferred); 
+  taskData->label = generateExplicitTaskLabel(parentLabel, static_cast<void*>(taskData));
+  auto mutatedParentLabel = mutateParentTaskCreate(parentLabel); 
   parentTaskData->label = std::move(mutatedParentLabel);
   parentTaskData->recordExplicitTaskData(taskData); 
   if (isUndeferred) {
@@ -459,6 +461,10 @@ void on_ompt_callback_task_schedule(
   } 
 }
 
+void on_ompt_callback_task_dependence(ompt_data_t* srcTaskData, ompt_data_t* sinkTaskData) {
+  RAW_DLOG(INFO, "ompt_callback_task_dependence src: %lx, sink: %lx", srcTaskData, sinkTaskData);
+}
+
 void on_ompt_callback_dependences(ompt_data_t *taskData, const ompt_dependence_t *deps, int ndeps) {
   RAW_DLOG(INFO, "ompt_callback_dependences");
   auto taskPtr = taskData->ptr;
@@ -485,8 +491,6 @@ void on_ompt_callback_dependences(ompt_data_t *taskData, const ompt_dependence_t
 #endif
   // while in mutual exculsion, maintain explicit task dependences
   for (int i = 0; i < ndeps; ++i) {
-    //auto variable = deps[i].variable; 
-    //auto depType = deps[i].dependence_type;
     parallelRegionData->maintainTaskDependence(taskPtr, deps[i]);
   }
 }

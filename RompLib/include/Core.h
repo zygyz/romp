@@ -10,7 +10,7 @@ enum AccessHistoryManagementDecision{
   eDeleteHistoryRecord,
 };
 
-bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex);
+bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex, TaskData* histTaskData, TaskData* curTaskData);
 bool analyzeSiblingImplicitTask(Label* histLabel, Label* curLabel, int index);
 bool analyzeSameTask(Label* histLabel, Label* curLabel, int index);
 bool analyzeOrderedSection(Label* histLabel, Label* curLabel, int index);

@@ -12,7 +12,6 @@
 #define TASKGROUP_SYNC_MASK 0x0000000000000010
 #define SINGLE_MASK 0x0000000000000060
 #define TASK_CREATE_MASK 0x00000000000fff80
-#define UNDEFERRED_TASK_COUNT_MASK 0x0000000000f00000
 #define LOOP_COUNT_MASK 0x0000000fff000000
 #define PHASE_MASK 0x000000f000000000
 #define TASKWAIT_MASK 0x00000f0000000000
@@ -33,7 +32,6 @@
 #define TASKWAIT_SHIFT 40
 #define PHASE_SHIFT 36
 #define LOOP_COUNT_SHIFT 24
-#define UNDEFERRED_TASK_COUNT_SHIFT 20
 #define TASK_CREATE_SHIFT 7
 #define WORK_SHARE_PLACEHOLDER_SHIFT 2 
 #define SINGLE_EXECUTOR_SHIFT 5
@@ -96,7 +94,6 @@ std::string BaseSegment::toFieldsBreakdown() const {
   stream << " loop count: " << getLoopCount();
   stream << " task create count: " << getTaskcreate();
   stream << " task wait: " << getTaskwait();
-  stream << " undeferrred task count: " << getUndeferredTaskCount();
   auto segmentType = getType();
   switch(segmentType) {
     case eImplicit:
@@ -256,16 +253,6 @@ void BaseSegment::setTaskCreateCount(uint64_t taskcreate) {
   mValue |= (taskcreate << TASK_CREATE_SHIFT) & TASK_CREATE_MASK;
 }
 
-void BaseSegment::setUndeferredTaskCount(uint16_t undeferredTaskCount) {
-  RAW_CHECK(undeferredTaskCount < (1 << 4), "undeferred task count is overflowing");
-  mValue &= ~UNDEFERRED_TASK_COUNT_MASK;
-  mValue |= (undeferredTaskCount << UNDEFERRED_TASK_COUNT_SHIFT) & UNDEFERRED_TASK_COUNT_MASK;
-}
-
-uint16_t BaseSegment::getUndeferredTaskCount() const {
-  return static_cast<uint16_t>((mValue & UNDEFERRED_TASK_COUNT_MASK) >> UNDEFERRED_TASK_COUNT_SHIFT);
-}
-
 uint64_t BaseSegment::getTaskcreate() const {
   return static_cast<uint64_t>((mValue & TASK_CREATE_MASK) >> TASK_CREATE_SHIFT);
 }
@@ -311,7 +298,7 @@ SegmentType BaseSegment::getType() const {
 std::string WorkShareSegment::toString() const {
   std::stringstream stream;
   auto baseResult = BaseSegment::toString();
-  stream << "ws:" << std::hex << std::setw(16) << std::setfill('0') << mWorkShareID;
+  stream << "worksharing:" << std::hex << std::setw(16) << std::setfill('0') << mWorkShareID;
   auto result = "[" + baseResult + stream.str() + "]";
   return result;
 }
@@ -363,4 +350,18 @@ void WorkShareSegment::setWorkShareType(WorkShareType type) {
 
 WorkShareType WorkShareSegment::getWorkShareType() const {
   return static_cast<WorkShareType>((mWorkShareID & static_cast<uint64_t>(WORK_SHARE_TYPE_MASK)) >> WORK_SHARE_TYPE_SHIFT);
+}
+
+void WorkShareSegment::initialize() {
+  setType(eLogical);
+  setOffsetSpan(0, 1);
+}
+
+void ExplicitTaskSegment::initialize() {
+  setType(eExplicit); 
+  setOffsetSpan(0, 1);
+}
+
+void* ExplicitTaskSegment::getTaskPtr() const {
+  return mTaskDataPtr;
 }

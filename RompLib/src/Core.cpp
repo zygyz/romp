@@ -11,13 +11,11 @@
 extern PerformanceCounters gPerformanceCounters;
 
 bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, bool& isHistBeforeCur, int& diffIndex, const uint64_t checkedAddress) {
-  auto histLabel = histRecord.getLabel(); 
-  auto curLabel = curRecord.getLabel(); 
-
   auto histTaskData = static_cast<TaskData*>(histRecord.getTaskPtr()); 
   auto curTaskData = static_cast<TaskData*>(curRecord.getTaskPtr());
-  RAW_DLOG(INFO, "checking data race on address: %lx, history task: %lx isExplicit: %d current task: %lx isExplicit: %d\n", (void*)checkedAddress, histTaskData, histTaskData->getIsExplicitTask(), curTaskData, curTaskData->getIsExplicitTask());
+//  RAW_DLOG(INFO, "checking data race on address: %lx, history task: %lx isExplicit: %d current task: %lx isExplicit: %d\n", (void*)checkedAddress, histTaskData, histTaskData->getIsExplicitTask(), curTaskData, curTaskData->getIsExplicitTask());
   if (histTaskData == curTaskData) {
+    // both memory accesses are performed by the same task. 
     return false;
   }
 
@@ -27,63 +25,21 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, boo
   if (curTaskData->getIsInReduction()) { 
     // current memory access is in reduction phase, we trust runtime library
     // that in this phase no data race is genereted by reduction method.
+    // TODO: review this decision
     return false;
   }
-  isHistBeforeCur = happensBefore(histLabel, curLabel, diffIndex);
-  if (diffIndex == eRightIsPrefix) {
-    return false;
-  }
-  if (!isHistBeforeCur) {
-    // further check explicit task dependence if current task and history task 
-    // are both explicit tasks. If no task dependence, return true
-    auto histTaskData = static_cast<TaskData*>(histRecord.getTaskPtr()); 
 
-    if (curTaskData->getIsExplicitTask() && histTaskData->getIsExplicitTask()) {
-      // first check if the two tasks are mutex tasks
-      if (curTaskData->getIsMutexTask() && histTaskData->getIsMutexTask()) { 
-        return false; // mutex task does not form race condition
-      }
-      // have to get the associated parallel region
-      ParallelRegionInfo parallelRegionInfo;
-      if (!queryParallelRegionInfo(0, parallelRegionInfo)) {
-        RAW_LOG(FATAL, "cannot get parallel region data");
-      } 
-      auto parallelRegionData= static_cast<ParallelRegionData*>(parallelRegionInfo.parallelData->ptr); 
-      // have to lock the task dep graph before graph traversal
-      mcs_node_t node;
-#ifdef PERFORMANCE
-      LockGuard guard(&(parallelRegionData->lock), &node, &gPerformanceCounters);
-#else
-      LockGuard guard(&(parallelRegionData->lock), &node, nullptr);
-#endif
-      if (parallelRegionData->taskDependenceGraph.hasPath(static_cast<void*>(histTaskData), static_cast<void*>(curTaskData))) {
-         isHistBeforeCur = true;
-      }
-    } else if (!curTaskData->getIsExplicitTask() && histTaskData->getIsExplicitTask()) {
-      // current task is implicit task, history task is explicit task, check if there exists order by undeferred task 
-      RAW_DLOG(INFO, "cur is implicit, hist is explicit");
-      ParallelRegionInfo parallelRegionInfo;
-      if (!queryParallelRegionInfo(0, parallelRegionInfo)) {
-        RAW_LOG(FATAL, "cannot get parallel region data");
-      } 
-      auto parallelRegionData= static_cast<ParallelRegionData*>(parallelRegionInfo.parallelData->ptr); 
-      // have to lock the task dep graph before graph traversal
-      mcs_node_t node;
-#ifdef PERFORMANCE
-      LockGuard guard(&(parallelRegionData->lock), &node, &gPerformanceCounters);
-#else
-      LockGuard guard(&(parallelRegionData->lock), &node, nullptr);
-#endif
-      RAW_DLOG(INFO, "undeferred task number: %lu", curTaskData->undeferredTasks.size());
-      for (auto undeferredTask : curTaskData->undeferredTasks) {
-        RAW_DLOG(INFO, "undeferred task: %lx", undeferredTask);
-        if (parallelRegionData->taskDependenceGraph.hasPath(static_cast<void*>(histTaskData), undeferredTask)) {
-          isHistBeforeCur = true;
-          break; 
-        }
-      }
-    } 
-  }
+  auto histLabel = histRecord.getLabel(); 
+  auto curLabel = curRecord.getLabel(); 
+  isHistBeforeCur = happensBefore(histLabel, curLabel, diffIndex, histTaskData, curTaskData);
+
+  if (isHistBeforeCur || 
+     curTaskData->getIsExplicitTask() && histTaskData->getIsExplicitTask() && curTaskData->getIsMutexTask() && histTaskData->getIsMutexTask()) {
+    // either comparing the task label infers existence of happens-before relation, 
+    // or two memory accesses are performed by two mutex tasks. In these cases, there is no data race.
+    // there exists happens-before relationship between two memory accesses. No data race.
+    return false; 
+  } 
   auto hasDataRace = !isHistBeforeCur && (histRecord.isWrite() || curRecord.isWrite());
   if (hasDataRace) {
     RAW_DLOG(INFO, "data race found: hist is explicit: (taskPtr:%lx) %d cur is explicit: (taskPtr:%lx) %d", histTaskData, histTaskData->getIsExplicitTask(), curTaskData, curTaskData->getIsExplicitTask());
@@ -98,21 +54,24 @@ bool analyzeMutualExclusion(const Record& histRecord, const Record& curRecord) {
 }
 
 
-bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex) {
+bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex, TaskData* histTaskData, TaskData* curTaskData) {
   diffIndex = compareLabels(histLabel, curLabel);
+  auto histHappensBeforeCur = false;
   if (diffIndex < 0) {
     switch(diffIndex) {
       case static_cast<int>(eSameLabel):
-        return true;
+        histHappensBeforeCur = true;
+        break;
       case static_cast<int>(eLeftIsPrefix):
-        return true;
+        histHappensBeforeCur = true;
+        break;
       case static_cast<int>(eRightIsPrefix):
 	// current record -> hist record
 	RAW_LOG(FATAL, "cur -> hist, cur: %s hist: %s", curLabel->toString().c_str(), histLabel->toString().c_str());
-        return false;
+        break;
       default:
         RAW_LOG(FATAL, "unknown label compare result");
-        return false;
+        break;
     }
   }
   auto histSegment = histLabel->getKthSegment(diffIndex); 
@@ -120,9 +79,9 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex) {
   uint64_t histOffset, curOffset, histSpan, curSpan; 
   histSegment->getOffsetSpan(histOffset, histSpan);
   curSegment->getOffsetSpan(curOffset, curSpan);
-  if (histSpan != curSpan) {
-    RAW_LOG(FATAL, "left span: %lu != right span: %lu", histSpan, curSpan);
-  }
+
+  RAW_CHECK(histSpan == curSpan, "left span != right span");
+
   if (histSpan == 1) { // explicit task or work share task or initial task
     auto histType = histSegment->getType();
     auto curType = curSegment->getType();
@@ -130,14 +89,17 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex) {
             != cur seg type");
     switch(histType) {
       case eImplicit:
-        return true;
+        histHappensBeforeCur = true;
+        break;
       case eLogical:
-        return analyzeOrderedSection(histLabel, curLabel,  diffIndex);
+        histHappensBeforeCur = analyzeOrderedSection(histLabel, curLabel,  diffIndex);
       case eExplicit:
-        return analyzeSameTask(histLabel, curLabel, diffIndex);
+        histHappensBeforeCur = analyzeSameTask(histLabel, curLabel, diffIndex);
+        break;
       default:
         RAW_LOG(FATAL, "unexpected segment type: %d", histType);
-        return false;
+        break;
+        
     }
   } 
   if (histOffset != curOffset) { 
@@ -145,11 +107,48 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex) {
     if (histOffset % span == curOffset % span) {
       RAW_CHECK(histOffset < curOffset, "not expecting history access joined \
                before current access");
-      return true; 
-    } 
-    return analyzeSiblingImplicitTask(histLabel, curLabel, diffIndex);
-  } 
-  return analyzeSameTask(histLabel, curLabel, diffIndex); 
+      histHappensBeforeCur = true;
+    } else {
+      histHappensBeforeCur = analyzeSiblingImplicitTask(histLabel, curLabel, diffIndex);
+    }
+  }  else {
+    histHappensBeforeCur = analyzeSameTask(histLabel, curLabel, diffIndex); 
+  }
+  // comparing task label does not infer happens-before relation. Addtionally we check other situations
+  // that are not recorded in task label to make final decision of happens-before relation.
+  if (histHappensBeforeCur == false) {
+    // further check explicit task dependence if current task and history task 
+    // are both explicit tasks. If there exists task dependence, no data race.
+    if (histTaskData->getIsExplicitTask()) {
+      ParallelRegionInfo parallelRegionInfo;
+      RAW_CHECK(queryParallelRegionInfo(0, parallelRegionInfo) == true, "cannot get parallel region data");
+      auto parallelRegionData = static_cast<ParallelRegionData*>(parallelRegionInfo.parallelData->ptr); 
+      mcs_node_t node;
+#ifdef PERFORMANCE
+      LockGuard guard(&(parallelRegionData->lock), &node, &gPerformanceCounters);
+#else
+      LockGuard guard(&(parallelRegionData->lock), &node, nullptr);
+#endif
+      if (curTaskData->getIsExplicitTask()) {
+        // both history task and current task are explicit task. Check if there exists explicit task dependence between them. 
+        if (parallelRegionData->taskDependenceGraph.hasPath(static_cast<void*>(histTaskData), static_cast<void*>(curTaskData))) {
+          histHappensBeforeCur = true;
+        }
+      } else {
+        // current task is implicit task, history task is explicit task, check if there exists order by undeferred task 
+        // i.e., if current thread executing the implicit task has encountered some undeferred task before. And there exists
+        // explicit task dependence between history explicit task and the undeferred task. In this case, there exists happens-before  relationship between history task and current task.
+        for (auto undeferredTask : curTaskData->undeferredTasks) {
+          RAW_DLOG(INFO, "undeferred task: %lx", undeferredTask);
+          if (parallelRegionData->taskDependenceGraph.hasPath(static_cast<void*>(histTaskData), undeferredTask)) {
+            histHappensBeforeCur = true;
+            break; 
+          }
+        }
+      }
+    }
+  }
+  return histHappensBeforeCur;  
 }
 
 bool analyzeSiblingImplicitTask(Label* histLabel, Label* curLabel, int diffIndex) { 

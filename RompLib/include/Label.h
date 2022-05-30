@@ -29,7 +29,7 @@ public:
   friend int compareLabels(Label* left, Label* right);
   int getLabelLength() const;
 private:
-  std::vector<std::shared_ptr<BaseSegment> > _label;
+  std::vector<std::shared_ptr<BaseSegment> > mLabel;
 };
 
 int compareLabels(Label* left, Label* right);
@@ -39,11 +39,10 @@ std::shared_ptr<Label> generateImplicitTaskLabel(
                           unsigned int index,
                           unsigned int actualParallelism);
 std::shared_ptr<Label> generateInitialTaskLabel();
-std::shared_ptr<Label> generateExplicitTaskLabel(Label* parentLabel);
+std::shared_ptr<Label> generateExplicitTaskLabel(Label* parentLabel, void* taskDataPtr);
 
 std::shared_ptr<Label> mutateParentImpEnd(Label* childLabel);
-std::shared_ptr<Label> mutateParentTaskCreate(Label* parentLabel, bool isUndeferred);
-
+std::shared_ptr<Label> mutateParentTaskCreate(Label* parentLabel);
 std::shared_ptr<Label> mutateBarrierEnd(Label* label);
 std::shared_ptr<Label> mutateTaskWait(Label* label);
 std::shared_ptr<Label> mutateOrderSection(Label* label);
