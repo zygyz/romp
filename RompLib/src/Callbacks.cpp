@@ -390,6 +390,7 @@ void on_ompt_callback_task_create(
   // https://github.com/llvm/llvm-project/blob/83914ee96fc2d828e1cfb8913f5d156d39150e2c/openmp/runtime/src/kmp_tasking.cpp#L795
   // flags is a variable where multiple bits can be set
   // e.g., flags = ompt_task_explicit | ompt_task_undeferred | ompt_task_untied 
+  RAW_DLOG(INFO, "ompt_callback_task_create called");
   auto isExplicitTask = (flags & ompt_task_explicit) == ompt_task_explicit;
   auto isUndeferred = (flags & ompt_task_undeferred) == ompt_task_undeferred;
   auto isUntied = (flags & ompt_task_untied) == ompt_task_untied; 

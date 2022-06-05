@@ -53,7 +53,6 @@ bool analyzeMutualExclusion(const Record& histRecord, const Record& curRecord) {
   return histRecord.hasHardwareLock() && curRecord.hasHardwareLock() || hasCommonLock(histLockSet, curLockSet);  
 }
 
-
 bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex, TaskData* histTaskData, TaskData* curTaskData) {
   diffIndex = compareLabels(histLabel, curLabel);
   auto histHappensBeforeCur = false;
@@ -96,7 +95,6 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex, TaskData* 
       default:
         RAW_LOG(FATAL, "unexpected segment type: %d", histType);
         break;
-        
     }
   } 
   if (histOffset != curOffset) { 
@@ -274,85 +272,121 @@ bool analyzeSyncChain(Label* label, int startIndex) {
   return true;
 }
 
+
+// This function is called under the premise that offset field is the same.
+// histLabel[diffIndex] and curLabel[diffIndex] point to the same task.
+// There exists fields in histLabel[diffIndex] and curLabel[diffIndex] that are different.
+// Return true if there exists happens-before relationship. Return false otherwise.
 bool analyzeSameTask(Label* histLabel, Label* curLabel, int diffIndex) {
   auto lenHistLabel = histLabel->getLabelLength(); 
   auto lenCurLabel = curLabel->getLabelLength();
-  if (diffIndex == (lenHistLabel - 1)) {
-    return true;
-  }      
-  // T(histLabel, diffIndex) is not leaf task
-  if (diffIndex == (lenCurLabel - 1)) {
-    auto histNextSeg = histLabel->getKthSegment(diffIndex + 1);
-    auto histNextType = histNextSeg->getType();
-    RAW_CHECK(histNextType != eImplicit, 
-            "not expecting next level task to be implicit task");
+  auto histDiffSegmentIsLeaf = diffIndex == (lenHistLabel - 1);
+  auto curDiffSegmentIsLeaf = diffIndex == (lenCurLabel - 1);
+  auto isHappensBefore = false; 
+  if (histDiffSegmentIsLeaf) {
+    // because hist diff segment and cur diff segment points to the same task. If hist diff segment is the leaf,
+    // T(curLabel) must be some descendant task created by T(histLabel). Thus there exists happens-before relationship.
+    isHappensBefore = true; 
+  } else if (curDiffSegmentIsLeaf) {
+    // hist diff segment is not leaf, cur diff segment is leaf.
+    auto histNextSegment = histLabel->getKthSegment(diffIndex + 1);
+    auto histNextType = histNextSegment->getType();
     if (histNextType == eExplicit) {
-      // check if T(histLabel) happens before T(curLabel) because of explicit 
-      // task synchronization
-      auto histSeg = histLabel->getKthSegment(diffIndex);
-      auto histTaskwait = histSeg->getTaskwait();
-      auto curSeg = curLabel->getKthSegment(diffIndex);
-      auto curTaskwait = curSeg->getTaskwait();
-      RAW_CHECK(curTaskwait >= histTaskwait, "not expecting hist taskwait\
-              to be larger than cur taskwait");
+      auto histSegment = histLabel->getKthSegment(diffIndex); 
+      auto histTaskwait = histSegment->getTaskwait();
+      auto curSegment = curLabel->getKthSegment(diffIndex);
+      auto curTaskwait = curSegment->getTaskwait();
+      RAW_CHECK(curTaskwait >= histTaskwait, "not expecting history taskwait be larger than current taskwait");
       if (curTaskwait == histTaskwait) {
-        // futher check task group sync 
-        auto histTaskGroupLevel = histSeg->getTaskGroupLevel();      
-        if (histTaskGroupLevel > 0 && histNextSeg->isTaskGroupSync()) {
-          // T(histLabel) happens before T(curLabel) only when the taskgroup 
-          // construct wrapping T(histLabel,diffIndex + 1) finishes before 
-          // T(curLabel, diffIndex)
-          return true;
+        // further check task group sync. 
+        // TODO: revisit task group handling.
+        auto histTaskGroupLevel = histSegment->getTaskGroupLevel();
+        if (histTaskGroupLevel > 0 && histNextSegment->isTaskGroupSync()) {
+          isHappensBefore = true; 
+        } else {
+          isHappensBefore = false;
         }
-        return false;
-      } 
-      return analyzeSyncChain(histLabel, diffIndex + 1); 
-    } 
-    if (histNextType == eLogical) {
-      if (static_cast<WorkShareSegment*>(histNextSeg)->isWorkSharePlaceHolder()) {
-        return true;
+      } else {
+        return analyzeSyncChain(histLabel, diffIndex + 1);
+      }   
+    } else if (histNextType == eLogical) {
+      if (static_cast<WorkShareSegment*>(histNextSegment)->isWorkSharePlaceHolder()) {
+        isHappensBefore = true;
+      } else {
+        isHappensBefore = false;  
       }
-      return false; 
+    } else {
+      // we claim that it is not possible for next segment of hist diff segment to be implicit task. 
+      // because if so, T(curLabel[diffIndex]) should be the implicit task after finishing a parallel region.
+      // This cause the offset field to be different.
+      RAW_CHECK(histNextType != eImplicit, "not expecting next level task to be implicit task");
     }
-  } 
-  // both T(histLabel, diffIndex) and T(curLabel, diffIndex) are not leaf task 
-  auto histNextSeg = histLabel->getKthSegment(diffIndex + 1);
-  auto curNextSeg = curLabel->getKthSegment(diffIndex + 1);
-  auto histNextType = histNextSeg->getType();
-  auto curNextType = curNextSeg->getType();
-  RAW_CHECK(!(histNextType == eImplicit && curNextType == eImplicit),
-            "not expecting next level tasks are sibling implicit tasks");
-    // invoke different checking depending on next segment's type 
-  if (histNextType == eExplicit && curNextType == eExplicit || histNextType == eExplicit && curNextType == eLogical) {
-    return analyzeExplicitTask(histLabel, curLabel, diffIndex);
-  }
-  return false;
+  } else {
+    // both hist diff segment and cur diff segment are not leaf.
+    auto histNextSegment = histLabel->getKthSegment(diffIndex + 1);   
+    auto curNextSegment = curLabel->getKthSegment(diffIndex + 1);
+    auto histNextType = histNextSegment->getType();
+    auto curNextType = curNextSegment->getType();
+    if (histNextType == eExplicit && curNextType == eExplicit) {
+      // curLabel[diffIndex + 1] and histLabel[diffIndex + 1] are explicit task label segments.
+      return analyzeExplicitTask(histLabel, curLabel, diffIndex); 
+    } 
+    RAW_CHECK(!(histNextType == eImplicit && curNextType == eImplicit), "not expecting next level tasks are sibling implicit tasks");
+    RAW_CHECK(!(histNextType == eLogical && curNextType == eLogical), "not expecting next level tasks are sibling logical tasks");
+    RAW_CHECK(!(histNextType == eLogical && curNextType == eImplicit), "not expecting next level tasks are implicit task and logcial task combination");
+    RAW_CHECK(!(histNextType == eImplicit && curNextType == eLogical), "not expecting next level tasks are implicit task and logcial task combination");
+    // in the rest of the cases, there is no case of sibling explicit tasks. 
+    isHappensBefore = false; 
+  }  
+  return isHappensBefore; 
 }
 
 
+
+//  histLabel[diffIndex + 1] and curLabel[diffIndex + 1] are explicit task segment
 bool analyzeExplicitTask(Label* histLabel, Label* curLabel, int diffIndex) {
   // First check if ordered by task group construct   
   if (analyzeTaskGroupSync(histLabel, curLabel, diffIndex)) {
     return true;
   }
-  auto histSeg = histLabel->getKthSegment(diffIndex);      
-  auto curSeg = curLabel->getKthSegment(diffIndex);
-  auto histTaskwait = histSeg->getTaskwait();
-  auto curTaskwait = curSeg->getTaskwait();
-  if (histTaskwait == curTaskwait) {
-    return false;
-  } else if (histTaskwait < curTaskwait) {
-    // there is taskwait between creation of T(histLabel, diffIndex + 1) and 
-    // T(curLabel, diffIndex + 1)  
-    return analyzeSyncChain(histLabel, diffIndex + 1); 
+  // T1 = T(histLabel, diffIndex + 1) and T2 = T(curLabel, diffIndex + 1) are explicit tasks. Check if there exists
+  // explicit task dependence specified between T1 and T2. If so, we further analyze whether T(histLabel) syncs with T1 and 
+  // T(curLabel) syncs with T2. This checking should preempt other conditions.
+  auto histNextSegment = static_cast<ExplicitTaskSegment*>(histLabel->getKthSegment(diffIndex + 1));
+  auto curNextSegment = static_cast<ExplicitTaskSegment*>(curLabel->getKthSegment(diffIndex + 1));
+  auto histNextTaskPtr = histNextSegment->getTaskPtr();
+  auto curNextTaskPtr = curNextSegment->getTaskPtr();   
+  ParallelRegionInfo parallelRegionInfo;
+  RAW_CHECK(queryParallelRegionInfo(0, parallelRegionInfo) == true, "cannot get parallel region data");
+  auto parallelRegionData = static_cast<ParallelRegionData*>(parallelRegionInfo.parallelData->ptr); 
+  mcs_node_t node;
+#ifdef PERFORMANCE
+  LockGuard guard(&(parallelRegionData->lock), &node, &gPerformanceCounters);
+#else
+  LockGuard guard(&(parallelRegionData->lock), &node, nullptr);
+#endif
+  if (parallelRegionData->taskDependenceGraph.hasPath(histNextTaskPtr, curNextTaskPtr)) {
+    RAW_DLOG(INFO, "analyzeExplicitTask, there exists explicit task dependence %lx %lx", histNextTaskPtr, curNextTaskPtr);
+    return analyzeSyncChain(histLabel, diffIndex + 2) && analyzeSyncChain(curLabel, diffIndex + 2); 
   } else {
-    RAW_LOG(FATAL, "not expecting hist taskwait to be larger than \
-            cur taskwait");
-    return false;
-  }
-  return true;
+    // There is no explicit task dependence between T1 and T2, we further check the synchronization enforced by taskwait
+    auto histSegment = histLabel->getKthSegment(diffIndex);      
+    auto curSegment = curLabel->getKthSegment(diffIndex);
+    auto histTaskwait = histSegment->getTaskwait();
+    auto curTaskwait = curSegment->getTaskwait();
+    if (histTaskwait == curTaskwait) {
+      return false; 
+    } else if (histTaskwait < curTaskwait) {
+      return analyzeSyncChain(histLabel, diffIndex + 1); 
+    } else {
+      RAW_LOG(FATAL, "not expecting hist taskwait to be larger than cur taskwait");
+      return false;
+    }
+  } 
+  return false;
 }
 
+// TODO: revisit task group sync
 bool analyzeTaskGroupSync(Label* histLabel, Label* curLabel, int diffIndex) {
   auto histSeg = histLabel->getKthSegment(diffIndex);
   auto curSeg = curLabel->getKthSegment(diffIndex);

@@ -381,7 +381,7 @@ std::shared_ptr<BaseSegment> ExplicitTaskSegment::clone() const {
 std::string ExplicitTaskSegment::toFieldsBreakdown() const {
   std::stringstream stream;
   auto baseResult = BaseSegment::toFieldsBreakdown();
-  stream << "explicit task data ptr:" << std::hex << std::setw(16) << std::setfill('0') << mTaskDataPtr;
+  stream << "explicit task data ptr:" << std::hex << std::setw(16) << std::setfill('0') << mTaskDataPtr << " | ";
   auto result = "[" + baseResult + stream.str() + "]";
   return result;
 }
