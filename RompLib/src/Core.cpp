@@ -32,7 +32,11 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, boo
   auto histLabel = histRecord.getLabel(); 
   auto curLabel = curRecord.getLabel(); 
   isHistBeforeCur = happensBefore(histLabel, curLabel, diffIndex, histTaskData, curTaskData);
-
+#ifdef DEBUG
+  if (isHistBeforeCur == true) {
+    RAW_DLOG(INFO, "has happens before relation: memaddr: %lx hist label: %s hist taskdata: %lx cur label %s cur taskdata: %lx", (void*)checkedAddress, histLabel->toFieldsBreakdown().c_str(), histTaskData, curLabel->toFieldsBreakdown().c_str(), curTaskData);
+  }
+#endif
   if (isHistBeforeCur || 
      curTaskData->getIsExplicitTask() && histTaskData->getIsExplicitTask() && curTaskData->getIsMutexTask() && histTaskData->getIsMutexTask()) {
     // either comparing the task label infers existence of happens-before relation, 
@@ -283,10 +287,24 @@ bool analyzeSameTask(Label* histLabel, Label* curLabel, int diffIndex) {
   auto histDiffSegmentIsLeaf = diffIndex == (lenHistLabel - 1);
   auto curDiffSegmentIsLeaf = diffIndex == (lenCurLabel - 1);
   auto isHappensBefore = false; 
-  if (histDiffSegmentIsLeaf) {
-    // because hist diff segment and cur diff segment points to the same task. If hist diff segment is the leaf,
-    // T(curLabel) must be some descendant task created by T(histLabel). Thus there exists happens-before relationship.
-    isHappensBefore = true; 
+  if (histDiffSegmentIsLeaf) {  
+    auto histDiffSegment = histLabel->getKthSegment(diffIndex);
+    auto curDiffSegment = curLabel->getKthSegment(diffIndex);  
+    auto curNextSegment = curLabel->getKthSegment(diffIndex + 1);
+    auto curNextSegmentType = curNextSegment->getType();
+    if (curNextSegmentType == eExplicit) {
+      auto histTaskCreateCount = histDiffSegment->getTaskcreate(); 
+      auto curTaskCreateCount = curDiffSegment->getTaskcreate();
+      if (histTaskCreateCount <= curTaskCreateCount) {
+        // if task create count if of history segment is not larger than task create count of current segment
+        // then the explicit task T(curLabel, diffIndex+1) is created after T(curLabel)
+        return true;  
+      } else {
+        return false;
+      }
+    } else {
+      return true;
+    }
   } else if (curDiffSegmentIsLeaf) {
     // hist diff segment is not leaf, cur diff segment is leaf.
     auto histNextSegment = histLabel->getKthSegment(diffIndex + 1);

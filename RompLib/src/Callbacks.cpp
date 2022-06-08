@@ -94,16 +94,18 @@ inline BaseSegment* getLastSegment(Label* label) {
  * be taskwaited, and record the ordered section phase value 
  */
 void markExpChildSyncTaskwait(TaskData* taskData, Label* curLabel) {
-  auto seg = getLastSegment(curLabel);
-  auto phase = seg->getPhase();
+  auto segment = getLastSegment(curLabel);
+  auto phase = segment->getPhase();
   for (auto& child : taskData->childrenExplicitTasks) {
     auto childTaskData = static_cast<TaskData*>(child); 
-    RAW_DLOG(INFO, "marking explicit children task: %lx", childTaskData);
     childTaskData->setIsTaskwait(true); 
-    auto lenLabel = childTaskData->label->getLabelLength(); 
-    auto lastSeg = childTaskData->label->getKthSegment(lenLabel - 1);
-    lastSeg->setTaskwaited();
-    lastSeg->setTaskwaitPhase(phase);
+    auto lastSegment = getLastSegment(childTaskData->label.get());
+    uint64_t offset, span;
+    lastSegment->getOffsetSpan(offset, span);
+    if (span == 1) { // if the last label segment is still explicit label segment, set the taskwaited flag in segment
+      lastSegment->setTaskwaited();
+      lastSegment->setTaskwaitPhase(phase); // is this necessary? 
+    }
   }
   taskData->childrenExplicitTasks.clear(); // clear the children after taskwait
 }
@@ -416,7 +418,9 @@ void on_ompt_callback_task_create(
   taskData->label = generateExplicitTaskLabel(parentLabel, static_cast<void*>(taskData));
   auto mutatedParentLabel = mutateParentTaskCreate(parentLabel); 
   parentTaskData->label = std::move(mutatedParentLabel);
-  parentTaskData->recordExplicitTaskData(taskData); 
+  if (isExplicitTask) {
+    parentTaskData->recordExplicitTaskData(taskData); 
+  }
   if (isUndeferred) {
     parentTaskData->recordUndeferredTaskData(taskData);
   } 
@@ -460,10 +464,6 @@ void on_ompt_callback_task_schedule(
       RAW_LOG(WARNING, "unknown prior task status: %d", priorTaskStatus); 
       break;
   } 
-}
-
-void on_ompt_callback_task_dependence(ompt_data_t* srcTaskData, ompt_data_t* sinkTaskData) {
-  RAW_DLOG(INFO, "ompt_callback_task_dependence src: %lx, sink: %lx", srcTaskData, sinkTaskData);
 }
 
 void on_ompt_callback_dependences(ompt_data_t *taskData, const ompt_dependence_t *deps, int ndeps) {

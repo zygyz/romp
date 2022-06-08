@@ -86,5 +86,4 @@ void on_ompt_callback_reduction(
        ompt_data_t *taskData,
        const void *codePtrRa);
 
-void on_ompt_callback_task_dependence(ompt_data_t *src_task_data, ompt_data_t *sink_task_data);
   
