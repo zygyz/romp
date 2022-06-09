@@ -164,8 +164,7 @@ void checkAccess(void* baseAddress, uint32_t bytesAccessed, void* instnAddr, boo
   TaskMemoryInfo taskMemoryInfo;
   queryTaskMemoryInfo(taskMemoryInfo);
   for (uint64_t i = 0; i < memUnitAccessed; ++i) {
-    auto checkedAddress = gUseWordLevelCheck ? reinterpret_cast<uint64_t>(baseAddress) + i * 4 :
-                                           reinterpret_cast<uint64_t>(baseAddress) + i;      
+    auto checkedAddress = gUseWordLevelCheck ? reinterpret_cast<uint64_t>(baseAddress) + i * 4 : reinterpret_cast<uint64_t>(baseAddress) + i;      
     if (shouldCheckMemoryAccess(threadInfo, taskMemoryInfo, checkedAddress, taskInfo.taskFrame)) {
       auto accessHistory = shadowMemory.getShadowMemorySlot(checkedAddress);
       if (checkDataRace(accessHistory, curLabel, curLockSet, instnAddr, static_cast<void*>(currentTaskData), taskInfo.flags, isWrite, hasHardwareLock, checkedAddress)) {

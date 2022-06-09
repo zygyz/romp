@@ -31,14 +31,12 @@ bool shouldCheckMemoryAccess(const ThreadInfo& threadInfo,
     case eThreadMetaDataNotSet: 
     case eTaskExitFrameNotSet:
     case eUndefined:
-//      RAW_DLOG(INFO,  "should check memory address, data sharing type: %d, memory address: %lx", dataSharingType, memoryAddress);
-      return true;
     case eThreadPrivateAccessCurrentTask:
-    case eTaskPrivate:
+    case eExplicitTaskPrivate: // we rely on recycling to avoid false positive 
+      return true;
     case eNonWorkerThread:
     case eOmpRuntime:
     case eInitialThread:
-      RAW_DLOG(INFO,  "should not check memory address, data sharing type: %d, memory address: %lx", dataSharingType, memoryAddress);
       return false; 
   }
   RAW_LOG(FATAL, "unexpected data sharing type: %d", dataSharingType);
@@ -55,7 +53,7 @@ DataSharingType analyzeDataSharingType(const ThreadInfo& threadInfo,
     return eNonWorkerThread;
   }
   if (threadInfo.threadType == ompt_thread_initial) {
-    return eInitialThread;
+    return eInitialThread; // we don't check memory accesses performed by initial thread 
   }
   if (!taskFrame || taskFrame->exit_frame.ptr == nullptr) {
     return eTaskExitFrameNotSet;
@@ -71,40 +69,29 @@ DataSharingType analyzeDataSharingType(const ThreadInfo& threadInfo,
   //RAW_DLOG(INFO, "thread base address: %lx thread top address: %lx", threadData->stackBaseAddress, threadData->stackTopAddress);
   if (memoryAddress > reinterpret_cast<const uint64_t>(threadData->stackTopAddress) ||
       memoryAddress < reinterpret_cast<const uint64_t>(threadData->stackBaseAddress)) {
-    // memory address does not fall in current thread stack range, must not be thread private access.
+    // memory address does not fall in current thread stack range 
+    if (taskMemoryInfo.blockAddress != nullptr) {
+      // check if the memory access is explicit task private 
+      const auto taskPrivateMemoryBaseAddress = reinterpret_cast<const uint64_t>(taskMemoryInfo.blockAddress);
+      const auto taskPrivateMemorySize = reinterpret_cast<const uint64_t>(taskMemoryInfo.blockSize);
+      if (memoryAddress >= taskPrivateMemoryBaseAddress && memoryAddress <= taskPrivateMemoryBaseAddress + taskPrivateMemorySize) {
+        // filter explicit task private memory locations. Memory accesses to these locations should be exclusive to the task. 
+        return eExplicitTaskPrivate;
+      }
+    }
     return eNonThreadPrivate;
   }
-  // now the memory access is within current thread's stack range.
-  const auto enterFrame = taskFrame->enter_frame;
-  const auto enterFrameFlags = taskFrame->enter_frame_flags;
-  const auto exitFrame = taskFrame->exit_frame;
-  const auto exitFrameFlags = taskFrame->exit_frame_flags;
-  // note: definition of exit_frame and enter_frame from OpenMP spec doc.
-  // The exit_frame field of an ompt_frame_t object contains information to identify the first procedure 
-  // frame executing the task region.   
-  // The enter_frame field of an ompt_frame_t object contains information to identify the latest still active 
-  // procedure frame executing the task region before entering the OpenMP runtime implementation or before 
-  // executing a different task.
-  // enter_frame_flags field indicates that the provided frame information points to a runtime or an application frame address. 
-  // The same fields also specify the kind of information that is provided to identify the frame, These fields are a disjunction of values in the ompt_frame_flag_t enumeration type
-  if (exitFrame.ptr && exitFrameFlags == (ompt_frame_application | ompt_frame_framepointer) && 
-      memoryAddress > reinterpret_cast<const uint64_t>(exitFrame.ptr)) {
-    // memory address is above the first procedure frame executing current task region. 
-    return eThreadPrivateAccessOtherTask; 
-  }
-  if (enterFrame.ptr && enterFrameFlags == (ompt_frame_application | ompt_frame_framepointer)  && 
-      memoryAddress == reinterpret_cast<const uint64_t>(enterFrame.ptr)) {
-    // we don't know how large the stack frame for enterFrame is. We can only use the frame base address.
-    return eThreadPrivateAccessCurrentTask; 
-  }
-  if (taskMemoryInfo.blockAddress != nullptr) {
-    const auto taskPrivateMemoryBaseAddress = reinterpret_cast<const uint64_t>(taskMemoryInfo.blockAddress);
-    const auto taskPrivateMemorySize = reinterpret_cast<const uint64_t>(taskMemoryInfo.blockSize);
-    if (memoryAddress >= taskPrivateMemoryBaseAddress && memoryAddress <= taskPrivateMemoryBaseAddress + taskPrivateMemorySize) {
-      // filter explicit task private memory locations. Memory accesses to these locations should be exclusive to the task. 
-      return eTaskPrivate;
-    }
-  }
+  // now the memory access is within current thread's stack range. We want to figure out if the memory access is task private.
+  auto enterFrame = taskFrame->enter_frame;
+  auto exitFrame = taskFrame->exit_frame;
+  // exitFrame.ptr is the upper bound of the current task's scratch space. 
+  // enterFrame.ptr is set if current task creates children explicit tasks, if it is not set, enterFrame.ptr = 0
+  if (memoryAddress <= reinterpret_cast<const uint64_t>(exitFrame.ptr) && memoryAddress >= reinterpret_cast<const uint64_t>(enterFrame.ptr)) {
+    return eThreadPrivateAccessCurrentTask;
+  } else {
+    return eThreadPrivateAccessOtherTask;
+  } 
+  RAW_DLOG(INFO, "undefined, mem addr: %lx enter frame: %lx exit frame: %lx" , memoryAddress, enterFrame.ptr, exitFrame.ptr);
   return eUndefined;  
 }
 

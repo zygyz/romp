@@ -91,7 +91,7 @@ public:
 protected:
   uint64_t mValue; // store most of the label segment fields.
   uint32_t mTaskGroup; // TODO: revisit taskgroup handling
-  uint32_t mOrderSecVal;  // TODO: remove this field 
+  uint32_t mOrderSecVal;  
 };
 
 class ExplicitTaskSegment: public BaseSegment {

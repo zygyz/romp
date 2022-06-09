@@ -8,7 +8,7 @@ enum DataSharingType {
   eThreadPrivateAccessOtherTask = 1,
   eThreadPrivateAccessCurrentTask = 2,
   eTaskExitFrameNotSet = 3,
-  eTaskPrivate = 4,
+  eExplicitTaskPrivate = 4,
   eNonWorkerThread = 5,
   eThreadMetaDataNotSet = 6, 
   eInitialThread = 7,
