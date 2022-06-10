@@ -13,7 +13,6 @@ extern PerformanceCounters gPerformanceCounters;
 bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, bool& isHistBeforeCur, int& diffIndex, const uint64_t checkedAddress) {
   auto histTaskData = static_cast<TaskData*>(histRecord.getTaskPtr()); 
   auto curTaskData = static_cast<TaskData*>(curRecord.getTaskPtr());
-//  RAW_DLOG(INFO, "checking data race on address: %lx, history task: %lx isExplicit: %d current task: %lx isExplicit: %d\n", (void*)checkedAddress, histTaskData, histTaskData->getIsExplicitTask(), curTaskData, curTaskData->getIsExplicitTask());
   if (histTaskData == curTaskData) {
     // both memory accesses are performed by the same task. 
     return false;
@@ -44,7 +43,11 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, boo
     // there exists happens-before relationship between two memory accesses. No data race.
     return false; 
   } 
-  auto hasDataRace = !isHistBeforeCur && (histRecord.isWrite() || curRecord.isWrite());
+  auto currentDataSharingType = curRecord.getDataSharingType();
+  auto historyDataSharingType = histRecord.getDataSharingType();
+  auto bothAccessesAreTaskPrivate = (currentDataSharingType == eThreadPrivateAccessCurrentTask && historyDataSharingType == eThreadPrivateAccessCurrentTask) || (currentDataSharingType == eExplicitTaskPrivate && historyDataSharingType == eExplicitTaskPrivate);
+
+  auto hasDataRace = !isHistBeforeCur && (histRecord.isWrite() || curRecord.isWrite()) && !bothAccessesAreTaskPrivate;
   if (hasDataRace) {
     RAW_DLOG(INFO, "data race found: hist is explicit: (taskPtr:%lx) %d cur is explicit: (taskPtr:%lx) %d", histTaskData, histTaskData->getIsExplicitTask(), curTaskData, curTaskData->getIsExplicitTask());
   }

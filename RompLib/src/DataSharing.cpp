@@ -22,8 +22,9 @@ extern PerformanceCounters gPerformanceCounters;
 bool shouldCheckMemoryAccess(const ThreadInfo& threadInfo, 
                              const TaskMemoryInfo& taskMemoryInfo,
                              const uint64_t memoryAddress,
-                             const ompt_frame_t* taskFrame) {
-  const auto dataSharingType = analyzeDataSharingType(threadInfo, taskMemoryInfo, memoryAddress, taskFrame);
+                             const ompt_frame_t* taskFrame,
+                             DataSharingType& dataSharingType) {
+  dataSharingType = analyzeDataSharingType(threadInfo, taskMemoryInfo, memoryAddress, taskFrame);
   //RAW_DLOG(INFO, "data sharing checking, memory address: %lx sharing type: %d", (void*)memoryAddress, dataSharingType);
   switch(dataSharingType) {
     case eNonThreadPrivate:
@@ -35,7 +36,6 @@ bool shouldCheckMemoryAccess(const ThreadInfo& threadInfo,
     case eExplicitTaskPrivate: // we rely on recycling to avoid false positive 
       return true;
     case eNonWorkerThread:
-    case eOmpRuntime:
     case eInitialThread:
       return false; 
   }
@@ -79,6 +79,7 @@ DataSharingType analyzeDataSharingType(const ThreadInfo& threadInfo,
         return eExplicitTaskPrivate;
       }
     }
+    RAW_DLOG(INFO, "memaddr: %lx out of thread stack boundary. base addr: %lx top addr: %lx", memoryAddress, threadData->stackBaseAddress, threadData->stackTopAddress);
     return eNonThreadPrivate;
   }
   // now the memory access is within current thread's stack range. We want to figure out if the memory access is task private.
@@ -86,12 +87,18 @@ DataSharingType analyzeDataSharingType(const ThreadInfo& threadInfo,
   auto exitFrame = taskFrame->exit_frame;
   // exitFrame.ptr is the upper bound of the current task's scratch space. 
   // enterFrame.ptr is set if current task creates children explicit tasks, if it is not set, enterFrame.ptr = 0
-  if (memoryAddress <= reinterpret_cast<const uint64_t>(exitFrame.ptr) && memoryAddress >= reinterpret_cast<const uint64_t>(enterFrame.ptr)) {
+  if (enterFrame.ptr > exitFrame.ptr) {
+    // enter frame is higher than exit frame  
+    if (memoryAddress <= reinterpret_cast<const uint64_t>(exitFrame.ptr)) {
+      return eThreadPrivateAccessCurrentTask;
+    }  else {
+      return eThreadPrivateAccessOtherTask; 
+    } 
+  } else if (memoryAddress <= reinterpret_cast<const uint64_t>(exitFrame.ptr) && memoryAddress >= reinterpret_cast<const uint64_t>(enterFrame.ptr)) {
     return eThreadPrivateAccessCurrentTask;
   } else {
     return eThreadPrivateAccessOtherTask;
   } 
-  RAW_DLOG(INFO, "undefined, mem addr: %lx enter frame: %lx exit frame: %lx" , memoryAddress, enterFrame.ptr, exitFrame.ptr);
   return eUndefined;  
 }
 

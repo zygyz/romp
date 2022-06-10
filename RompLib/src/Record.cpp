@@ -1,5 +1,14 @@
 #include "Record.h"
 
+#include <glog/logging.h>
+#include <glog/raw_logging.h>
+
+
+// mState bit allocation
+// bit 0: access type (write/read)
+// bit 1: hardware lock 
+// bit 2-3: reserved
+// bit 4-7: data shairng type
 /*
  * If current access is write, set the lowest bit to 1. Otherwise, set to 0.
  * mState variable is 8-bit wide.
@@ -10,6 +19,15 @@ void Record::setAccessType(bool isWrite) {
   } else {
     mState &= 0xfe; 
   }
+}
+
+void Record::setDataSharingType(int dataSharingType) {
+  mState |= (dataSharingType << 4);
+}
+
+int Record::getDataSharingType() const {
+  RAW_DLOG(INFO, "get data sharing type: %lx %lx", mState, mState >> 4);
+  return (int) (mState >> 4);
 }
 
 /*
@@ -33,6 +51,8 @@ bool Record::isWrite() const {
 bool Record::hasHardwareLock() const {
   return (mState & 0x2) == 0x2;
 }
+
+
 /*
  * toString() is mainly for debugging
  */
@@ -58,4 +78,8 @@ uint64_t Record::getCheckedMemoryAddress() const {
 
 void* Record::getTaskPtr() const {
   return mTaskPtr;
+}
+
+void* Record::getInstructionAddress() const {
+  return mInstructionAddress;
 }
