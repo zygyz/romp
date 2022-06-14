@@ -79,7 +79,7 @@ DataSharingType analyzeDataSharingType(const ThreadInfo& threadInfo,
         return eExplicitTaskPrivate;
       }
     }
-    RAW_DLOG(INFO, "memaddr: %lx out of thread stack boundary. base addr: %lx top addr: %lx", memoryAddress, threadData->stackBaseAddress, threadData->stackTopAddress);
+    //RAW_DLOG(INFO, "memaddr: %lx out of thread stack boundary. base addr: %lx top addr: %lx", memoryAddress, threadData->stackBaseAddress, threadData->stackTopAddress);
     return eNonThreadPrivate;
   }
   // now the memory access is within current thread's stack range. We want to figure out if the memory access is task private.
@@ -123,7 +123,6 @@ void recycleMemRange(void* lowerBound, void* upperBound) {
 #else
     LockGuard guard(&(accessHistory->getLock()), &node, nullptr);
 #endif
-
     accessHistory->setFlag(eMemoryRecycled);
   }
 }

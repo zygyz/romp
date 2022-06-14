@@ -29,9 +29,11 @@ typedef struct TaskData {
   std::shared_ptr<Label> label;
   std::shared_ptr<LockSet> lockSet;
   void* exitFrame;
+  void* parallelRegionDataPtr;
   std::vector<void*> childrenExplicitTasks;
   std::vector<void*> undeferredTasks; // record the TaskData pointers for undeferred task encountered.
   uint16_t metaData;
+  uint8_t workShareRegionId;
   TaskData();
 
   void recordExplicitTaskData(TaskData*);
@@ -46,6 +48,7 @@ typedef struct TaskData {
   void setIsTaskwait(bool);  
   void setIsMergedTask(bool);
   void setHasDependence(bool);
+
 
   bool getIsExplicitTask() const;
   bool getIsMutexTask() const;

@@ -15,22 +15,28 @@ public:
          void* taskPtr, 
          uint64_t checkedMemoryAddress,
 	 bool hasHardwareLock, 
+         bool isInReduction,
          int dataSharingType, 
-         void* instructionAddress
+         void* instructionAddress, 
+         uint8_t workShareRegionId
       ): 
       mLabel(label), mLockSet(lockSet), mTaskPtr(taskPtr), 
       mCheckedMemoryAddress(checkedMemoryAddress),
-      mInstructionAddress(instructionAddress)
+      mInstructionAddress(instructionAddress),
+      mWorkShareRegionId(workShareRegionId)
       { 
         mState = 0;
         setAccessType(isWrite); 
 	setHasHardwareLock(hasHardwareLock);
         setDataSharingType(dataSharingType);
+        setIsInReduction(isInReduction);
       }
   void setAccessType(bool isWrite);
   void setDataSharingType(int dataSharingType);
   void setHasHardwareLock(bool hardwareLock);
+  void setIsInReduction(bool isInReduction);
   bool isWrite() const;
+  bool isInReduction() const;
   bool hasHardwareLock() const;
   std::string toString() const;
   Label* getLabel() const;
@@ -39,11 +45,14 @@ public:
   int getDataSharingType() const;
   void* getTaskPtr() const;
   void* getInstructionAddress() const;
+  uint8_t getWorkShareRegionId() const;
 private:
   uint8_t mState; // store state information
+  uint8_t mWorkShareRegionId;
   std::shared_ptr<Label> mLabel; // task label associated with the record
   std::shared_ptr<LockSet> mLockSet; // lock set associated with the record
   void* mTaskPtr; // pointer to data of encountering task
   uint64_t  mCheckedMemoryAddress;  
   void* mInstructionAddress;  // store the instruction address associated with the memory access
+   
 };

@@ -21,36 +21,31 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, boo
   if (analyzeMutualExclusion(histRecord, curRecord)) {
     return false;
   }  
-  if (curTaskData->getIsInReduction()) { 
-    // current memory access is in reduction phase, we trust runtime library
-    // that in this phase no data race is genereted by reduction method.
-    // TODO: review this decision
-    return false;
-  }
 
   auto histLabel = histRecord.getLabel(); 
   auto curLabel = curRecord.getLabel(); 
   isHistBeforeCur = happensBefore(histLabel, curLabel, diffIndex, histTaskData, curTaskData);
-#ifdef DEBUG
-  if (isHistBeforeCur == true) {
-    RAW_DLOG(INFO, "has happens before relation: memaddr: %lx hist label: %s hist taskdata: %lx cur label %s cur taskdata: %lx", (void*)checkedAddress, histLabel->toFieldsBreakdown().c_str(), histTaskData, curLabel->toFieldsBreakdown().c_str(), curTaskData);
+  
+  if (isHistBeforeCur) {
+    return false;
   }
-#endif
-  if (isHistBeforeCur || 
-     curTaskData->getIsExplicitTask() && histTaskData->getIsExplicitTask() && curTaskData->getIsMutexTask() && histTaskData->getIsMutexTask()) {
-    // either comparing the task label infers existence of happens-before relation, 
-    // or two memory accesses are performed by two mutex tasks. In these cases, there is no data race.
+
+  if ((curTaskData->getIsExplicitTask() && histTaskData->getIsExplicitTask() && curTaskData->getIsMutexTask() && histTaskData->getIsMutexTask())) {
+    // two memory accesses are performed by two mutex tasks. In these cases, there is no data race.
     // there exists happens-before relationship between two memory accesses. No data race.
     return false; 
   } 
+
+  if (histRecord.isInReduction() && curRecord.isInReduction() && histTaskData->parallelRegionDataPtr == curTaskData->parallelRegionDataPtr && histRecord.getWorkShareRegionId() == curRecord.getWorkShareRegionId()) {
+    // both accesses are in reduction in the same work share region, no data race.
+    RAW_DLOG(INFO, "both access in reduction, parallel region data: %lx work share region id: %lu", curTaskData->parallelRegionDataPtr, histRecord.getWorkShareRegionId());
+    return false; 
+  }
+ 
   auto currentDataSharingType = curRecord.getDataSharingType();
   auto historyDataSharingType = histRecord.getDataSharingType();
   auto bothAccessesAreTaskPrivate = (currentDataSharingType == eThreadPrivateAccessCurrentTask && historyDataSharingType == eThreadPrivateAccessCurrentTask) || (currentDataSharingType == eExplicitTaskPrivate && historyDataSharingType == eExplicitTaskPrivate);
-
   auto hasDataRace = !isHistBeforeCur && (histRecord.isWrite() || curRecord.isWrite()) && !bothAccessesAreTaskPrivate;
-  if (hasDataRace) {
-    RAW_DLOG(INFO, "data race found: hist is explicit: (taskPtr:%lx) %d cur is explicit: (taskPtr:%lx) %d", histTaskData, histTaskData->getIsExplicitTask(), curTaskData, curTaskData->getIsExplicitTask());
-  }
   return hasDataRace;
 }
 
@@ -59,6 +54,8 @@ bool analyzeMutualExclusion(const Record& histRecord, const Record& curRecord) {
   auto curLockSet = curRecord.getLockSet();  
   return histRecord.hasHardwareLock() && curRecord.hasHardwareLock() || hasCommonLock(histLockSet, curLockSet);  
 }
+
+
 
 bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex, TaskData* histTaskData, TaskData* curTaskData) {
   diffIndex = compareLabels(histLabel, curLabel);

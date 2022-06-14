@@ -9,11 +9,9 @@ typedef struct ParallelRegionData {
   unsigned int numParallelism;
   int parallelFlag;
   mcs_lock_t lock;      
-  std::atomic_int expTaskCount; 
   ParallelRegionData() { mcs_init(&lock); }
   ParallelRegionData(unsigned int n, int p): numParallelism(n), parallelFlag(p) {
     dataPtr = nullptr; 
-    expTaskCount = 0;
     mcs_init(&lock);
   } 
   TaskDependenceGraph taskDependenceGraph;

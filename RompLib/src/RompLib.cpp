@@ -12,6 +12,7 @@
 #include "Initialize.h"
 #include "Label.h"
 #include "LockSet.h"
+#include "ParallelRegionData.h"
 #include "ShadowMemory.h"
 #include "TaskData.h"
 #include "ThreadData.h"
@@ -25,7 +26,8 @@ ShadowMemory<AccessHistory> shadowMemory;
 extern PerformanceCounters gPerformanceCounters;
 
 bool checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const LockSetPtr& curLockSet, void* instnAddr, 
-                   void* currentTaskData, int taskFlags, bool isWrite, bool hasHardwareLock, uint64_t checkedAddress, DataSharingType dataSharingType) {
+                   void* currentTaskData, int taskFlags, bool isWrite, bool hasHardwareLock, uint64_t checkedAddress, 
+                    DataSharingType dataSharingType) {
 #ifdef PERFORMANCE
   gPerformanceCounters.bumpNumCheckAccessFunctionCall();
 #endif
@@ -60,7 +62,10 @@ bool checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
      return false;
   }
 
-  auto curRecord = Record(isWrite, curLabel, curLockSet, currentTaskData, checkedAddress, hasHardwareLock, (int)dataSharingType, instnAddr);
+  auto taskDataPtr = static_cast<TaskData*>(currentTaskData);
+  auto isInReduction = taskDataPtr->getIsInReduction();
+  auto workShareRegionId = taskDataPtr->workShareRegionId;
+  auto curRecord = Record(isWrite, curLabel, curLockSet, currentTaskData, checkedAddress, hasHardwareLock, isInReduction, (int)dataSharingType, instnAddr, workShareRegionId);
 
   if (!accessHistory->hasRecords()) {
     // no access record, add current access to the record
@@ -86,15 +91,13 @@ bool checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
     //RAW_DLOG(INFO, "analyze race condition on memory address: %lx instnAddr: %lx hist: isWrite: %d %s %s cur: isWrite: %d %s %s", checkedAddress, instnAddr, histRecord.isWrite(), histRecord.getLabel()->toString().c_str(), histRecord.getLabel()->toFieldsBreakdown().c_str(), curRecord.isWrite(), curLabel->toString().c_str(), curLabel->toFieldsBreakdown().c_str());
     if (analyzeRaceCondition(histRecord, curRecord, isHistBeforeCurrent, diffIndex, checkedAddress)) {
       RAW_DLOG(INFO, "FOUND data race on: %lx hist instruction: %lx hist data sharing type: %lx cur instruction: %lx cur data sharing type: %lx hist: isWrite: %d hist breakdown: %s cur: isWrite: %d cur breakdown: %s", 
-            checkedAddress, 
-            histRecord.getInstructionAddress(), histRecord.getDataSharingType(),  curRecord.getInstructionAddress(), curRecord.getDataSharingType(), histRecord.isWrite(), histRecord.getLabel()->toFieldsBreakdown().c_str(), curRecord.isWrite(), curLabel->toFieldsBreakdown().c_str());
+            checkedAddress, histRecord.getInstructionAddress(), histRecord.getDataSharingType(),  curRecord.getInstructionAddress(), curRecord.getDataSharingType(), histRecord.isWrite(), histRecord.getLabel()->toFieldsBreakdown().c_str(), curRecord.isWrite(), curLabel->toFieldsBreakdown().c_str());
       gDataRaceFound = true;
       accessHistory->setFlag(eDataRaceFound);
       dataRaceFound = true;
       break;
     }
-    auto decision = manageAccessRecord(histRecord, curRecord, 
-            isHistBeforeCurrent, diffIndex);
+    auto decision = manageAccessRecord(histRecord, curRecord, isHistBeforeCurrent, diffIndex);
     if (decision == eSkipAddCurrentRecord) {
       skipAddCurrentRecord = true;
     }
@@ -169,7 +172,7 @@ void checkAccess(void* baseAddress, uint32_t bytesAccessed, void* instnAddr, boo
     DataSharingType dataSharingType = eUndefined;
     if (shouldCheckMemoryAccess(threadInfo, taskMemoryInfo, checkedAddress, taskInfo.taskFrame, dataSharingType)) {
       auto accessHistory = shadowMemory.getShadowMemorySlot(checkedAddress);
-      if (checkDataRace(accessHistory, curLabel, curLockSet, instnAddr, static_cast<void*>(currentTaskData), taskInfo.flags, isWrite, hasHardwareLock, checkedAddress, dataSharingType)) {
+      if (checkDataRace(accessHistory, curLabel, curLockSet, instnAddr, static_cast<void*>(currentTaskData), taskInfo.flags, isWrite, hasHardwareLock, checkedAddress, dataSharingType)){
         return;
       }
     }

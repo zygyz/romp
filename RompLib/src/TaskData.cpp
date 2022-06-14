@@ -54,7 +54,7 @@ void TaskData::setIsFinalTask(bool isFinalTask) {
     metaData |= is_final_task;
   }
 }
-  
+
 void TaskData::setIsMergeableTask(bool isMergeableTask) {
   if (!isMergeableTask) {
     metaData &= ~is_mergeable_task;
@@ -134,3 +134,4 @@ bool TaskData::getIsMergedTask() const {
 bool TaskData::getHasDependence() const {
   return (metaData & has_dependence) == has_dependence;
 }
+

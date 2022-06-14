@@ -29,6 +29,7 @@ void on_ompt_callback_implicit_task(
     auto initTaskData = new TaskData();
     auto newTaskLabel = generateInitialTaskLabel();
     initTaskData->label = std::move(newTaskLabel);
+    initTaskData->parallelRegionDataPtr = parallelData->ptr;
     taskData->ptr = static_cast<void*>(initTaskData);
     return;
   } 
@@ -56,12 +57,12 @@ void on_ompt_callback_implicit_task(
     case ompt_scope_begin:
     {
       // begin of implcit task, create the label for this new task
-      auto newTaskLabel = generateImplicitTaskLabel((parentTaskData->label).get(), index, 
-            actualParallelism); 
+      auto newTaskLabel = generateImplicitTaskLabel((parentTaskData->label).get(), index, actualParallelism); 
       // return value optimization should avoid the ref count mod
       auto newTaskDataPtr = new TaskData();
       // cast to rvalue and avoid atomic ref count modification
       newTaskDataPtr->label = std::move(newTaskLabel); 
+      newTaskDataPtr->parallelRegionDataPtr = parallelData->ptr;
       taskData->ptr = static_cast<void*>(newTaskDataPtr);
       return;
     }
@@ -148,7 +149,7 @@ void on_ompt_callback_sync_region(
        ompt_scope_endpoint_t endPoint,
        ompt_data_t *parallelData,
        ompt_data_t *taskData,
-       const void* codePtrRa) {
+       const void* codePtrReturnAddress) {
   if (!taskData || !taskData->ptr) {
     RAW_LOG(FATAL, "task data pointer is null");  
     return;
@@ -188,6 +189,7 @@ void on_ompt_callback_sync_region(
     }
     case ompt_sync_region_reduction:
     {
+      // Note: callback for reduction is replaced by ompt_callback_reduction
       if (endPoint == ompt_scope_begin) { 
         taskDataPtr->setIsInReduction(true);
       } else if (endPoint == ompt_scope_end) {
@@ -319,6 +321,14 @@ inline std::shared_ptr<Label> mutateTaskLabelOnWorkSingleOtherCallback(
   std::shared_ptr<Label> mutatedLabel =  mutateSingleOther(labelPtr);
   return mutatedLabel;
 }
+
+inline void updateWorkShareRegionCount(void* data, ompt_scope_endpoint_t endPoint) {
+  if (data == nullptr || endPoint == ompt_scope_end) {
+    return;
+  }
+  auto taskData = static_cast<TaskData*>(data);
+  taskData->workShareRegionId += 1;
+}
     
 void on_ompt_callback_work(
       ompt_work_t workType,
@@ -336,9 +346,11 @@ void on_ompt_callback_work(
   switch(workType) {
     case ompt_work_loop: 
       mutatedLabel = mutateTaskLabelOnWorkLoopCallback(endPoint, label);
+      updateWorkShareRegionCount(taskData->ptr, endPoint);
       break;
     case ompt_work_sections:
       mutatedLabel = mutateTaskLabelOnWorkSectionsCallback(endPoint, label, count);
+      updateWorkShareRegionCount(taskData->ptr, endPoint);
       break;
     case ompt_work_single_executor:
       mutatedLabel = mutateTaskLabelOnWorkSingleExecutorCallback(endPoint, label);
@@ -354,6 +366,7 @@ void on_ompt_callback_work(
       break;
     case ompt_work_taskloop:
       mutatedLabel = mutateTaskLabelOnTaskLoopCallback(endPoint, label, count); 
+      updateWorkShareRegionCount(taskData->ptr, endPoint);
       break;
     default:
       break;
@@ -405,6 +418,8 @@ void on_ompt_callback_task_create(
     return;
   }  
   auto taskData = new TaskData();
+  // the explicit task being created share the same parallel region with its parent task.
+  taskData->parallelRegionDataPtr = parentTaskData->parallelRegionDataPtr; 
   taskData->setIsExplicitTask(isExplicitTask);
   taskData->setIsUndeferredTask(isUndeferred);
   taskData->setIsUntiedTask(isUntied);
@@ -447,13 +462,8 @@ void on_ompt_callback_task_schedule(
   switch(priorTaskStatus) {
     case ompt_task_complete:
       handleTaskComplete(priorTaskPtr);
-      //recycleTaskThreadStackMemory(priorTaskPtr);
-      //recycleTaskPrivateMemory();
       break;
     case ompt_task_switch:
-     // recycleTaskThreadStackMemory(priorTaskPtr);
-     // recycleTaskPrivateMemory();
-      break;
     case ompt_task_yield:
     case ompt_task_cancel:
     case ompt_task_detach:
@@ -565,7 +575,7 @@ void on_ompt_callback_reduction(
        ompt_scope_endpoint_t endPoint,
        ompt_data_t *parallelData,
        ompt_data_t *taskData,
-       const void *codePtrRa) {
+       const void *codePtrReturnAddress) {
   if (!taskData || !taskData->ptr) {
     RAW_LOG(FATAL, "task data pointer is null");
     return;
@@ -577,6 +587,9 @@ void on_ompt_callback_reduction(
       break;
     case ompt_scope_end:
       taskDataPtr->setIsInReduction(false);
+      break;
+    default:
+      break;
   }
 }
 
