@@ -27,7 +27,7 @@ extern PerformanceCounters gPerformanceCounters;
 
 bool checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const LockSetPtr& curLockSet, void* instnAddr, 
                    void* currentTaskData, int taskFlags, bool isWrite, bool hasHardwareLock, uint64_t checkedAddress, 
-                    DataSharingType dataSharingType) {
+                   DataSharingType dataSharingType, bool isTLSAccess) {
 #ifdef PERFORMANCE
   gPerformanceCounters.bumpNumCheckAccessFunctionCall();
 #endif
@@ -65,7 +65,7 @@ bool checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
   auto taskDataPtr = static_cast<TaskData*>(currentTaskData);
   auto isInReduction = taskDataPtr->getIsInReduction();
   auto workShareRegionId = taskDataPtr->workShareRegionId;
-  auto curRecord = Record(isWrite, curLabel, curLockSet, currentTaskData, checkedAddress, hasHardwareLock, isInReduction, (int)dataSharingType, instnAddr, workShareRegionId);
+  auto curRecord = Record(isWrite, curLabel, curLockSet, currentTaskData, checkedAddress, hasHardwareLock, isInReduction, (int)dataSharingType, instnAddr, workShareRegionId, isTLSAccess);
 
   if (!accessHistory->hasRecords()) {
     // no access record, add current access to the record
@@ -137,7 +137,7 @@ ompt_start_tool_result_t* ompt_start_tool(
   return &startToolResult;
 }
 
-void checkAccess(void* baseAddress, uint32_t bytesAccessed, void* instnAddr, bool hasHardwareLock, bool isWrite) {
+void checkAccess(void* baseAddress, uint32_t bytesAccessed, void* instnAddr, bool hasHardwareLock, bool isWrite, bool isTLSAccess) {
 #ifdef PERFORMANCE
   gPerformanceCounters.bumpNumMemoryAccessInstrumentationCall();
 #endif
@@ -172,7 +172,7 @@ void checkAccess(void* baseAddress, uint32_t bytesAccessed, void* instnAddr, boo
     DataSharingType dataSharingType = eUndefined;
     if (shouldCheckMemoryAccess(threadInfo, taskMemoryInfo, checkedAddress, taskInfo.taskFrame, dataSharingType)) {
       auto accessHistory = shadowMemory.getShadowMemorySlot(checkedAddress);
-      if (checkDataRace(accessHistory, curLabel, curLockSet, instnAddr, static_cast<void*>(currentTaskData), taskInfo.flags, isWrite, hasHardwareLock, checkedAddress, dataSharingType)){
+      if (checkDataRace(accessHistory, curLabel, curLockSet, instnAddr, static_cast<void*>(currentTaskData), taskInfo.flags, isWrite, hasHardwareLock, checkedAddress, dataSharingType, isTLSAccess)){
         return;
       }
     }

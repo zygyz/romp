@@ -29,16 +29,20 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, boo
   if (isHistBeforeCur) {
     return false;
   }
-
+   
   if ((curTaskData->getIsExplicitTask() && histTaskData->getIsExplicitTask() && curTaskData->getIsMutexTask() && histTaskData->getIsMutexTask())) {
     // two memory accesses are performed by two mutex tasks. In these cases, there is no data race.
     // there exists happens-before relationship between two memory accesses. No data race.
     return false; 
   } 
-
+  
+  if (histRecord.isTLSAccess() && curRecord.isTLSAccess()) {
+    // both memory access are performed as thread local storage. 
+    return false; 
+  }
+   
   if (histRecord.isInReduction() && curRecord.isInReduction() && histTaskData->parallelRegionDataPtr == curTaskData->parallelRegionDataPtr && histRecord.getWorkShareRegionId() == curRecord.getWorkShareRegionId()) {
     // both accesses are in reduction in the same work share region, no data race.
-    RAW_DLOG(INFO, "both access in reduction, parallel region data: %lx work share region id: %lu", curTaskData->parallelRegionDataPtr, histRecord.getWorkShareRegionId());
     return false; 
   }
  

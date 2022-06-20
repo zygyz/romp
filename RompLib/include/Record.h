@@ -18,7 +18,8 @@ public:
          bool isInReduction,
          int dataSharingType, 
          void* instructionAddress, 
-         uint8_t workShareRegionId
+         uint8_t workShareRegionId, 
+         bool isTLSAccess
       ): 
       mLabel(label), mLockSet(lockSet), mTaskPtr(taskPtr), 
       mCheckedMemoryAddress(checkedMemoryAddress),
@@ -30,14 +31,17 @@ public:
 	setHasHardwareLock(hasHardwareLock);
         setDataSharingType(dataSharingType);
         setIsInReduction(isInReduction);
+        setIsTLSAccess(isTLSAccess);
       }
   void setAccessType(bool isWrite);
   void setDataSharingType(int dataSharingType);
   void setHasHardwareLock(bool hardwareLock);
   void setIsInReduction(bool isInReduction);
+  void setIsTLSAccess(bool isTLSAccess);
   bool isWrite() const;
   bool isInReduction() const;
   bool hasHardwareLock() const;
+  bool isTLSAccess() const;
   std::string toString() const;
   Label* getLabel() const;
   LockSet* getLockSet() const;

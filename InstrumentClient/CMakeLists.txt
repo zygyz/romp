@@ -12,6 +12,7 @@ include_directories(${DYNINST_INCLUDE_PATH}
                       ${GLOG_PATH}
                       ${TBB_PATH}
                       ${BPATCH_PATH})
+find_library(COMMON common)
 find_library(DYNINST_LIB dyninstAPI)
 find_library(INSTRUCTION_LIB instructionAPI)
 find_library(SYMTAB_LIB symtabAPI)
@@ -19,6 +20,7 @@ find_library(PARSE_LIB parseAPI)
 find_library(BOOST_SYSTEM_LIB boost_system)
 find_library(GFLAGS_LIB gflags)
 find_library(GLOG_LIB glog)
+target_link_libraries(InstrumentMain "${COMMON}")
 target_link_libraries(InstrumentMain "${DYNINST_LIB}")
 target_link_libraries(InstrumentMain "${INSTRUCTION_LIB}")
 target_link_libraries(InstrumentMain "${SYMTAB_LIB}")

@@ -1,5 +1,7 @@
 #include "InstrumentClient.h"
 
+#include "Register.h"
+
 #include <glog/logging.h>
 
 using namespace Dyninst;
@@ -88,15 +90,13 @@ InstrumentClient::getFunctionsVector(
   }
   char nameBuffer[MODULE_NAME_LENGTH];
   for (const auto& module : *appModules) {
-    LOG(INFO) << "module name: " 
-              << module->getFullName(nameBuffer, MODULE_NAME_LENGTH);
+    LOG(INFO) << "module name: " << module->getFullName(nameBuffer, MODULE_NAME_LENGTH);
     if (module->isSharedLib()) { 
-      //LOG(INFO) << "skip module: " << nameBuffer;
       continue;
     }
     auto procedures = module->getProcedures();
     for (const auto& procedure : *procedures) {
-        funcVec.push_back(procedure);
+      funcVec.push_back(procedure);
     }
   }
   return funcVec;
@@ -128,8 +128,7 @@ InstrumentClient::instrumentMemoryAccessInternal(
   for (const auto& function : funcVec) {
     auto pointsVecPtr = function->findPoint(opcodes);
     if (!pointsVecPtr) {
-      LOG(WARNING) << "no load/store points for function " 
-          << function->getName();    
+      LOG(WARNING) << "no load/store points for function " << function->getName();    
       continue;
     } else if (pointsVecPtr->size() == 0) {
       LOG(WARNING) << "load/store points vector size is 0 for function " 
@@ -148,9 +147,7 @@ InstrumentClient::instrumentMemoryAccessInternal(
  * Could be modified for other architeture.
  */
 bool
-InstrumentClient::hasHardwareLock(
-        const InstructionAPI::Instruction& instruction,
-        const std::string& arch) {
+InstrumentClient::hasHardwareLock(const InstructionAPI::Instruction& instruction, const std::string& arch) {
   if (arch == "x86") { 
       // check first byte of the instruction for x86 arch
     return reinterpret_cast<uint8_t>(instruction.rawByte(0)) == 0xf0;
@@ -163,6 +160,17 @@ bool InstrumentClient::isCallInstruction(const InstructionAPI::Instruction& inst
   return instruction.getCategory() == Dyninst::InstructionAPI::c_CallInsn;
 }
 
+// return true if current executable is accessing thread local storage. 
+bool InstrumentClient::isThreadLocalStorageAccess(const InstructionAPI::Instruction& instruction) {
+  std::set<InstructionAPI::RegisterAST::Ptr> regsRead; 
+  instruction.getReadSet(regsRead);   
+  for (auto reg : regsRead) {
+    if (reg->getID().name() == "x86_64::fs") {
+      return true;
+    }
+  }
+  return false; 
+}
 /*
  * Insert checkAccess code snippet to load/store point
  */
@@ -201,6 +209,7 @@ InstrumentClient::insertSnippet(
     if (isCallInstruction(instruction)) {
       continue;
     }
+    auto isTLSAccess = isThreadLocalStorageAccess(instruction);
     auto hardWareLock = hasHardwareLock(instruction, mArchitecture);
 
     vector<BPatch_snippet*> funcArgs;
@@ -214,6 +223,8 @@ InstrumentClient::insertSnippet(
     funcArgs.push_back(new BPatch_constExpr(hardWareLock));
     // is write access or not
     funcArgs.push_back(new BPatch_constExpr(isWrite));
+    // is TLS access or not
+    funcArgs.push_back(new BPatch_constExpr(isTLSAccess));
     BPatch_funcCallExpr checkAccessCall(*(mCheckAccessFunctions[0]), funcArgs);
 
     if (!addrSpacePtr->insertSnippet(

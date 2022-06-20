@@ -8,7 +8,7 @@
 // bit 0: access type (write/read)
 // bit 1: hardware lock 
 // bit 2: is in reduction
-// bit 3: reserved 
+// bit 3: is TLS access
 // bit 4-7: data shairng type
 /*
  * If current access is write, set the lowest bit to 1. Otherwise, set to 0.
@@ -28,6 +28,11 @@ void Record::setIsInReduction(bool isInReduction) {
   }
 }
 
+void Record::setIsTLSAccess(bool isTLSAccess) {
+  if (isTLSAccess) {
+    mState |= 0x8; // 0b1000
+  } 
+}
 
 void Record::setDataSharingType(int dataSharingType) {
   mState |= (dataSharingType << 4);
@@ -61,6 +66,10 @@ bool Record::hasHardwareLock() const {
 
 bool Record::isInReduction() const {
   return (mState & 0x4) == 0x4; 
+}
+
+bool Record::isTLSAccess() const {
+  return (mState & 0x8) == 0x8;
 }
 
 /*
