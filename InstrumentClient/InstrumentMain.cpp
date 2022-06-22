@@ -9,6 +9,7 @@ using namespace romp;
 using namespace std;
 
 DEFINE_string(program, "", "program to be instrumented");
+DEFINE_string(sourceFile, "", "program source file");
 DEFINE_string(arch, "x86", "arch of the binary to be instrumented");
 DEFINE_string(modSuffix, ".inst", "suffix for name of instrumented binary");
 
@@ -25,7 +26,8 @@ int main(int argc, char* argv[]) {
   }  
   auto bpatchPtr = make_shared<BPatch>(); 
   unique_ptr<InstrumentClient> client(
-     new InstrumentClient(FLAGS_program, 
+     new InstrumentClient(FLAGS_sourceFile,
+                          FLAGS_program, 
                           string(envRompPath), 
                           bpatchPtr, 
                           FLAGS_arch,

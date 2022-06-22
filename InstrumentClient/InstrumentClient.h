@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <unordered_map>
 #include <string>
 #include <vector>
 
@@ -8,6 +9,7 @@
 #include "BPatch_function.h"
 #include "BPatch_point.h"
 #include "BPatch_process.h"
+#include "Symtab.h"
 
 #define MODULE_NAME_LENGTH 128
 
@@ -15,6 +17,7 @@ namespace romp {
   class InstrumentClient {
     public:
       InstrumentClient(
+              const std::string& sourceFileName,
               const std::string& programName, 
               const std::string& rompLibPath,
               std::shared_ptr<BPatch> bpatchPtr,
@@ -31,12 +34,16 @@ namespace romp {
       bool isCallInstruction(const Dyninst::InstructionAPI::Instruction& instruction);
       bool isThreadLocalStorageAccess(const Dyninst::InstructionAPI::Instruction& instruction); 
       void finishInstrumentation(const std::unique_ptr<BPatch_addressSpace>& addrSpacePtr); 
+      void findAllOmpDirectiveLineNumbers();
+      void findInstructionRanges();
     private:    
       std::unique_ptr<BPatch_addressSpace> mAddressSpacePtr;
       std::shared_ptr<BPatch> mBpatchPtr;
       std::vector<BPatch_function*> mCheckAccessFunctions;
       std::string mProgramName;
+      std::string mSourceFileName;
       std::string mArchitecture;
       std::string mModuleSuffix;
+      std::unordered_map<int, std::vector<std::pair<Dyninst::Offset, Dyninst::Offset>>> mOmpDirectiveLineNumbers;
   };
 }

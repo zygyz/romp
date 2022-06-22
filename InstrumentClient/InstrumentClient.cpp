@@ -3,6 +3,7 @@
 #include "Register.h"
 
 #include <glog/logging.h>
+#include <iostream>
 
 using namespace Dyninst;
 using namespace romp;
@@ -12,11 +13,13 @@ using namespace std;
       buffer.find(target) != string::npos
 
 InstrumentClient::InstrumentClient(
+        const string& sourceFileName,
         const string& programName, 
         const string& rompLibPath,
         shared_ptr<BPatch> bpatchPtr,
         const string& arch,
         const string& modSuffix) : mBpatchPtr(move(bpatchPtr)), 
+                                   mSourceFileName(sourceFileName),
                                    mProgramName(programName),
                                    mArchitecture(arch),
                                    mModuleSuffix(modSuffix) {
@@ -108,6 +111,8 @@ InstrumentClient::getFunctionsVector(
  */
 void
 InstrumentClient::instrumentMemoryAccess() {  
+  findAllOmpDirectiveLineNumbers();  
+  findInstructionRanges();
   auto functions = getFunctionsVector(mAddressSpacePtr);
   instrumentMemoryAccessInternal(mAddressSpacePtr, functions);
   finishInstrumentation(mAddressSpacePtr);
@@ -255,4 +260,37 @@ InstrumentClient::finishInstrumentation(
       LOG(FATAL) << "failed to write instrumented binary to file";
     }
   } 
+}
+
+inline std::string execute(std::string command) {
+  std::array<char, 128> buffer;
+  std::string result;
+  std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(command.c_str(), "r"), pclose);
+  if (!pipe) {
+    throw std::runtime_error("popen() failed!");
+  }
+  while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+    result += buffer.data();
+  }
+  return result;
+}
+
+// use grep command to find line numbers of lines that contain openmp directive. 
+void InstrumentClient::findAllOmpDirectiveLineNumbers() {
+  std::string command = "grep -n '#pragma omp' " + mSourceFileName + " | grep -o '[0-9]\\+' "; 
+  auto result = execute(command);
+  std::string lineNumber;
+  std::istringstream split(result);
+  while (std::getline(split, lineNumber, '\n')) {
+    mOmpDirectiveLineNumbers[std::stoi(lineNumber)] = std::vector<std::pair<Offset, Offset>>();
+  }  
+}
+
+void InstrumentClient::findInstructionRanges() {
+  SymtabAPI::Symtab *obj = nullptr;
+  auto error = SymtabAPI::Symtab::openFile(obj, mProgramName);
+  for (auto& item : mOmpDirectiveLineNumbers) {
+    LOG(INFO) << "line num: " << item.first;
+
+  }
 }
