@@ -2,6 +2,7 @@
 
 #include "Register.h"
 
+#include <filesystem>
 #include <glog/logging.h>
 #include <iostream>
 
@@ -176,6 +177,18 @@ bool InstrumentClient::isThreadLocalStorageAccess(const InstructionAPI::Instruct
   }
   return false; 
 }
+
+bool InstrumentClient::isInstructionForOmpDirective(const uint64_t instructionAddress) {
+  for (const auto& item : mLineNumberInstructionRangeMap) {
+    for (const auto& range : item.second) {
+      if (instructionAddress <= range.second && instructionAddress >= range.first) {
+        LOG(INFO) << " instruction: 0x" << std::hex << instructionAddress << std::dec << " maps to line number: " << item.first;
+        return true;
+      } 
+    }
+  }
+  return false;
+}
 /*
  * Insert checkAccess code snippet to load/store point
  */
@@ -210,6 +223,9 @@ InstrumentClient::insertSnippet(
     }
 
     auto instructionAddress = point->getAddress();         
+    if (isInstructionForOmpDirective(reinterpret_cast<uint64_t>(instructionAddress))) {
+      continue;
+    }
     auto instruction = point->getInsnAtPoint();
     if (isCallInstruction(instruction)) {
       continue;
@@ -275,22 +291,31 @@ inline std::string execute(std::string command) {
   return result;
 }
 
+
 // use grep command to find line numbers of lines that contain openmp directive. 
 void InstrumentClient::findAllOmpDirectiveLineNumbers() {
-  std::string command = "grep -n '#pragma omp' " + mSourceFileName + " | grep -o '[0-9]\\+' "; 
+  std::string command = "grep -n '#pragma omp' ./" + mSourceFileName + " | grep -o '[0-9]\\+' "; 
   auto result = execute(command);
   std::string lineNumber;
   std::istringstream split(result);
   while (std::getline(split, lineNumber, '\n')) {
-    mOmpDirectiveLineNumbers[std::stoi(lineNumber)] = std::vector<std::pair<Offset, Offset>>();
+    mOmpDirectiveLineNumbers.push_back(std::stoi(lineNumber));
   }  
 }
 
 void InstrumentClient::findInstructionRanges() {
   SymtabAPI::Symtab *obj = nullptr;
-  auto error = SymtabAPI::Symtab::openFile(obj, mProgramName);
-  for (auto& item : mOmpDirectiveLineNumbers) {
-    LOG(INFO) << "line num: " << item.first;
-
+  auto success = SymtabAPI::Symtab::openFile(obj, mProgramName);
+  if (!success) {
+    LOG(FATAL) << "failed to open file with symtab api";
+    return;
+  }
+  auto sourceFilePath = std::filesystem::current_path() / mSourceFileName;
+  auto filePathString = std::string(sourceFilePath.u8string());
+  LOG(INFO) << "finding instruction ranges with file path:  " << filePathString;
+  for (const auto lineNumber: mOmpDirectiveLineNumbers) {
+    std::vector<SymtabAPI::AddressRange> ranges;
+    obj->getAddressRanges(ranges, filePathString, lineNumber);
+    mLineNumberInstructionRangeMap[lineNumber] = ranges;  
   }
 }

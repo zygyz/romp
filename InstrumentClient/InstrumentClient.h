@@ -36,6 +36,7 @@ namespace romp {
       void finishInstrumentation(const std::unique_ptr<BPatch_addressSpace>& addrSpacePtr); 
       void findAllOmpDirectiveLineNumbers();
       void findInstructionRanges();
+      bool isInstructionForOmpDirective(const uint64_t instructionAddress);
     private:    
       std::unique_ptr<BPatch_addressSpace> mAddressSpacePtr;
       std::shared_ptr<BPatch> mBpatchPtr;
@@ -44,6 +45,7 @@ namespace romp {
       std::string mSourceFileName;
       std::string mArchitecture;
       std::string mModuleSuffix;
-      std::unordered_map<int, std::vector<std::pair<Dyninst::Offset, Dyninst::Offset>>> mOmpDirectiveLineNumbers;
+      std::vector<int> mOmpDirectiveLineNumbers;
+      std::unordered_map<int, std::vector<Dyninst::SymtabAPI::AddressRange> > mLineNumberInstructionRangeMap;
   };
 }
