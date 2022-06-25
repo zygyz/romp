@@ -17,11 +17,20 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, boo
     // both memory accesses are performed by the same task. 
     return false;
   }
+  
+  auto histRecordDataSharingType = histRecord.getDataSharingType(); 
+  if (histTaskData->getIsCompleted() && (histRecordDataSharingType == eThreadPrivateAccessCurrentTask || histRecordDataSharingType == eThreadPrivateAccessOtherTask || histRecordDataSharingType == eExplicitTaskPrivate || histRecordDataSharingType == eNonThreadPrivate)) {
+    return false;
+  }
+
+  if (histTaskData->getIsCompleted() && (histRecordDataSharingType == eThreadPrivateAccessCurrentTask || histRecordDataSharingType == eExplicitTaskPrivate)) {
+    return false;
+  }
 
   if (analyzeMutualExclusion(histRecord, curRecord)) {
     return false;
   }  
-
+   
   auto histLabel = histRecord.getLabel(); 
   auto curLabel = curRecord.getLabel(); 
   isHistBeforeCur = happensBefore(histLabel, curLabel, diffIndex, histTaskData, curTaskData);
@@ -48,7 +57,7 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, boo
  
   auto currentDataSharingType = curRecord.getDataSharingType();
   auto historyDataSharingType = histRecord.getDataSharingType();
-  auto bothAccessesAreTaskPrivate = (currentDataSharingType == eThreadPrivateAccessCurrentTask && historyDataSharingType == eThreadPrivateAccessCurrentTask) || (currentDataSharingType == eExplicitTaskPrivate && historyDataSharingType == eExplicitTaskPrivate);
+  auto bothAccessesAreTaskPrivate = ((currentDataSharingType == eThreadPrivateAccessCurrentTask || currentDataSharingType == eExplicitTaskPrivate) && (historyDataSharingType == eThreadPrivateAccessCurrentTask || historyDataSharingType == eExplicitTaskPrivate));
   auto hasDataRace = !isHistBeforeCur && (histRecord.isWrite() || curRecord.isWrite()) && !bothAccessesAreTaskPrivate;
   return hasDataRace;
 }
@@ -392,11 +401,11 @@ bool analyzeExplicitTask(Label* histLabel, Label* curLabel, int diffIndex) {
     return analyzeSyncChain(histLabel, diffIndex + 2) && analyzeSyncChain(curLabel, diffIndex + 2); 
   } else {
     // There is no explicit task dependence between T1 and T2, we further check the synchronization enforced by taskwait
-    auto histSegment = histLabel->getKthSegment(diffIndex);      
+    auto histSegment = histLabel->getKthSegment(diffIndex);
     auto curSegment = curLabel->getKthSegment(diffIndex);
     auto histTaskwait = histSegment->getTaskwait();
     auto curTaskwait = curSegment->getTaskwait();
-    if (histTaskwait == curTaskwait) {
+    if (histTaskwait == curTaskwait) { 
       return false; 
     } else if (histTaskwait < curTaskwait) {
       return analyzeSyncChain(histLabel, diffIndex + 1); 

@@ -17,121 +17,133 @@ void TaskData::recordUndeferredTaskData(TaskData* taskData) {
 
 void TaskData::setIsExplicitTask(bool isExplicitTask) {
   if (!isExplicitTask) {
-    metaData &= ~is_explicit_task;         
+    metaData &= ~eIsExplicitTask;         
   } else {
-    metaData |= is_explicit_task; 
+    metaData |= eIsExplicitTask; 
   }
 }
 
 void TaskData::setIsMutexTask(bool isMutexTask) {
   if (!isMutexTask) {
-    metaData &= ~is_mutex_task;
+    metaData &= ~eIsMutexTask;
   } else {
-    metaData |= is_mutex_task; 
+    metaData |= eIsMutexTask; 
   }
 }
 
 void TaskData::setIsUndeferredTask(bool isUndeferredTask) {
   if (!isUndeferredTask) {
-    metaData &= ~is_undeferred_task;
+    metaData &= ~eIsUndeferredTask;
   } else {
-    metaData |= is_undeferred_task; 
+    metaData |= eIsUndeferredTask; 
   }
 }
 
 void TaskData::setIsUntiedTask(bool isUntiedTask) {
   if (!isUntiedTask) {
-    metaData &= ~is_untied_task;
+    metaData &= ~eIsUntiedTask;
   } else {
-    metaData |= is_untied_task; 
+    metaData |= eIsUntiedTask; 
   }
 }
 
 void TaskData::setIsFinalTask(bool isFinalTask) {
   if (!isFinalTask) {
-    metaData &= ~is_final_task;
+    metaData &= ~eIsFinalTask;
   } else {
-    metaData |= is_final_task;
+    metaData |= eIsFinalTask;
   }
 }
 
 void TaskData::setIsMergeableTask(bool isMergeableTask) {
   if (!isMergeableTask) {
-    metaData &= ~is_mergeable_task;
+    metaData &= ~eIsMergeableTask;
   } else {
-    metaData |= is_mergeable_task;
+    metaData |= eIsMergeableTask;
   }
 }
 
 void TaskData::setIsInReduction(bool isInReduction) {
   if (!isInReduction) {
-    metaData &= ~is_in_reduction;
+    metaData &= ~eIsInReduction;
   } else {
-    metaData |= is_in_reduction;
+    metaData |= eIsInReduction;
   }
 }
 
 void TaskData::setIsTaskwait(bool isTaskwait) {
   if (!isTaskwait) {
-    metaData &= ~is_taskwait;
+    metaData &= ~eIsTaskwait;
   } else {
-    metaData |= is_taskwait;
+    metaData |= eIsTaskwait;
   }
 }
 
 void TaskData::setIsMergedTask(bool isMergedTask) {
   if (!isMergedTask) {
-    metaData &= ~is_merged_task;
+    metaData &= ~eIsMergedTask;
   } else {
-    metaData |= is_merged_task;
+    metaData |= eIsMergedTask;
   }
 }
 
 void TaskData::setHasDependence(bool hasDependence) {
   if (!hasDependence) {
-    metaData &= ~has_dependence;
+    metaData &= ~eHasDependence;
   } else {
-    metaData |= has_dependence;
+    metaData |= eHasDependence;
   }
 }
 
+void TaskData::setIsCompleted(bool isCompleted) {
+  if (!isCompleted) {
+    metaData &= ~eIsCompleted; 
+  } else {
+    metaData |= eIsCompleted;
+  }
+}
+
+bool TaskData::getIsCompleted() const {
+  return (metaData & eIsCompleted) == eIsCompleted;
+}
+
 bool TaskData::getIsExplicitTask() const  {
-  return (metaData & is_explicit_task) == is_explicit_task;
+  return (metaData & eIsExplicitTask) == eIsExplicitTask;
 }
   
 bool TaskData::getIsMutexTask() const {
-  return (metaData & is_mutex_task) == is_mutex_task;
+  return (metaData & eIsMutexTask) == eIsMutexTask;
 }
 
 bool TaskData::getIsUndeferredTask() const {
-  return (metaData & is_undeferred_task) == is_undeferred_task;
+  return (metaData & eIsUndeferredTask) == eIsUndeferredTask;
 }
 
 bool TaskData::getIsUntiedTask() const {
-  return (metaData & is_untied_task) == is_untied_task;
+  return (metaData & eIsUntiedTask) == eIsUntiedTask;
 }
   
 bool TaskData::getIsFinalTask() const {
-  return (metaData & is_final_task) == is_final_task;
+  return (metaData & eIsFinalTask) == eIsFinalTask;
 }
   
 bool TaskData::getIsMergeableTask() const {
-  return (metaData & is_mergeable_task) == is_mergeable_task;
+  return (metaData & eIsMergeableTask) == eIsMergeableTask;
 }
   
 bool TaskData::getIsInReduction() const {
-  return (metaData & is_in_reduction) == is_in_reduction;
+  return (metaData & eIsInReduction) == eIsInReduction;
 }
 
 bool TaskData::getIsTaskwait() const {
-  return (metaData & is_taskwait) == is_taskwait;
+  return (metaData & eIsTaskwait) == eIsTaskwait;
 }
 
 bool TaskData::getIsMergedTask() const {
-  return (metaData & is_mergeable_task) == is_mergeable_task;
+  return (metaData & eIsMergeableTask) == eIsMergeableTask;
 }
 
 bool TaskData::getHasDependence() const {
-  return (metaData & has_dependence) == has_dependence;
+  return (metaData & eHasDependence) == eHasDependence;
 }
 

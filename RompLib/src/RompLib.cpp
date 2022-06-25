@@ -90,8 +90,8 @@ bool checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
 #endif
     //RAW_DLOG(INFO, "analyze race condition on memory address: %lx instnAddr: %lx hist: isWrite: %d %s %s cur: isWrite: %d %s %s", checkedAddress, instnAddr, histRecord.isWrite(), histRecord.getLabel()->toString().c_str(), histRecord.getLabel()->toFieldsBreakdown().c_str(), curRecord.isWrite(), curLabel->toString().c_str(), curLabel->toFieldsBreakdown().c_str());
     if (analyzeRaceCondition(histRecord, curRecord, isHistBeforeCurrent, diffIndex, checkedAddress)) {
-      RAW_DLOG(INFO, "FOUND data race on: %lx hist instruction: %lx hist data sharing type: %lx cur instruction: %lx cur data sharing type: %lx hist: isWrite: %d hist breakdown: %s cur: isWrite: %d cur breakdown: %s", 
-            checkedAddress, histRecord.getInstructionAddress(), histRecord.getDataSharingType(),  curRecord.getInstructionAddress(), curRecord.getDataSharingType(), histRecord.isWrite(), histRecord.getLabel()->toFieldsBreakdown().c_str(), curRecord.isWrite(), curLabel->toFieldsBreakdown().c_str());
+      RAW_DLOG(INFO, "FOUND data race on: %lx hist instruction: %lx hist data sharing type: %lx cur instruction: %lx cur data sharing type: %lx hist: isWrite: %d hist breakdown: %s cur: isWrite: %d cur breakdown: %s hist is completed: %d", 
+            checkedAddress, histRecord.getInstructionAddress(), histRecord.getDataSharingType(),  curRecord.getInstructionAddress(), curRecord.getDataSharingType(), histRecord.isWrite(), histRecord.getLabel()->toFieldsBreakdown().c_str(), curRecord.isWrite(), curLabel->toFieldsBreakdown().c_str(), ((TaskData*)histRecord.getTaskPtr())->getIsCompleted());
       gDataRaceFound = true;
       accessHistory->setFlag(eDataRaceFound);
       dataRaceFound = true;

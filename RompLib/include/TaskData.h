@@ -6,16 +6,17 @@ class Label;
 class LockSet;
 
 typedef enum TaskFlag { 
-  is_explicit_task = 0x0001,
-  is_mutex_task = 0x0002,
-  is_undeferred_task = 0x0004,
-  is_untied_task = 0x0008,
-  is_final_task = 0x0010,
-  is_mergeable_task = 0x0020,
-  is_in_reduction = 0x0040,
-  is_taskwait = 0x0080,
-  is_merged_task = 0x0100, 
-  has_dependence = 0x0200,
+  eIsExplicitTask = 0x0001,
+  eIsMutexTask = 0x0002,
+  eIsUndeferredTask = 0x0004,
+  eIsUntiedTask = 0x0008,
+  eIsFinalTask = 0x0010,
+  eIsMergeableTask = 0x0020,
+  eIsInReduction = 0x0040,
+  eIsTaskwait = 0x0080,
+  eIsMergedTask = 0x0100, 
+  eHasDependence = 0x0200,
+  eIsCompleted = 0x8000,
 } TaskFlag;
 
 /*
@@ -48,7 +49,7 @@ typedef struct TaskData {
   void setIsTaskwait(bool);  
   void setIsMergedTask(bool);
   void setHasDependence(bool);
-
+  void setIsCompleted(bool);   
 
   bool getIsExplicitTask() const;
   bool getIsMutexTask() const;
@@ -60,4 +61,5 @@ typedef struct TaskData {
   bool getIsTaskwait() const;
   bool getIsMergedTask() const;
   bool getHasDependence() const;
+  bool getIsCompleted() const;
 } TaskData;
