@@ -19,7 +19,8 @@ public:
          int dataSharingType, 
          void* instructionAddress, 
          uint8_t workShareRegionId, 
-         bool isTLSAccess
+         bool isTLSAccess,
+         void* owner
       ): 
       mLabel(label), mLockSet(lockSet), mTaskPtr(taskPtr), 
       mCheckedMemoryAddress(checkedMemoryAddress),
@@ -32,6 +33,7 @@ public:
         setDataSharingType(dataSharingType);
         setIsInReduction(isInReduction);
         setIsTLSAccess(isTLSAccess);
+        mOwner = owner;
       }
   void setAccessType(bool isWrite);
   void setDataSharingType(int dataSharingType);
@@ -50,13 +52,14 @@ public:
   void* getTaskPtr() const;
   void* getInstructionAddress() const;
   uint8_t getWorkShareRegionId() const;
+  void* getMemoryAddressOwner() const;
 private:
   uint8_t mState; // store state information
   uint8_t mWorkShareRegionId;
   std::shared_ptr<Label> mLabel; // task label associated with the record
   std::shared_ptr<LockSet> mLockSet; // lock set associated with the record
-  void* mTaskPtr; // pointer to data of encountering task 
+  void* mTaskPtr; // pointer to data of encountering task
   uint64_t  mCheckedMemoryAddress;  
   void* mInstructionAddress;  // store the instruction address associated with the memory access
-   
+  void* mOwner;   
 };

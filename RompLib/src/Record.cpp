@@ -9,7 +9,7 @@
 // bit 1: hardware lock 
 // bit 2: is in reduction
 // bit 3: is TLS access
-// bit 4-7: data shairng type
+// bit 4-6: data shairng type (3 bits)
 /*
  * If current access is write, set the lowest bit to 1. Otherwise, set to 0.
  * mState variable is 8-bit wide.
@@ -42,6 +42,9 @@ int Record::getDataSharingType() const {
   return (int) (mState >> 4);
 }
 
+void* Record::getMemoryAddressOwner() const {
+  return mOwner;
+}
 /*
  * If the current memory access is an atomic instruction, in x86, this is 
  * indicated as having hardware lock in the instruction. We seperate this hardware lock

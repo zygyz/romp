@@ -24,3 +24,4 @@ uint64_t computeExitRank(uint64_t phase);
 uint64_t computeEnterRank(uint64_t phase);
 AccessHistoryManagementDecision manageAccessRecord(const Record& histRecord, const Record& curRecord, bool isHistBeforeCur, int diffIndex);
 void modifyAccessHistory(AccessHistoryManagementDecision decision, std::vector<Record>* records, std::vector<Record>::iterator& cit);
+void* setMemoryOwner(AccessHistory* accessHistory, int dataSharingType, void* taskData, void* memoryAddress);

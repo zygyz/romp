@@ -16,7 +16,6 @@ typedef enum TaskFlag {
   eIsTaskwait = 0x0080,
   eIsMergedTask = 0x0100, 
   eHasDependence = 0x0200,
-  eIsCompleted = 0x8000,
 } TaskFlag;
 
 /*
@@ -49,7 +48,6 @@ typedef struct TaskData {
   void setIsTaskwait(bool);  
   void setIsMergedTask(bool);
   void setHasDependence(bool);
-  void setIsCompleted(bool);   
 
   bool getIsExplicitTask() const;
   bool getIsMutexTask() const;
@@ -61,5 +59,4 @@ typedef struct TaskData {
   bool getIsTaskwait() const;
   bool getIsMergedTask() const;
   bool getHasDependence() const;
-  bool getIsCompleted() const;
 } TaskData;

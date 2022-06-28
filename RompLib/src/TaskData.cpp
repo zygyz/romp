@@ -95,18 +95,6 @@ void TaskData::setHasDependence(bool hasDependence) {
   }
 }
 
-void TaskData::setIsCompleted(bool isCompleted) {
-  if (!isCompleted) {
-    metaData &= ~eIsCompleted; 
-  } else {
-    metaData |= eIsCompleted;
-  }
-}
-
-bool TaskData::getIsCompleted() const {
-  return (metaData & eIsCompleted) == eIsCompleted;
-}
-
 bool TaskData::getIsExplicitTask() const  {
   return (metaData & eIsExplicitTask) == eIsExplicitTask;
 }

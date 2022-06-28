@@ -5,6 +5,7 @@
 
 #include "AccessControl.h"
 #include "ParallelRegionData.h"
+#include "TaskData.h"
 #include "TaskInfoQuery.h"
 #include "ThreadData.h"
 
@@ -18,12 +19,9 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, boo
     return false;
   }
   
-  auto histRecordDataSharingType = histRecord.getDataSharingType(); 
-  if (histTaskData->getIsCompleted() && (histRecordDataSharingType == eThreadPrivateAccessCurrentTask || histRecordDataSharingType == eThreadPrivateAccessOtherTask || histRecordDataSharingType == eExplicitTaskPrivate || histRecordDataSharingType == eNonThreadPrivate)) {
-    return false;
-  }
-
-  if (histTaskData->getIsCompleted() && (histRecordDataSharingType == eThreadPrivateAccessCurrentTask || histRecordDataSharingType == eExplicitTaskPrivate)) {
+  auto histRecordMemoryOwner = histRecord.getMemoryAddressOwner();
+  auto curRecordMemoryOwner = curRecord.getMemoryAddressOwner(); 
+  if (histRecordMemoryOwner != curRecordMemoryOwner) {
     return false;
   }
 
@@ -68,7 +66,14 @@ bool analyzeMutualExclusion(const Record& histRecord, const Record& curRecord) {
   return histRecord.hasHardwareLock() && curRecord.hasHardwareLock() || hasCommonLock(histLockSet, curLockSet);  
 }
 
-
+// assuming proper concurrency control for access history
+void* setMemoryOwner(AccessHistory* accessHistory, int dataSharingType, void* taskData, void* memoryAddress) {
+  if (dataSharingType == eThreadPrivateAccessCurrentTask || dataSharingType == eExplicitTaskPrivate) {
+    accessHistory->setOwner(taskData);
+    return taskData;
+  }
+  return accessHistory->getOwner();
+}
 
 bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex, TaskData* histTaskData, TaskData* curTaskData) {
   diffIndex = compareLabels(histLabel, curLabel);

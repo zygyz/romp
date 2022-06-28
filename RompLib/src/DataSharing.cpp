@@ -25,22 +25,7 @@ bool shouldCheckMemoryAccess(const ThreadInfo& threadInfo,
                              const ompt_frame_t* taskFrame,
                              DataSharingType& dataSharingType) {
   dataSharingType = analyzeDataSharingType(threadInfo, taskMemoryInfo, memoryAddress, taskFrame);
-  //RAW_DLOG(INFO, "data sharing checking, memory address: %lx sharing type: %d", (void*)memoryAddress, dataSharingType);
-  switch(dataSharingType) {
-    case eNonThreadPrivate:
-    case eThreadPrivateAccessOtherTask:
-    case eThreadMetaDataNotSet: 
-    case eTaskExitFrameNotSet:
-    case eUndefined:
-    case eThreadPrivateAccessCurrentTask:
-    case eExplicitTaskPrivate: 
-      return true;
-    case eNonWorkerThread:
-    case eInitialThread:
-      return false; 
-  }
-  RAW_LOG(FATAL, "unexpected data sharing type: %d", dataSharingType);
-  return true;
+  return dataSharingType != eNonWorkerThread && dataSharingType != eInitialThread;
 }
 
 DataSharingType analyzeDataSharingType(const ThreadInfo& threadInfo, 
@@ -56,7 +41,7 @@ DataSharingType analyzeDataSharingType(const ThreadInfo& threadInfo,
     return eInitialThread; // we don't check memory accesses performed by initial thread 
   }
   if (!taskFrame || taskFrame->exit_frame.ptr == nullptr) {
-    return eTaskExitFrameNotSet;
+    return eUnknown;
   } 
 
   const auto threadData = threadInfo.threadData;
@@ -64,9 +49,8 @@ DataSharingType analyzeDataSharingType(const ThreadInfo& threadInfo,
       threadData->stackBaseAddress == nullptr || 
       threadData->stackTopAddress == nullptr) {
     // memory access is checked when thread has not called the thread begin callback yet.
-    return eThreadMetaDataNotSet;  
+    return eUnknown;  
   }
-  //RAW_DLOG(INFO, "thread base address: %lx thread top address: %lx", threadData->stackBaseAddress, threadData->stackTopAddress);
   if (memoryAddress > reinterpret_cast<const uint64_t>(threadData->stackTopAddress) ||
       memoryAddress < reinterpret_cast<const uint64_t>(threadData->stackBaseAddress)) {
     // memory address does not fall in current thread stack range 
@@ -79,7 +63,6 @@ DataSharingType analyzeDataSharingType(const ThreadInfo& threadInfo,
         return eExplicitTaskPrivate;
       }
     }
-    RAW_DLOG(INFO, "memaddr: %lx out of thread stack boundary. base addr: %lx top addr: %lx", memoryAddress, threadData->stackBaseAddress, threadData->stackTopAddress);
     return eNonThreadPrivate;
   }
   // now the memory access is within current thread's stack range. We want to figure out if the memory access is task private.
@@ -99,7 +82,7 @@ DataSharingType analyzeDataSharingType(const ThreadInfo& threadInfo,
   } else {
     return eThreadPrivateAccessOtherTask;
   } 
-  return eUndefined;  
+  return eUnknown;  
 }
 
 /*

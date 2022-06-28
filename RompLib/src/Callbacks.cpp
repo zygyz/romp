@@ -452,7 +452,6 @@ void handleTaskComplete(void* taskPtr) {
   auto label = (taskDataPtr->label).get();
   auto mutatedLabel = mutateTaskComplete(label);
   taskDataPtr->label = std::move(mutatedLabel);
-  taskDataPtr->setIsCompleted(true);
 }
 
 void on_ompt_callback_task_schedule(
