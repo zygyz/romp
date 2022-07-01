@@ -152,7 +152,7 @@ void checkAccess(void* baseAddress, uint32_t bytesAccessed, void* instnAddr, boo
   for (uint64_t i = 0; i < memUnitAccessed; ++i) {
     auto checkedAddress = gUseWordLevelCheck ? reinterpret_cast<uint64_t>(baseAddress) + i * 4 : reinterpret_cast<uint64_t>(baseAddress) + i;      
     DataSharingType dataSharingType = eUnknown;
-    auto shouldCheckAccess = shouldCheckMemoryAccess(threadInfo, taskMemoryInfo, checkedAddress, taskInfo.taskFrame, dataSharingType,isWrite);
+    auto shouldCheckAccess = shouldCheckMemoryAccess(threadInfo, taskMemoryInfo, taskInfo, checkedAddress, taskInfo.taskFrame, dataSharingType,isWrite);
     auto accessHistory = shadowMemory.getShadowMemorySlot(checkedAddress);
     setMemoryOwner(accessHistory, dataSharingType, static_cast<void*>(currentTaskData), reinterpret_cast<void*>(checkedAddress));
     if (shouldCheckAccess) {
