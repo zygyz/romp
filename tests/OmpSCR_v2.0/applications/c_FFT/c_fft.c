@@ -163,14 +163,14 @@ void FFT(Complex *A, Complex *a, Complex *W, unsigned N,
     n = (N >> 1);   /* N = N div 2 */
 
     /* Subproblems resolution stage */
-#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic, 1)
     for(i = 0; i <= 1; i++) {
       FFT(D + i * n, a + i * stride, W, n, stride << 1, A + i * n);
     }
     /* Combination stage */
     B = D;
     C = D + n;
-#pragma omp parallel for default(none) private(i, Aux, pW) shared(stride, n, A, B, C, W) schedule(dynamic)
+#pragma omp parallel for default(none) private(i, Aux, pW) shared(stride, n, A, B, C, W) schedule(dynamic, 1)
     for(i = 0; i <= n - 1; i++) {
       pW = W + i * stride;
       Aux.re = pW->re * C[i].re - pW->im * C[i].im;

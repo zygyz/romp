@@ -1,0 +1,4 @@
+*****     Log 1 for DRB137-simdsafelen-orig-no.c with 8 threads and input size      *****
+Expected: -1; Real: -1
+*****     Log 2 for DRB137-simdsafelen-orig-no.c with 8 threads and input size      *****
+Expected: -1; Real: -1

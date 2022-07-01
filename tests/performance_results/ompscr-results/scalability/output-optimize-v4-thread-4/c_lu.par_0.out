@@ -1,0 +1,14 @@
+
+This program is part of the OpenMP Source Code Repository (OmpSCR)
+
+Program:       /home/yg31/working-dir/romp/tests/OmpSCR_v2.0/bin/c_lu.par
+Description:   LU reduction of a dense matrix.
+
+Argument size 100
+Argument NUMTHREADS 4
+
+Running ...
+
+Timer EXE_TIME     0.002931
+
+Memory Usage: 4936 Time: 0:00.01

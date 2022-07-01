@@ -1,0 +1,41 @@
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0419 05:46:21.390650 22430 RompLib.cpp:126] ompt_start_tool on executable: /home/yg31/working-dir/romp/tests/OmpSCR_v2.0/bin/cpp_qsomp7.par.inst
+I0419 05:46:21.393889 22430 Initialize.h:51] start initializing ompt
+I0419 05:46:21.393911 22430 Initialize.h:89] ompt intialized
+I0419 05:46:24.708750 22430 Initialize.h:94] finalizing ompt
+I0419 05:46:24.708784 22430 Initialize.h:96] data race found:
+&myVec: 0x7ffc909ec9c0
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+
+This program is part of the OpenMP Source Code Repository (OmpSCR)
+
+Program:       /home/yg31/working-dir/romp/tests/OmpSCR_v2.0/bin/cpp_qsomp7.par.inst
+Description:   QuickSort
+
+Argument Number of integer to sort: 10000
+Argument Number of threads: 72
+Argument SwitchThresh: 100
+Argument NUMTHREADS 16
+
+Running ...
+
+vector buffer: 0x1367a70
+
+Success, wall-clock time: 3.30039
+
+Timer Total_time     3.300393
+
+Memory Usage: 118856 Time: 0:03.34

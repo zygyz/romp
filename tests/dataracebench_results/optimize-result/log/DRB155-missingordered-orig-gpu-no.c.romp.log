@@ -1,0 +1,50 @@
+*****     Log 1 for DRB155-missingordered-orig-gpu-no.c with 8 threads and input size      *****
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0421 08:47:13.387056 58137 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB155-missingordered-orig-gpu-no.c.romp.out.inst
+I0421 08:47:13.390220 58137 Initialize.h:51] start initializing ompt
+I0421 08:47:13.390247 58137 Initialize.h:89] ompt intialized
+F0000 00:00:00.000000 58138 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
+F0000 00:00:00.000000 58144 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
+F0000 00:00:00.000000 58141 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
+F0000 00:00:00.000000 58142 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
+F0000 00:00:00.000000 58137 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
+F0000 00:00:00.000000 58140 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+*****     Log 2 for DRB155-missingordered-orig-gpu-no.c with 8 threads and input size      *****
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0421 08:47:22.841464 58165 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB155-missingordered-orig-gpu-no.c.romp.out.inst
+I0421 08:47:22.844602 58165 Initialize.h:51] start initializing ompt
+I0421 08:47:22.844630 58165 Initialize.h:89] ompt intialized
+F0000 00:00:00.000000 58174 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
+F0000 00:00:00.000000 58168 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
+F0000 00:00:00.000000 58172 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
+F0000 00:00:00.000000 58173 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
+F0000 00:00:00.000000 58171 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+F0000 00:00:00.000000 58165 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing

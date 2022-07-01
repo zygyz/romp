@@ -1,0 +1,44 @@
+*****     Log 1 for DRB169-missingsyncwrite-orig-yes.c with 8 threads and input size      *****
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0421 08:50:14.482579 59931 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB169-missingsyncwrite-orig-yes.c.romp.out.inst
+I0421 08:50:14.485906 59931 Initialize.h:51] start initializing ompt
+I0421 08:50:14.485934 59931 Initialize.h:89] ompt intialized
+I0421 08:50:14.504336 59931 Initialize.h:94] finalizing ompt
+I0421 08:50:14.504352 59931 Initialize.h:96] data race found:
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+12.000000 12.000000 12.000000 12.000000 12.000000 12.000000 12.000000 12.000000 
+*****     Log 2 for DRB169-missingsyncwrite-orig-yes.c with 8 threads and input size      *****
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0421 08:50:14.538234 59949 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB169-missingsyncwrite-orig-yes.c.romp.out.inst
+I0421 08:50:14.541163 59949 Initialize.h:51] start initializing ompt
+I0421 08:50:14.541189 59949 Initialize.h:89] ompt intialized
+I0421 08:50:14.557081 59949 Initialize.h:94] finalizing ompt
+I0421 08:50:14.557097 59949 Initialize.h:96] data race found:
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+20.000000 20.000000 20.000000 20.000000 20.000000 20.000000 20.000000 20.000000 

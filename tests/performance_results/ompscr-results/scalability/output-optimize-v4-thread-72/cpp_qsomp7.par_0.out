@@ -1,0 +1,21 @@
+&myVec: 0x7ffc7e7b6860
+
+This program is part of the OpenMP Source Code Repository (OmpSCR)
+
+Program:       /home/yg31/working-dir/romp/tests/OmpSCR_v2.0/bin/cpp_qsomp7.par
+Description:   QuickSort
+
+Argument Number of integer to sort: 10000
+Argument Number of threads: 72
+Argument SwitchThresh: 100
+Argument NUMTHREADS 72
+
+Running ...
+
+vector buffer: 0x15a5c70
+
+Success, wall-clock time: 0.01465
+
+Timer Total_time     0.014650
+
+Memory Usage: 25780 Time: 0:00.02

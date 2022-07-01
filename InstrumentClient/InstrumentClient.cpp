@@ -1,6 +1,10 @@
 #include "InstrumentClient.h"
 
+#include "Register.h"
+
+#include <filesystem>
 #include <glog/logging.h>
+#include <iostream>
 
 using namespace Dyninst;
 using namespace romp;
@@ -14,26 +18,26 @@ InstrumentClient::InstrumentClient(
         const string& rompLibPath,
         shared_ptr<BPatch> bpatchPtr,
         const string& arch,
-        const string& modSuffix) : m_bPatchPtr(move(bpatchPtr)), 
-                                   m_programName(programName),
-                                   m_architecture(arch),
-                                   m_moduleSuffix(modSuffix) {
-  m_addressSpacePtr = initInstrumenter(programName, rompLibPath);
-  m_checkAccessFunctions = getCheckAccessFuncs(m_addressSpacePtr);
-  if (m_checkAccessFunctions.size() == 0)  {
-      LOG(FATAL) << "error empty m_checkAccessFunctions vector";
+        const string& modSuffix) : mBpatchPtr(move(bpatchPtr)), 
+                                   mProgramName(programName),
+                                   mArchitecture(arch),
+                                   mModuleSuffix(modSuffix) {
+  mAddressSpacePtr = initInstrumenter(programName, rompLibPath);
+  mCheckAccessFunctions = getCheckAccessFuncs(mAddressSpacePtr);
+  if (mCheckAccessFunctions.size() == 0)  {
+      LOG(FATAL) << "error empty mCheckAccessFunctions vector";
   }
-  if (!m_checkAccessFunctions[0]) {
-      LOG(FATAL) << "error empty first m_checkAccessFunctions element";
+  if (!mCheckAccessFunctions[0]) {
+      LOG(FATAL) << "error empty first mCheckAccessFunctions element";
   }
-  LOG(INFO) << "InstrumentClient initialized with arch: " << m_architecture;
+  LOG(INFO) << "InstrumentClient initialized with arch: " << mArchitecture;
 }
 
 unique_ptr<BPatch_addressSpace> 
 InstrumentClient::initInstrumenter(
         const string& programName,
         const string& rompLibPath) {
-  auto handle = m_bPatchPtr->openBinary(programName.c_str(), true);
+  auto handle = mBpatchPtr->openBinary(programName.c_str(), true);
   if (!handle) {
     LOG(FATAL) << "cannot open binary: " << programName;    
   }
@@ -88,15 +92,13 @@ InstrumentClient::getFunctionsVector(
   }
   char nameBuffer[MODULE_NAME_LENGTH];
   for (const auto& module : *appModules) {
-    LOG(INFO) << "module name: " 
-              << module->getFullName(nameBuffer, MODULE_NAME_LENGTH);
+    LOG(INFO) << "module name: " << module->getFullName(nameBuffer, MODULE_NAME_LENGTH);
     if (module->isSharedLib()) { 
-      //LOG(INFO) << "skip module: " << nameBuffer;
       continue;
     }
     auto procedures = module->getProcedures();
     for (const auto& procedure : *procedures) {
-        funcVec.push_back(procedure);
+      funcVec.push_back(procedure);
     }
   }
   return funcVec;
@@ -108,9 +110,9 @@ InstrumentClient::getFunctionsVector(
  */
 void
 InstrumentClient::instrumentMemoryAccess() {  
-  auto functions = getFunctionsVector(m_addressSpacePtr);
-  instrumentMemoryAccessInternal(m_addressSpacePtr, functions);
-  finishInstrumentation(m_addressSpacePtr);
+  auto functions = getFunctionsVector(mAddressSpacePtr);
+  instrumentMemoryAccessInternal(mAddressSpacePtr, functions);
+  finishInstrumentation(mAddressSpacePtr);
 }
 
 /*
@@ -128,8 +130,7 @@ InstrumentClient::instrumentMemoryAccessInternal(
   for (const auto& function : funcVec) {
     auto pointsVecPtr = function->findPoint(opcodes);
     if (!pointsVecPtr) {
-      LOG(WARNING) << "no load/store points for function " 
-          << function->getName();    
+      LOG(WARNING) << "no load/store points for function " << function->getName();    
       continue;
     } else if (pointsVecPtr->size() == 0) {
       LOG(WARNING) << "load/store points vector size is 0 for function " 
@@ -148,9 +149,7 @@ InstrumentClient::instrumentMemoryAccessInternal(
  * Could be modified for other architeture.
  */
 bool
-InstrumentClient::hasHardwareLock(
-        const InstructionAPI::Instruction& instruction,
-        const std::string& arch) {
+InstrumentClient::hasHardwareLock(const InstructionAPI::Instruction& instruction, const std::string& arch) {
   if (arch == "x86") { 
       // check first byte of the instruction for x86 arch
     return reinterpret_cast<uint8_t>(instruction.rawByte(0)) == 0xf0;
@@ -159,6 +158,33 @@ InstrumentClient::hasHardwareLock(
   return false;
 }
 
+bool InstrumentClient::isCallInstruction(const InstructionAPI::Instruction& instruction) {
+  return instruction.getCategory() == Dyninst::InstructionAPI::c_CallInsn;
+}
+
+// return true if current executable is accessing thread local storage. 
+bool InstrumentClient::isThreadLocalStorageAccess(const InstructionAPI::Instruction& instruction) {
+  std::set<InstructionAPI::RegisterAST::Ptr> regsRead; 
+  instruction.getReadSet(regsRead);   
+  for (auto reg : regsRead) {
+    if (reg->getID().name() == "x86_64::fs") {
+      return true;
+    }
+  }
+  return false; 
+}
+
+bool InstrumentClient::isInstructionForOmpDirective(const uint64_t instructionAddress) {
+  for (const auto& item : mLineNumberInstructionRangeMap) {
+    for (const auto& range : item.second) {
+      if (instructionAddress <= range.second && instructionAddress >= range.first) {
+        LOG(INFO) << " instruction: 0x" << std::hex << instructionAddress << std::dec << " maps to line number: " << item.first;
+        return true;
+      } 
+    }
+  }
+  return false;
+}
 /*
  * Insert checkAccess code snippet to load/store point
  */
@@ -194,7 +220,11 @@ InstrumentClient::insertSnippet(
 
     auto instructionAddress = point->getAddress();         
     auto instruction = point->getInsnAtPoint();
-    auto hardWareLock = hasHardwareLock(instruction, m_architecture);
+    if (isCallInstruction(instruction)) {
+      continue;
+    }
+    auto isTLSAccess = isThreadLocalStorageAccess(instruction);
+    auto hardWareLock = hasHardwareLock(instruction, mArchitecture);
 
     vector<BPatch_snippet*> funcArgs;
     // memory address 
@@ -207,7 +237,10 @@ InstrumentClient::insertSnippet(
     funcArgs.push_back(new BPatch_constExpr(hardWareLock));
     // is write access or not
     funcArgs.push_back(new BPatch_constExpr(isWrite));
-    BPatch_funcCallExpr checkAccessCall(*(m_checkAccessFunctions[0]), funcArgs);
+    // is TLS access or not
+    funcArgs.push_back(new BPatch_constExpr(isTLSAccess));
+    BPatch_funcCallExpr checkAccessCall(*(mCheckAccessFunctions[0]), funcArgs);
+
     if (!addrSpacePtr->insertSnippet(
                 checkAccessCall, *point, BPatch_callBefore)) {
         LOG(FATAL) << "snippet insertion failed";
@@ -229,11 +262,52 @@ InstrumentClient::finishInstrumentation(
         LOG(WARNING) << "continue exeuction failed";
     }
     while (!appProc->isTerminated()) {
-      m_bPatchPtr->waitForStatusChange();
+      mBpatchPtr->waitForStatusChange();
     }
   } else if (appBin) {
-    if (!appBin->writeFile((m_programName + m_moduleSuffix).c_str())) {
+    if (!appBin->writeFile((mProgramName + mModuleSuffix).c_str())) {
       LOG(FATAL) << "failed to write instrumented binary to file";
     }
   } 
 }
+
+inline std::string execute(std::string command) {
+  std::array<char, 128> buffer;
+  std::string result;
+  std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(command.c_str(), "r"), pclose);
+  if (!pipe) {
+    throw std::runtime_error("popen() failed!");
+  }
+  while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+    result += buffer.data();
+  }
+  return result;
+}
+
+
+//void InstrumentClient::findAllOmpDirectiveLineNumbers() {
+//  std::string command = "grep -n '#pragma omp' ./" + mSourceFileName + " | grep -o '[0-9]\\+' "; 
+//  auto result = execute(command);
+//  std::string lineNumber;
+//  std::istringstream split(result);
+//  while (std::getline(split, lineNumber, '\n')) {
+//    mOmpDirectiveLineNumbers.push_back(std::stoi(lineNumber));
+//  }  
+//}
+
+//void InstrumentClient::findInstructionRanges() {
+//  SymtabAPI::Symtab *obj = nullptr;
+//  auto success = SymtabAPI::Symtab::openFile(obj, mProgramName);
+//  if (!success) {
+//    LOG(FATAL) << "failed to open file with symtab api";
+//    return;
+//  }
+//  auto sourceFilePath = std::filesystem::current_path() / mSourceFileName;
+//  auto filePathString = std::string(sourceFilePath.u8string());
+//  LOG(INFO) << "finding instruction ranges with file path:  " << filePathString;
+//  for (const auto lineNumber: mOmpDirectiveLineNumbers) {
+//    std::vector<SymtabAPI::AddressRange> ranges;
+//    obj->getAddressRanges(ranges, filePathString, lineNumber);
+//    mLineNumberInstructionRangeMap[lineNumber] = ranges;  
+//  }
+//}

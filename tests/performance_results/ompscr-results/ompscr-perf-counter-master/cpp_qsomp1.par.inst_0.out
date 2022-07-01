@@ -1,0 +1,121 @@
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0420 06:02:33.536649 29362 RompLib.cpp:126] ompt_start_tool on executable: /home/yg31/working-dir/romp/tests/OmpSCR_v2.0/bin/cpp_qsomp1.par.inst
+I0420 06:02:33.540282 29362 Initialize.h:51] start initializing ompt
+I0420 06:02:33.540310 29362 Initialize.h:89] ompt intialized
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+
+This program is part of the OpenMP Source Code Repository (OmpSCR)
+
+Program:       /home/yg31/working-dir/romp/tests/OmpSCR_v2.0/bin/cpp_qsomp1.par.inst
+Description:   QuickSort
+
+Argument Number of integer to sort: 10000
+Argument Number of threads: 72
+Argument SwitchThresh: 100
+Argument NUMTHREADS 72
+
+Running ...
+
+
+Success, wall-clock time: 0.964179
+
+0.: gSW: 6
+1.: gSW: 5
+2.: gSW: 3
+3.: gSW: 2
+4.: gSW: 0
+5.: gSW: 2
+6.: gSW: 0
+7.: gSW: 3
+8.: gSW: 3
+9.: gSW: 0
+10.: gSW: 1
+11.: gSW: 2
+12.: gSW: 3
+13.: gSW: 11
+14.: gSW: 8
+15.: gSW: 0
+16.: gSW: 6
+17.: gSW: 7
+18.: gSW: 0
+19.: gSW: 2
+20.: gSW: 0
+21.: gSW: 2
+22.: gSW: 3
+23.: gSW: 3
+24.: gSW: 0
+25.: gSW: 1
+26.: gSW: 3
+27.: gSW: 4
+28.: gSW: 0
+29.: gSW: 5
+30.: gSW: 2
+31.: gSW: 0
+32.: gSW: 0
+33.: gSW: 0
+34.: gSW: 6
+35.: gSW: 6
+36.: gSW: 4
+37.: gSW: 2
+38.: gSW: 5
+39.: gSW: 2
+40.: gSW: 4
+41.: gSW: 5
+42.: gSW: 0
+43.: gSW: 0
+44.: gSW: 2
+45.: gSW: 7
+46.: gSW: 1
+47.: gSW: 4
+48.: gSW: 2
+49.: gSW: 7
+50.: gSW: 2
+51.: gSW: 1
+52.: gSW: 3
+53.: gSW: 1
+54.: gSW: 3
+55.: gSW: 1
+56.: gSW: 1
+57.: gSW: 2
+58.: gSW: 5
+59.: gSW: 2
+60.: gSW: 6
+61.: gSW: 2
+62.: gSW: 10
+63.: gSW: 3
+64.: gSW: 4
+65.: gSW: 5
+66.: gSW: 1
+67.: gSW: 3
+68.: gSW: 0
+69.: gSW: 1
+70.: gSW: 0
+71.: gSW: 2
+
+I0420 06:02:34.520025 29362 Initialize.h:94] finalizing ompt
+I0420 06:02:34.520043 29362 Initialize.h:96] data race found:
+I0420 06:02:34.520051 29362 PerformanceCounters.cpp:43] # Check Access Function Call: 1661069
+I0420 06:02:34.520056 29362 PerformanceCounters.cpp:44] # Access History Record Overflow (threshold=8):  78151
+I0420 06:02:34.520062 29362 PerformanceCounters.cpp:45] # Memory Access Instrumentation Call: 819063
+I0420 06:02:34.520066 29362 PerformanceCounters.cpp:46] # Access Control Contention: 49476
+I0420 06:02:34.520069 29362 PerformanceCounters.cpp:47] # Maximum Access Records Number: 72
+I0420 06:02:34.520073 29362 PerformanceCounters.cpp:48] # Skip Add Current Record: 804668
+I0420 06:02:34.520077 29362 PerformanceCounters.cpp:50] # Average number access records traversed: 3.07481
+Total: gSW: 202
+
+Timer Total_time     0.964179
+
+Memory Usage: 129852 Time: 0:01.00

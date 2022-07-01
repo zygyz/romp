@@ -1,0 +1,44 @@
+*****     Log 1 for DRB086-static-data-member-orig-yes.cpp with 8 threads and input size      *****
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0421 09:03:36.248193 62115 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB086-static-data-member-orig-yes.cpp.romp.out.inst
+I0421 09:03:36.251583 62115 Initialize.h:51] start initializing ompt
+I0421 09:03:36.251611 62115 Initialize.h:89] ompt intialized
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+4 1
+I0421 09:03:36.264474 62115 Initialize.h:94] finalizing ompt
+I0421 09:03:36.264505 62115 Initialize.h:96] data race found:
+*****     Log 2 for DRB086-static-data-member-orig-yes.cpp with 8 threads and input size      *****
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0421 09:03:36.299132 62133 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB086-static-data-member-orig-yes.cpp.romp.out.inst
+I0421 09:03:36.302148 62133 Initialize.h:51] start initializing ompt
+I0421 09:03:36.302184 62133 Initialize.h:89] ompt intialized
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+8 1
+I0421 09:03:36.313390 62133 Initialize.h:94] finalizing ompt
+I0421 09:03:36.313418 62133 Initialize.h:96] data race found:

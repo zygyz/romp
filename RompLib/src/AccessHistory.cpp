@@ -9,6 +9,14 @@ AccessHistory::AccessHistory() {
   mRecords = std::make_unique<std::vector<Record>>();
 }
 
+void AccessHistory::setOwner(void* owner) {
+  mOwner = owner;
+}
+
+void* AccessHistory::getOwner() const {
+  return mOwner;
+}
+
 pfq_rwlock_t & AccessHistory::getLock() {
   return mLock;
 }

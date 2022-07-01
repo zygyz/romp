@@ -1,0 +1,44 @@
+*****     Log 1 for DRB104-nowait-barrier-orig-no.c with 8 threads and input size      *****
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0421 08:28:28.378360 51253 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB104-nowait-barrier-orig-no.c.romp.out.inst
+I0421 08:28:28.381929 51253 Initialize.h:51] start initializing ompt
+I0421 08:28:28.381956 51253 Initialize.h:89] ompt intialized
+I0421 08:28:28.396858 51253 Initialize.h:94] finalizing ompt
+I0421 08:28:28.396875 51253 Initialize.h:103] data race not found
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+error = 51
+*****     Log 2 for DRB104-nowait-barrier-orig-no.c with 8 threads and input size      *****
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0421 08:28:28.430888 51271 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB104-nowait-barrier-orig-no.c.romp.out.inst
+I0421 08:28:28.433825 51271 Initialize.h:51] start initializing ompt
+I0421 08:28:28.433851 51271 Initialize.h:89] ompt intialized
+I0421 08:28:28.448029 51271 Initialize.h:94] finalizing ompt
+I0421 08:28:28.448045 51271 Initialize.h:103] data race not found
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+error = 51

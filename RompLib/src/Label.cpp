@@ -9,63 +9,74 @@
  * will be affected.
  */
 Label::Label(const Label& label) {
-  _label = label._label; 
+  mLabel = label.mLabel; 
 }
 
 std::string Label::toString() const {
   auto result = std::string("");
-  for (const auto& segment : _label) {
+  for (const auto& segment : mLabel) {
     result += segment->toString();
     result += std::string("|");
   }
   return result;
 }
 
-void Label::appendSegment(const std::shared_ptr<Segment>& segment) {
-  _label.push_back(segment);
+std::string Label::toFieldsBreakdown() const {
+  auto result = std::string("");
+  for (const auto& segment : mLabel) {
+    result += segment->toFieldsBreakdown();
+    result += std::string(" | ");
+  }
+  result += "\n";
+  return result;
 }
 
-std::shared_ptr<Segment> Label::popSegment() {
-  if (_label.empty()) {
+void Label::appendSegment(const std::shared_ptr<BaseSegment>& segment) {
+  mLabel.push_back(segment);
+}
+
+std::shared_ptr<BaseSegment> Label::popSegment() {
+  if (mLabel.empty()) {
     RAW_LOG(FATAL, "label is empty");
   }
-  auto lastSegment = _label.back();
-  _label.pop_back();
+  auto lastSegment = mLabel.back();
+  mLabel.pop_back();
   return lastSegment;
 }
 
-std::shared_ptr<Segment> Label::getLastKthSegment(int k) {
-  if (k > _label.size()) {
+std::shared_ptr<BaseSegment> Label::getLastKthSegment(int k) {
+  if (k > mLabel.size()) {
     RAW_LOG(FATAL, "index is out of bound");
     return nullptr;
   }
-  auto len = _label.size();
-  return _label.at(len - k);
+  auto len = mLabel.size();
+  return mLabel.at(len - k);
 }
 
-void Label::setLastKthSegment(int k, const std::shared_ptr<Segment>& segment) { 
-  if (k > _label.size()) {
+void Label::setLastKthSegment(int k, const std::shared_ptr<BaseSegment>& segment) { 
+  if (k > mLabel.size()) {
     RAW_LOG(FATAL, "%s %d", "set value out of bound", k);
     return;
   }
-  auto len = _label.size();
-  _label[len - k] = std::move(segment);
+  auto len = mLabel.size();
+  mLabel[len - k] = std::move(segment);
 }
 
-Segment* Label::getKthSegment(int k) {
-  if (k > _label.size()) {
+BaseSegment* Label::getKthSegment(int k) {
+  if (k > mLabel.size()) {
     RAW_LOG(FATAL, "index %d out of bound", k);
   }
-  return _label.at(k).get();
+  return mLabel.at(k).get();
 }
 
 int Label::getLabelLength() const {
-  return _label.size();
+  return mLabel.size();
 }
 
+// This function performs label comparison.
 int compareLabels(Label* left, Label* right) {
-  auto& leftLabel = left->_label;
-  auto& rightLabel = right->_label;  
+  auto& leftLabel = left->mLabel;
+  auto& rightLabel = right->mLabel;  
   auto lenLeftLabel = leftLabel.size();
   auto lenRightLabel = rightLabel.size();
   auto len = std::min(lenLeftLabel, lenRightLabel);
@@ -108,9 +119,9 @@ std::shared_ptr<Label> generateInitialTaskLabel() {
 /*
  * Given the parent task label, generate the label for the explicit task.
  */
-std::shared_ptr<Label> generateExplicitTaskLabel(Label* parentLabel) {
+std::shared_ptr<Label> generateExplicitTaskLabel(Label* parentLabel, void* taskDataPtr) {
   auto newLabel = std::make_shared<Label>(*parentLabel);
-  auto segment = std::make_shared<BaseSegment>(eExplicit, 0, 1); 
+  auto segment = std::make_shared<ExplicitTaskSegment>(taskDataPtr); 
   newLabel->appendSegment(segment);
   return newLabel;
 }
@@ -123,14 +134,14 @@ std::shared_ptr<Label> mutateParentImpEnd(Label* childLabel) {
 
 /*
  * Upon creating explicit task, increase the task create count in the segment 
- * of parent task.
+ * of parent task. If the created task is undeferred task, increment the undeferred task count
  */
 std::shared_ptr<Label> mutateParentTaskCreate(Label* parentLabel) {
   auto newLabel = std::make_shared<Label>(*parentLabel);  
   auto lastSegment = newLabel->popSegment();
   auto taskCreate = lastSegment->getTaskcreate();
   auto newSegment = lastSegment->clone();
-  newSegment->setTaskcreate(taskCreate + 1);  
+  newSegment->setTaskCreateCount(taskCreate + 1);  
   newLabel->appendSegment(newSegment);
   return newLabel;
 }

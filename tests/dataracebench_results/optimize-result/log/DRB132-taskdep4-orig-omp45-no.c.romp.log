@@ -1,0 +1,92 @@
+*****     Log 1 for DRB132-taskdep4-orig-omp45-no.c with 8 threads and input size      *****
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0421 08:42:57.908682 55215 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB132-taskdep4-orig-omp45-no.c.romp.out.inst
+I0421 08:42:57.911957 55215 Initialize.h:51] start initializing ompt
+I0421 08:42:57.911984 55215 Initialize.h:89] ompt intialized
+W0000 00:00:00.000000 55222 Callbacks.cpp:445] RAW: callback dependences: current task data ptr is null
+W0000 00:00:00.000000 55222 Callbacks.cpp:434] RAW: unknown prior task status: 8
+W0000 00:00:00.000000 55222 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55222 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55222 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55222 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55222 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55222 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55222 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55222 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55222 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55222 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55222 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55222 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55222 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55222 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55222 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55222 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55222 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55222 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55222 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55222 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55222 Callbacks.cpp:403] RAW: handleTaskComplete: task ptr is null
+I0421 08:42:57.926764 55215 Initialize.h:94] finalizing ompt
+I0421 08:42:57.926780 55215 Initialize.h:103] data race not found
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+x=1
+y=1
+*****     Log 2 for DRB132-taskdep4-orig-omp45-no.c with 8 threads and input size      *****
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0421 08:42:57.960741 55233 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB132-taskdep4-orig-omp45-no.c.romp.out.inst
+I0421 08:42:57.963654 55233 Initialize.h:51] start initializing ompt
+I0421 08:42:57.963680 55233 Initialize.h:89] ompt intialized
+W0000 00:00:00.000000 55238 Callbacks.cpp:445] RAW: callback dependences: current task data ptr is null
+W0000 00:00:00.000000 55238 Callbacks.cpp:434] RAW: unknown prior task status: 8
+W0000 00:00:00.000000 55238 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55238 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55238 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55238 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55238 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55238 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55238 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55238 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55238 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55238 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55238 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55238 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55238 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55238 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55238 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55238 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55238 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55238 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55238 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55238 RompLib.cpp:133] RAW: pointer to current task data is null
+W0000 00:00:00.000000 55238 Callbacks.cpp:403] RAW: handleTaskComplete: task ptr is null
+I0421 08:42:57.975689 55233 Initialize.h:94] finalizing ompt
+I0421 08:42:57.975708 55233 Initialize.h:96] data race found:
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+x=1
+y=1

@@ -1,0 +1,37 @@
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0419 08:29:36.042057 11079 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/romp/tests/OmpSCR_v2.0/bin/c_loopB.badSolution2.par.inst
+I0419 08:29:36.044713 11079 Initialize.h:51] start initializing ompt
+I0419 08:29:36.044739 11079 Initialize.h:89] ompt intialized
+F0000 00:00:00.000000 11083 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
+F0000 00:00:00.000000 11080 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
+F0000 00:00:00.000000 11086 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+
+This program is part of the OpenMP Source Code Repository (OmpSCR)
+
+Program:       /home/yg31/working-dir/romp/tests/OmpSCR_v2.0/bin/c_loopB.badSolution2.par.inst
+Description:   Sinthetic loops experiment.
+
+Argument size 100
+Argument numiter 10
+Argument NUMTHREADS 8
+
+Running ...
+
+F0000 00:00:00.000000 11081 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
+F0000 00:00:00.000000 11082 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
+F0000 00:00:00.000000 11079 Segment.cpp:234] RAW: Check phase < 16 failed: phase count is overflowing
+Memory Usage: 52944 Time: 0:06.64

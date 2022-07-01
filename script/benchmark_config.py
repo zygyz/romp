@@ -34,5 +34,14 @@ benchmark_parameter_map = {
 #"lulesh2.0" : "-s 10 -i 2",
 #"lulesh2.0" : "-s 20 -i 2",
  "qs" : "--nParticles 10000"
+  "bt.S.x" : "",
+  "cg.S.x" : "",
+  "ep.S.x" : "",
+  "ft.S.x" : "",
+  "is.S.x" : "",
+  "lu.S.x" : "",
+  "mg.S.x" : "",  
+  "sp.S.x" : "",
+  "ua.S.x" : "",
 }
 

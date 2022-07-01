@@ -9,15 +9,14 @@ typedef struct ParallelRegionData {
   unsigned int numParallelism;
   int parallelFlag;
   pfq_rwlock_t lock;      
-  std::atomic_int expTaskCount; 
   ParallelRegionData() { pfq_rwlock_init(&lock); }
   ParallelRegionData(unsigned int n, int p): numParallelism(n), parallelFlag(p) {
     dataPtr = nullptr; 
-    expTaskCount = 0;
     pfq_rwlock_init(&lock);
   } 
-  TaskDependenceGraph taskDepGraph;
+  TaskDependenceGraph taskDependenceGraph;
+  void maintainTaskDependence(void* taskPtr, const ompt_dependence_t& dependence);
 } ParallelRegionData;
 
-void maintainTaskDeps(const ompt_dependence_t& dependence, void* taskPtr, ParallelRegionData* parRegionData);
+
 

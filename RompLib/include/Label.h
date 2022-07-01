@@ -21,15 +21,16 @@ public:
   Label(const Label& label);
   ~Label() {} 
   std::string toString() const;
-  void appendSegment(const std::shared_ptr<Segment>& segment);
-  std::shared_ptr<Segment> popSegment();
-  std::shared_ptr<Segment> getLastKthSegment(int k);
-  void setLastKthSegment(int k, const std::shared_ptr<Segment>& segment);
-  Segment* getKthSegment(int k);
+  std::string toFieldsBreakdown() const;
+  void appendSegment(const std::shared_ptr<BaseSegment>& segment);
+  std::shared_ptr<BaseSegment> popSegment();
+  std::shared_ptr<BaseSegment> getLastKthSegment(int k);
+  void setLastKthSegment(int k, const std::shared_ptr<BaseSegment>& segment);
+  BaseSegment * getKthSegment(int k);
   friend int compareLabels(Label* left, Label* right);
   int getLabelLength() const;
 private:
-  std::vector<std::shared_ptr<Segment> > _label;
+  std::vector<std::shared_ptr<BaseSegment> > mLabel;
 };
 
 int compareLabels(Label* left, Label* right);
@@ -39,11 +40,10 @@ std::shared_ptr<Label> generateImplicitTaskLabel(
                           unsigned int index,
                           unsigned int actualParallelism);
 std::shared_ptr<Label> generateInitialTaskLabel();
-std::shared_ptr<Label> generateExplicitTaskLabel(Label* parentLabel);
+std::shared_ptr<Label> generateExplicitTaskLabel(Label* parentLabel, void* taskDataPtr);
 
 std::shared_ptr<Label> mutateParentImpEnd(Label* childLabel);
 std::shared_ptr<Label> mutateParentTaskCreate(Label* parentLabel);
-
 std::shared_ptr<Label> mutateBarrierEnd(Label* label);
 std::shared_ptr<Label> mutateTaskWait(Label* label);
 std::shared_ptr<Label> mutateOrderSection(Label* label);

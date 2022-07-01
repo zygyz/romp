@@ -1,0 +1,59 @@
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0422 06:57:36.576448 20818 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/LULESH/lulesh2.0.inst
+I0422 06:57:36.581259 20818 Initialize.h:51] start initializing ompt
+I0422 06:57:36.581279 20818 Initialize.h:89] ompt intialized
+I0422 06:57:50.057672 20818 Initialize.h:94] finalizing ompt
+I0422 06:57:50.057718 20818 Initialize.h:103] data race not found
+I0422 06:57:50.057726 20818 PerformanceCounters.cpp:63] # Check Access Function Call: 23350648
+I0422 06:57:50.057734 20818 PerformanceCounters.cpp:64] # Access History Record Overflow (threshold=8):  0
+I0422 06:57:50.057741 20818 PerformanceCounters.cpp:65] # Memory Access Instrumentation Call: 7336952
+I0422 06:57:50.057746 20818 PerformanceCounters.cpp:66] # Access Control Contention: 269081
+I0422 06:57:50.057750 20818 PerformanceCounters.cpp:67] # Access Control Write Write Contention: 32239
+I0422 06:57:50.057755 20818 PerformanceCounters.cpp:68] # Access Control Write Read Contention: 36615
+I0422 06:57:50.057760 20818 PerformanceCounters.cpp:69] # Access Control Read Write Contention: 200227
+I0422 06:57:50.057765 20818 PerformanceCounters.cpp:70] # Access History Skip Remove Records: 0
+I0422 06:57:50.057770 20818 PerformanceCounters.cpp:71] # Access History Remove Records: 10900041
+I0422 06:57:50.057775 20818 PerformanceCounters.cpp:72] # Maximum Access Records Number: 4
+I0422 06:57:50.057780 20818 PerformanceCounters.cpp:73] # Skip Add Current Record: 7335867
+I0422 06:57:50.057785 20818 PerformanceCounters.cpp:75] # Average number access records traversed: 1.69577
+Running problem size 10^3 per domain until completion
+Num processors: 1
+Num threads: registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+72
+Total number of elements: 1000 
+
+To run other sizes, use -s <integer>.
+To run a fixed number of iterations, use -i <integer>.
+To run a more or less balanced region set, use -b <integer>.
+To change the relative costs of regions, use -c <integer>.
+To print out progress, use -p
+To write an output file for VisIt, use -v
+See help (-h) for more options
+
+Run completed:
+   Problem size        =  10
+   MPI tasks           =  1
+   Iteration count     =  2
+   Final Origin Energy =  3.805069e+05
+   Testing Plane 0 of Energy Array on rank 0:
+        MaxAbsDiff   = 2.330580e-12
+        TotalAbsDiff = 2.330580e-12
+        MaxRelDiff   = 1.333317e-14
+
+Elapsed time         =         13 (s)
+Grind time (us/z/c)  =   6713.212 (per dom)  ( 13.426424 overall)
+FOM                  = 0.14895999 (z/s)
+

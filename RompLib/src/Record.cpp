@@ -1,5 +1,15 @@
 #include "Record.h"
 
+#include <glog/logging.h>
+#include <glog/raw_logging.h>
+
+
+// mState bit allocation
+// bit 0: access type (write/read)
+// bit 1: hardware lock 
+// bit 2: is in reduction
+// bit 3: is TLS access
+// bit 4-6: data shairng type (3 bits)
 /*
  * If current access is write, set the lowest bit to 1. Otherwise, set to 0.
  * mState variable is 8-bit wide.
@@ -16,6 +26,29 @@ void Record::setIsWrite(bool isWrite) {
   }
 }
 
+void Record::setIsInReduction(bool isInReduction) { 
+  if (isInReduction) {
+    mState |= 0x4; // 0b100    
+  }
+}
+
+void Record::setIsTLSAccess(bool isTLSAccess) {
+  if (isTLSAccess) {
+    mState |= 0x8; // 0b1000
+  } 
+}
+
+void Record::setDataSharingType(int dataSharingType) {
+  mState |= (dataSharingType << 4);
+}
+
+int Record::getDataSharingType() const {
+  return (int) (mState >> 4);
+}
+
+void* Record::getMemoryAddressOwner() const {
+  return mOwner;
+}
 /*
  * If the current memory access is an atomic instruction, in x86, this is 
  * indicated as having hardware lock in the instruction. We seperate this hardware lock
@@ -47,7 +80,11 @@ bool Record::hasHardwareLock() const {
 }
 
 bool Record::isInReduction() const {
-  return (mState & 0x4) == 0x4;
+  return (mState & 0x4) == 0x4; 
+}
+
+bool Record::isTLSAccess() const {
+  return (mState & 0x8) == 0x8;
 }
 
 /*
@@ -75,4 +112,12 @@ uint64_t Record::getCheckedMemoryAddress() const {
 
 void* Record::getTaskPtr() const {
   return mTaskPtr;
+}
+
+void* Record::getInstructionAddress() const {
+  return mInstructionAddress;
+}
+
+uint8_t Record::getWorkShareRegionId() const {
+  return mWorkShareRegionId;
 }

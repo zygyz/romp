@@ -125,7 +125,7 @@ OSCR_timer_start(0);
 for(iter=0; iter<numiter; iter++) {
 
 	/* 3.1. PROCESS ELEMENTS */
-#pragma omp parallel for default(none) shared(V,totalSize) private(i) schedule(static) ordered
+#pragma omp parallel for default(none) shared(V,totalSize) private(i) schedule(dynamic, 1) ordered
 	for (i=0; i<totalSize-1; i++) {
 #pragma omp ordered
         {

@@ -1,0 +1,69 @@
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0421 14:53:48.802423 35844 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/NPB3.4.2/NPB3.4-OMP/bin/ft.S.x.inst
+I0421 14:53:48.805538 35844 Initialize.h:51] start initializing ompt
+I0421 14:53:48.805565 35844 Initialize.h:89] ompt intialized
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+I0421 14:54:26.702031 35844 Initialize.h:94] finalizing ompt
+I0421 14:54:26.702077 35844 Initialize.h:103] data race not found
+
+
+ NAS Parallel Benchmarks (NPB3.4-OMP) - FT Benchmark
+
+ Size                :   64x  64x  64
+ Iterations                  :      6
+ Number of available threads :     72
+
+ T =    1     Checksum =    3.615507768154D+01    4.845363331978D+02
+ T =    2     Checksum =    3.525106927806D+01    4.865304269511D+02
+ T =    3     Checksum =    3.439852611509D+01    4.883910722337D+02
+ T =    4     Checksum =    3.359344915481D+01    4.901273169046D+02
+ T =    5     Checksum =    3.283217313696D+01    4.917475857993D+02
+ T =    6     Checksum =    3.211133841776D+01    4.932597244941D+02
+ Result verification failed
+ class = S
+
+
+ FT Benchmark Completed.
+ Class           =                        S
+ Size            =             64x  64x  64
+ Iterations      =                        6
+ Time in seconds =                    28.75
+ Total threads   =                       72
+ Avail threads   =                       72
+ Mop/s total     =                     6.16
+ Mop/s/thread    =                     0.09
+ Operation type  =           floating point
+ Verification    =             UNSUCCESSFUL
+ Version         =                    3.4.2
+ Compile date    =              21 Apr 2022
+
+ Compile options:
+    FC           = gfortran
+    FLINK        = $(FC)
+    F_LIB        = (none)
+    F_INC        = (none)
+    FFLAGS       = -O3 -fopenmp
+    FLINKFLAGS   = $(FFLAGS)
+    RAND         = randi8
+
+
+ Please send all errors/feedbacks to:
+
+ NPB Development Team
+ npb@nas.nasa.gov
+
+
+Memory Usage: 19013992 Time: 0:38.24

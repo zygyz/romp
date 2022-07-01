@@ -12,6 +12,7 @@
 #include "Initialize.h"
 #include "Label.h"
 #include "LockSet.h"
+#include "ParallelRegionData.h"
 #include "ShadowMemory.h"
 #include "TaskData.h"
 #include "ThreadData.h"
@@ -25,7 +26,8 @@ ShadowMemory<AccessHistory> shadowMemory;
 extern PerformanceCounters gPerformanceCounters;
 
 bool checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const LockSetPtr& curLockSet, void* instnAddr, 
-                   void* currentTaskData, int taskFlags, bool isWrite, bool hasHardwareLock, uint64_t checkedAddress) {
+                   void* currentTaskData, int taskFlags, bool isWrite, bool hasHardwareLock, uint64_t checkedAddress, 
+                   DataSharingType dataSharingType, bool isTLSAccess) {
 #ifdef PERFORMANCE
   gPerformanceCounters.bumpNumCheckAccessFunctionCall();
 #endif
@@ -112,7 +114,7 @@ ompt_start_tool_result_t* ompt_start_tool(
   return &startToolResult;
 }
 
-void checkAccess(void* baseAddress, uint32_t bytesAccessed, void* instnAddr, bool hasHardwareLock, bool isWrite) {
+void checkAccess(void* baseAddress, uint32_t bytesAccessed, void* instnAddr, bool hasHardwareLock, bool isWrite, bool isTLSAccess) {
 #ifdef PERFORMANCE
   gPerformanceCounters.bumpNumMemoryAccessInstrumentationCall();
 #endif
@@ -144,9 +146,12 @@ void checkAccess(void* baseAddress, uint32_t bytesAccessed, void* instnAddr, boo
   queryTaskMemoryInfo(taskMemoryInfo);
   for (uint64_t i = 0; i < memUnitAccessed; ++i) {
     auto checkedAddress = gUseWordLevelCheck ? reinterpret_cast<uint64_t>(baseAddress) + i * 4 : reinterpret_cast<uint64_t>(baseAddress) + i;      
-    if (shouldCheckMemoryAccess(threadInfo, taskMemoryInfo, taskInfo, checkedAddress, isWrite)) {
-      auto accessHistory = shadowMemory.getShadowMemorySlot(checkedAddress);
-      if (checkDataRace(accessHistory, curLabel, curLockSet, instnAddr, static_cast<void*>(currentTaskData), taskInfo.flags, isWrite, hasHardwareLock, checkedAddress)) {
+    DataSharingType dataSharingType = eUnknown;
+    auto shouldCheckAccess = shouldCheckMemoryAccess(threadInfo, taskMemoryInfo, checkedAddress, taskInfo.taskFrame, dataSharingType);
+    auto accessHistory = shadowMemory.getShadowMemorySlot(checkedAddress);
+    setMemoryOwner(accessHistory, dataSharingType, static_cast<void*>(currentTaskData), reinterpret_cast<void*>(checkedAddress));
+    if (shouldCheckAccess) {
+      if (checkDataRace(accessHistory, curLabel, curLockSet, instnAddr, static_cast<void*>(currentTaskData), taskInfo.flags, isWrite, hasHardwareLock, checkedAddress, dataSharingType, isTLSAccess)){
         return;
       }
     }

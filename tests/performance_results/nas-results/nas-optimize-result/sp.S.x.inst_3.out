@@ -1,0 +1,83 @@
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0421 15:05:10.764851 39300 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/NPB3.4.2/NPB3.4-OMP/bin/sp.S.x.inst
+I0421 15:05:10.768427 39300 Initialize.h:51] start initializing ompt
+I0421 15:05:10.768455 39300 Initialize.h:89] ompt intialized
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+I0421 15:05:34.233652 39300 Initialize.h:94] finalizing ompt
+I0421 15:05:34.233690 39300 Initialize.h:96] data race found:
+
+
+ NAS Parallel Benchmarks (NPB3.4-OMP) - SP Benchmark
+
+ No input file inputsp.data. Using compiled defaults
+ Size:   12x  12x  12
+ Iterations:  100    dt:    0.0150000
+ Number of available threads:    72
+
+ Time step    1
+ Time step   20
+ Time step   40
+ Time step   60
+ Time step   80
+ Time step  100
+ Verification being performed for class S
+ accuracy setting for epsilon =  0.1000000000000E-07
+ Comparison of RMS-norms of residual
+ FAILURE:  1                 NaN 0.2747031545134E-01                 NaN
+ FAILURE:  2                 NaN 0.1036074670529E-01                 NaN
+ FAILURE:  3                 NaN 0.1623574506510E-01                 NaN
+ FAILURE:  4                 NaN 0.1584055722446E-01                 NaN
+ FAILURE:  5                 NaN 0.3484904060936E-01                 NaN
+ Comparison of RMS-norms of solution error
+ FAILURE:  1                 NaN 0.2728925855738E-04                 NaN
+ FAILURE:  2                 NaN 0.1036444664084E-04                 NaN
+ FAILURE:  3                 NaN 0.1615479828717E-04                 NaN
+ FAILURE:  4                 NaN 0.1575070499448E-04                 NaN
+ FAILURE:  5                 NaN 0.3417766618339E-04                 NaN
+ Verification failed
+
+
+ SP Benchmark Completed.
+ Class           =                        S
+ Size            =             12x  12x  12
+ Iterations      =                      100
+ Time in seconds =                    22.46
+ Total threads   =                       72
+ Avail threads   =                       72
+ Mop/s total     =                     4.30
+ Mop/s/thread    =                     0.06
+ Operation type  =           floating point
+ Verification    =             UNSUCCESSFUL
+ Version         =                    3.4.2
+ Compile date    =              21 Apr 2022
+
+ Compile options:
+    FC           = gfortran
+    FLINK        = $(FC)
+    F_LIB        = (none)
+    F_INC        = (none)
+    FFLAGS       = -O3 -fopenmp
+    FLINKFLAGS   = $(FFLAGS)
+    RAND         = (none)
+
+
+ Please send all errors/feedbacks to:
+
+ NPB Development Team
+ npb@nas.nasa.gov
+
+
+Memory Usage: 1362484 Time: 0:23.53

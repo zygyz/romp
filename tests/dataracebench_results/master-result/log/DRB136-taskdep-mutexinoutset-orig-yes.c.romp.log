@@ -1,0 +1,44 @@
+*****     Log 1 for DRB136-taskdep-mutexinoutset-orig-yes.c with 8 threads and input size      *****
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0412 08:09:56.211026 15805 RompLib.cpp:126] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB136-taskdep-mutexinoutset-orig-yes.c.romp.out.inst
+I0412 08:09:56.213773 15805 Initialize.h:51] start initializing ompt
+I0412 08:09:56.213800 15805 Initialize.h:89] ompt intialized
+I0412 08:09:56.221882 15805 Initialize.h:94] finalizing ompt
+I0412 08:09:56.221906 15805 Initialize.h:96] data race found:
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+6
+*****     Log 2 for DRB136-taskdep-mutexinoutset-orig-yes.c with 8 threads and input size      *****
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0412 08:09:56.256053 15823 RompLib.cpp:126] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB136-taskdep-mutexinoutset-orig-yes.c.romp.out.inst
+I0412 08:09:56.258647 15823 Initialize.h:51] start initializing ompt
+I0412 08:09:56.258675 15823 Initialize.h:89] ompt intialized
+I0412 08:09:56.265781 15823 Initialize.h:94] finalizing ompt
+I0412 08:09:56.265800 15823 Initialize.h:96] data race found:
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+6

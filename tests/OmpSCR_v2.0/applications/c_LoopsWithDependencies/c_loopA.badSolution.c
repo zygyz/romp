@@ -122,7 +122,7 @@ OSCR_timer_start(0);
 for(iter=0; iter<numiter; iter++) {
 
 	/* 3.1. PROCESS ELEMENTS */
-#pragma omp parallel for default(none) shared(V,totalSize) private(i) schedule(static)
+#pragma omp parallel for default(none) shared(V,totalSize) private(i) schedule(dynamic, 1)
 	for (i=0; i<totalSize-1; i++) {
 		V[i] = f(V[i],V[i+1]);
 		}

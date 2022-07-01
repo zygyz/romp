@@ -23,29 +23,13 @@ bool shouldCheckMemoryAccess(const ThreadInfo& threadInfo,
                              const TaskMemoryInfo& taskMemoryInfo,
                              const TaskInfo& taskInfo,
                              const uint64_t memoryAddress,
-                             const bool isWrite) {
-  if (isDuplicateMemoryAccess(memoryAddress, taskInfo, isWrite)) {
+                             const ompt_frame_t* taskFrame,
+                             DataSharingType& dataSharingType) {
+  if (isDuplicateMemoryAccess(memoryAddress, taskIdfo, isWrite)) {
     return false;
   }
-  const auto dataSharingType = analyzeDataSharingType(threadInfo, taskMemoryInfo, memoryAddress, taskInfo.taskFrame);
-  switch(dataSharingType) {
-    case eNonThreadPrivate:
-    case eThreadPrivateAccessOtherTask:
-    case eThreadMetaDataNotSet: 
-    case eTaskExitFrameNotSet:
-    case eUndefined:
-      RAW_DLOG(INFO,  "should check memory address, data sharing type: %d, memory address: %lx", dataSharingType, memoryAddress);
-      return true;
-    case eThreadPrivateAccessCurrentTask:
-    case eTaskPrivate:
-    case eNonWorkerThread:
-    case eOmpRuntime:
-    case eInitialThread:
-      RAW_DLOG(INFO,  "should not check memory address, data sharing type: %d, memory address: %lx", dataSharingType, memoryAddress);
-      return false; 
-  }
-  RAW_LOG(FATAL, "unexpected data sharing type: %d", dataSharingType);
-  return true;
+  dataSharingType = analyzeDataSharingType(threadInfo, taskMemoryInfo, memoryAddress, taskFrame);
+  return dataSharingType != eNonWorkerThread && dataSharingType != eInitialThread;
 }
 
 bool isDuplicateMemoryAccess(const uint64_t memoryAddress, const TaskInfo& taskInfo, bool isWrite) {
@@ -68,10 +52,10 @@ DataSharingType analyzeDataSharingType(const ThreadInfo& threadInfo,
     return eNonWorkerThread;
   }
   if (threadInfo.threadType == ompt_thread_initial) {
-    return eInitialThread;
+    return eInitialThread; // we don't check memory accesses performed by initial thread 
   }
   if (!taskFrame || taskFrame->exit_frame.ptr == nullptr) {
-    return eTaskExitFrameNotSet;
+    return eUnknown;
   } 
 
   const auto threadData = threadInfo.threadData;
@@ -79,106 +63,38 @@ DataSharingType analyzeDataSharingType(const ThreadInfo& threadInfo,
       threadData->stackBaseAddress == nullptr || 
       threadData->stackTopAddress == nullptr) {
     // memory access is checked when thread has not called the thread begin callback yet.
-    return eThreadMetaDataNotSet;  
+    return eUnknown;  
   }
-
   if (memoryAddress > reinterpret_cast<const uint64_t>(threadData->stackTopAddress) ||
       memoryAddress < reinterpret_cast<const uint64_t>(threadData->stackBaseAddress)) {
-    // memory address does not fall in current thread stack range, must not be thread private access.
+    // memory address does not fall in current thread stack range 
+    if (taskMemoryInfo.blockAddress != nullptr) {
+      // check if the memory access is explicit task private 
+      const auto taskPrivateMemoryBaseAddress = reinterpret_cast<const uint64_t>(taskMemoryInfo.blockAddress);
+      const auto taskPrivateMemorySize = reinterpret_cast<const uint64_t>(taskMemoryInfo.blockSize);
+      if (memoryAddress >= taskPrivateMemoryBaseAddress && memoryAddress <= taskPrivateMemoryBaseAddress + taskPrivateMemorySize) {
+        // filter explicit task private memory locations. Memory accesses to these locations should be exclusive to the task. 
+        return eExplicitTaskPrivate;
+      }
+    }
     return eNonThreadPrivate;
   }
-  // now the memory access is within current thread's stack range.
-  const auto enterFrame = taskFrame->enter_frame;
-  const auto enterFrameFlags = taskFrame->enter_frame_flags;
-  const auto exitFrame = taskFrame->exit_frame;
-  const auto exitFrameFlags = taskFrame->exit_frame_flags;
-  // note: definition of exit_frame and enter_frame from OpenMP spec doc.
-  // The exit_frame field of an ompt_frame_t object contains information to identify the first procedure 
-  // frame executing the task region.   
-  // The enter_frame field of an ompt_frame_t object contains information to identify the latest still active 
-  // procedure frame executing the task region before entering the OpenMP runtime implementation or before 
-  // executing a different task.
-  // enter_frame_flags field indicates that the provided frame information points to a runtime or an application frame address. 
-  // The same fields also specify the kind of information that is provided to identify the frame, These fields are a disjunction of values in the ompt_frame_flag_t enumeration type
-  if (exitFrame.ptr && exitFrameFlags == (ompt_frame_application | ompt_frame_framepointer) && 
-      memoryAddress > reinterpret_cast<const uint64_t>(exitFrame.ptr)) {
-    // memory address is above the first procedure frame executing current task region. 
-    return eThreadPrivateAccessOtherTask; 
-  }
-  if (enterFrame.ptr && enterFrameFlags == (ompt_frame_application | ompt_frame_framepointer)  && 
-      memoryAddress == reinterpret_cast<const uint64_t>(enterFrame.ptr)) {
-    // we don't know how large the stack frame for enterFrame is. We can only use the frame base address.
-    return eThreadPrivateAccessCurrentTask; 
-  }
-  if (taskMemoryInfo.blockAddress != nullptr) {
-    const auto taskPrivateMemoryBaseAddress = reinterpret_cast<const uint64_t>(taskMemoryInfo.blockAddress);
-    const auto taskPrivateMemorySize = reinterpret_cast<const uint64_t>(taskMemoryInfo.blockSize);
-    if (memoryAddress >= taskPrivateMemoryBaseAddress && memoryAddress <= taskPrivateMemoryBaseAddress + taskPrivateMemorySize) {
-      // filter explicit task private memory locations. Memory accesses to these locations should be exclusive to the task. 
-      return eTaskPrivate;
-    }
-  }
-  return eUndefined;  
-}
-
-/*
- * This function is responsible for marking memory ranges in 
- * [lowerBound, upperBound] to be deallocated.
- */
-void recycleMemRange(void* lowerBound, void* upperBound) {
-  if (upperBound < lowerBound) {
-    RAW_LOG(WARNING, "upper bound is smaller than lower bound: %lx %lx, abort recycling", 
-            upperBound, lowerBound);
-    return;
-  }
-  auto start = reinterpret_cast<uint64_t>(lowerBound);
-  auto end = reinterpret_cast<uint64_t>(upperBound);
-  ShadowMemory<AccessHistory> shadowMemory;
-  for (auto addr = start; addr <= end; addr++) {
-    auto accessHistory = shadowMemory.getShadowMemorySlot(addr);
-    pfq_rwlock_node_t node;
-    pfq_rwlock_write_lock(&(accessHistory->getLock()), &node);   
-    accessHistory->setFlag(eMemoryRecycled);
-    pfq_rwlock_write_unlock(&(accessHistory->getLock()), &node);
-  }
-}
-
-/*
- * This function is called when an explicit task is completed. This function 
- * looks up the task private thread stack memory locations and marks these 
- * locations as deallocated. The lower bound is the base of thread stack.
- */
-void recycleTaskThreadStackMemory(void* taskData) {
-  auto taskDataPtr = static_cast<TaskData*>(taskData);
-  auto exitFrameAddr = taskDataPtr->exitFrame;
-  ThreadInfo threadInfo; 
-  if (!queryOmpThreadInfo(threadInfo)) {
-    return;
-  }
-  auto threadData = threadInfo.threadData;
-  if (threadData == nullptr) {
-    RAW_LOG(FATAL, "cannot get thread data");
-    return;
-  }
-  auto threadInfoPtr = static_cast<ThreadData*>(threadData);
-  auto threadStackBase = threadInfoPtr->stackBaseAddress; 
-  auto lowerBound = threadStackBase; 
-  auto upperBound = exitFrameAddr;
-  recycleMemRange(lowerBound, upperBound);
-}
-
-/*
- * This function is called when an explicit task is completed or is switched
- * out for other tasks. This function looks up the private memory allocated 
- * for the explicit task on heap, marks these memory location as deallocated.
- */
-void recycleTaskPrivateMemory() {
-  void* taskPrivateDataBase = nullptr;
-  size_t taskPrivateDataSize = 0;
-  if (!queryTaskMemoryInfo(&taskPrivateDataBase, &taskPrivateDataSize)) {
-    return;
-  }
-  auto taskPrivateDataEnd = computeAddressRangeEnd(taskPrivateDataBase, 
-          taskPrivateDataSize);
-  recycleMemRange(taskPrivateDataBase, taskPrivateDataEnd);
+  // now the memory access is within current thread's stack range. We want to figure out if the memory access is task private.
+  auto enterFrame = taskFrame->enter_frame;
+  auto exitFrame = taskFrame->exit_frame;
+  // exitFrame.ptr is the upper bound of the current task's scratch space. 
+  // enterFrame.ptr is set if current task creates children explicit tasks, if it is not set, enterFrame.ptr = 0
+  if (enterFrame.ptr > exitFrame.ptr) {
+    // enter frame is higher than exit frame  
+    if (memoryAddress <= reinterpret_cast<const uint64_t>(exitFrame.ptr)) {
+      return eThreadPrivateAccessCurrentTask;
+    }  else {
+      return eThreadPrivateAccessOtherTask; 
+    } 
+  } else if (memoryAddress <= reinterpret_cast<const uint64_t>(exitFrame.ptr) && memoryAddress >= reinterpret_cast<const uint64_t>(enterFrame.ptr)) {
+    return eThreadPrivateAccessCurrentTask;
+  } else {
+    return eThreadPrivateAccessOtherTask;
+  } 
+  return eUnknown;  
 }

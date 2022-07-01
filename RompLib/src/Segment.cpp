@@ -5,43 +5,49 @@
 #include <glog/raw_logging.h>
 #include <sstream>
 
-#define SEG_TYPE_MASK        0x0000000000000003
-#define OFFSET_MASK          0xffff000000000000
-#define SPAN_MASK            0x0000ffff00000000
-#define TASKWAIT_MASK        0xffffffff0fffffff
-#define PHASE_MASK           0x000000000f000000
-#define LOOP_CNT_MASK        0x0000000000f00000
-#define TASK_CREATE_MASK     0x00000000000fff80
-#define TASKWAIT_SYNC_MASK   0x0000000000000008
-#define TASKGROUP_SYNC_MASK  0x0000000000000010
+// mask bits are set to 1 if they represent the corresponding field location
+#define SEGMENT_TYPE_MASK 0x0000000000000003
+#define WORK_SHARE_PLACEHOLDER_MASK 0x0000000000000004
+#define TASKWAIT_SYNC_MASK 0x0000000000000008
+#define TASKGROUP_SYNC_MASK 0x0000000000000010
+#define SINGLE_MASK 0x0000000000000060
+#define TASK_CREATE_MASK 0x00000000000fff80
+#define LOOP_COUNT_MASK 0x0000000fff000000
+#define PHASE_MASK 0x000000f000000000
+#define TASKWAIT_MASK 0x00000f0000000000
+#define SPAN_MASK 0x003ff00000000000
+#define OFFSET_MASK 0xffc0000000000000
+
+//TODO: revisit the taskgroup handling
 #define TASKGROUP_ID_MASK    0x00000000ffff0000
 #define TASKGROUP_LEVEL_MASK 0x000000000000ffff
 #define TASKGROUP_PHASE_MASK 0x00000000ffff0000
 #define TASKWAIT_PHASE_MASK  0x000000000000ffff
-#define SINGLE_MASK          0x0000000000000030
-#define WORK_SHARE_PLACEHOLDER_MASK 0xfffffffffffffffb
 
 #define WORK_SHARE_TYPE_MASK 0xc000000000000000
-#define OFFSET_SPAN_WIDTH 16
+#define OFFSET_SPAN_WIDTH 10
 
-#define OFFSET_SHIFT 48
-#define SPAN_SHIFT 32
-#define TASKWAIT_SHIFT 28
-#define PHASE_SHIFT 24
-#define LOOP_CNT_SHIFT 20
+#define OFFSET_SHIFT 54
+#define SPAN_SHIFT 44
+#define TASKWAIT_SHIFT 40
+#define PHASE_SHIFT 36
+#define LOOP_COUNT_SHIFT 24
 #define TASK_CREATE_SHIFT 7
-#define WORK_SHARE_PLACE_HOLDER_SHIFT 2 
+#define WORK_SHARE_PLACEHOLDER_SHIFT 2 
 #define SINGLE_EXECUTOR_SHIFT 5
 #define SINGLE_OTHER_SHIFT 6
 #define WORK_SHARE_TYPE_SHIFT 62
 
+#define LOOP_COUNT_MASK_BITS 12
+
 /*
  * Each segment contains a 64 bit value. From low to high, assign index 0-63
- * [48, 63]: offset 
- * [32, 47]: span 
- * [28, 31]: taskwait count
- * [24, 27]: phase count
- * [20, 23]: loop count
+ * [54, 63]: offset 
+ * [44, 53]: span 
+ * [40, 43]: taskwait count
+ * [36, 39]: phase count
+ * [24, 35]: loop count 
+ * [20, 23]: undeferred explicit task count
  * [7, 19]: task create count
  * [5, 6]: bit 5 set: is single executable; bit 6 set: is single other
  * [4]: mark if current task sync by taskgroup with its parent task
@@ -49,106 +55,132 @@
  * [2]: mark work share placeholder bit 
  * [0,1]: segment type 
  *
- * For workshare segment, we use the extra m_workShareId to store information
+ * For workshare segment, we use the extra mWorkShareID to store information
  * [0,31]: work share id 
  * [62,63]: work share type: 00: iteartion 01: section, 
  */
 std::string BaseSegment::toString() const {
   std::stringstream stream;
-  if (m_taskGroup == 0) {
-    stream << std::hex << std::setw(16) << std::setfill('0') << m_value;
-  } else if (m_orderSecVal == 0) {
-    stream << std::hex << std::setw(16) << std::setfill('0') << m_value << 
-     std::setfill('0') << ",tg:" << std::hex << m_taskGroup;
+  if (mTaskGroup == 0) {
+    stream << std::hex << std::setw(16) << std::setfill('0') << mValue;
+  } else if (mOrderSecVal == 0) {
+    stream << std::hex << std::setw(16) << std::setfill('0') << mValue << 
+     std::setfill('0') << ",tg:" << std::hex << mTaskGroup;
   } else {
-    stream << std::hex << std::setw(16) << std::setfill('0') << m_value << 
-    std::setfill('0') << ",tg:" << m_taskGroup << ",osv:" << 
-    m_orderSecVal;
+    stream << std::hex << std::setw(16) << std::setfill('0') << mValue << 
+    std::setfill('0') << ",tg:" << mTaskGroup << ",osv:" << 
+    mOrderSecVal;
   }
   return "[" + stream.str() + "]";
 }
 
-BaseSegment::BaseSegment(SegmentType type, uint64_t offset, 
-        uint64_t span) {
+std::string BaseSegment::toFieldsBreakdown() const {
+  std::stringstream stream;
+  uint64_t offset, span;
+  getOffsetSpan(offset, span);
+  stream << "offset: " << offset << " span: " << span;
+  if (isTaskwaited()) {
+    stream << " taskwaited";
+  }
+  if (isSingleExecutor()) {
+    stream << " single executor"; 
+  }
+  if (isSingleOther()) {
+    stream << " single other";
+  }
+  if (isTaskGroupSync()) { 
+    stream << " task group sync";
+  } 
+  stream << " loop count: " << getLoopCount();
+  stream << " task create count: " << getTaskcreate();
+  stream << " task wait: " << getTaskwait();
+  auto segmentType = getType();
+  switch(segmentType) {
+    case eImplicit:
+      stream << " type: imp";
+      break;
+    case eExplicit:
+      stream << " type: exp";
+      break;
+    case eLogical:
+      stream << " type: logi";
+      break;
+  } 
+  return "[" + stream.str() + "]";
+}
+
+BaseSegment::BaseSegment(SegmentType type, uint64_t offset, uint64_t span) {
   RAW_CHECK(span < (1 << OFFSET_SPAN_WIDTH), "span is overflowing");
-  m_value = 0;
-  m_taskGroup = 0;
-  m_orderSecVal = 0;
+  mValue = 0;
+  mTaskGroup = 0;
+  mOrderSecVal = 0;
   setType(type);
   setOffsetSpan(offset, span);
 }
 
-std::shared_ptr<Segment> BaseSegment::clone() const {
+std::shared_ptr<BaseSegment> BaseSegment::clone() const {
   return std::make_shared<BaseSegment>(*this);
 }
 
 uint64_t BaseSegment::getValue() const {
-  return m_value;
+  return mValue;
 }
 
 void BaseSegment::setOffsetSpan(uint64_t offset, uint64_t span) {
-  m_value &= ~(OFFSET_MASK | SPAN_MASK);  // clear the offset, span field
-  m_value |= (offset << OFFSET_SHIFT) & OFFSET_MASK; 
-  m_value |= (span << SPAN_SHIFT) & SPAN_MASK; 
+  mValue &= ~(OFFSET_MASK | SPAN_MASK);  // clear the offset, span field
+  mValue |= (offset << OFFSET_SHIFT) & OFFSET_MASK; 
+  mValue |= (span << SPAN_SHIFT) & SPAN_MASK; 
 }
 
 void BaseSegment::getOffsetSpan(uint64_t& offset, uint64_t& span) const {
-  offset = (m_value & OFFSET_MASK) >> OFFSET_SHIFT;
-  span = (m_value & SPAN_MASK) >> SPAN_SHIFT;
+  offset = (mValue & OFFSET_MASK) >> OFFSET_SHIFT;
+  span = (mValue & SPAN_MASK) >> SPAN_SHIFT;
 }
 
 /* 
  * Taskgroup id increases monotonically. It is at the upper half of the
- * 32 bits m_taskGroup value
+ * 32 bits mTaskGroup value
  */
 uint16_t BaseSegment::getTaskGroupId() const {
-  return static_cast<uint16_t>(m_taskGroup >> 16);
+  return static_cast<uint16_t>(mTaskGroup >> 16);
 }
                                    
 void BaseSegment::setTaskGroupId(uint16_t taskGroupId) {
-  m_taskGroup = static_cast<uint32_t>(
-          static_cast<uint64_t>(m_taskGroup) & ~TASKGROUP_ID_MASK);
-  m_taskGroup |= static_cast<uint32_t>(
-          (static_cast<uint64_t>(taskGroupId) << 16) & TASKGROUP_ID_MASK);
+  mTaskGroup = static_cast<uint32_t>(static_cast<uint64_t>(mTaskGroup) & ~TASKGROUP_ID_MASK);
+  mTaskGroup |= static_cast<uint32_t>((static_cast<uint64_t>(taskGroupId) << 16) & TASKGROUP_ID_MASK);
 }
 
 /*
  * Upon encountering the end of taskgroup, the task informs its direct children
  * to record the ordered section phase. This is for reasoning about the 
  * happens-before relation when ordered section is involed. Store the phase at 
- * the upper half of the 32 bit m_orderSecVal.
+ * the upper half of the 32 bit mOrderSecVal.
  */
 void BaseSegment::setTaskGroupPhase(uint16_t phase) {
-  m_orderSecVal = static_cast<uint32_t>(
-         static_cast<uint64_t>(m_orderSecVal) & TASKGROUP_PHASE_MASK); 
-  m_orderSecVal |= static_cast<uint32_t>(
-          (static_cast<uint64_t>(phase) << 16) & TASKGROUP_PHASE_MASK);
+  mOrderSecVal = static_cast<uint32_t>(static_cast<uint64_t>(mOrderSecVal) & TASKGROUP_PHASE_MASK); 
+  mOrderSecVal |= static_cast<uint32_t>((static_cast<uint64_t>(phase) << 16) & TASKGROUP_PHASE_MASK);
 }
 
 /*
  * Upon encountering the takwait, the task informs its direct children to record 
  * the ordered section phase. Store the phase at the lower half of the 32 bit
- * m_orderSecVal.
+ * mOrderSecVal.
  */
 void BaseSegment::setTaskwaitPhase(uint16_t phase) {
-  m_orderSecVal = static_cast<uint32_t>(
-          static_cast<uint64_t>(m_orderSecVal) & TASKWAIT_PHASE_MASK);
-  m_orderSecVal |= static_cast<uint32_t>(
-          (static_cast<uint64_t>(phase) & TASKWAIT_PHASE_MASK));
+  mOrderSecVal = static_cast<uint32_t>(static_cast<uint64_t>(mOrderSecVal) & TASKWAIT_PHASE_MASK);
+  mOrderSecVal |= static_cast<uint32_t>((static_cast<uint64_t>(phase) & TASKWAIT_PHASE_MASK));
 }
 
 uint16_t BaseSegment::getTaskwaitPhase() const {
-  return static_cast<uint16_t>(
-      static_cast<uint64_t>(m_orderSecVal) & TASKWAIT_PHASE_MASK);
+  return static_cast<uint16_t>(static_cast<uint64_t>(mOrderSecVal) & TASKWAIT_PHASE_MASK);
 }
 
 /*
  * Taskgroup level marks the nested number of level of taskgorup. 
- * It is the lower 16 bits of the 32 bits long word m_taskGroup
+ * It is the lower 16 bits of the 32 bits long word mTaskGroup
  */
 uint16_t BaseSegment::getTaskGroupLevel() const {
-  return static_cast<uint16_t>(
-          static_cast<uint64_t>(m_taskGroup) & TASKGROUP_LEVEL_MASK); 
+  return static_cast<uint16_t>(static_cast<uint64_t>(mTaskGroup) & TASKGROUP_LEVEL_MASK); 
 }
 
 /*
@@ -156,109 +188,101 @@ uint16_t BaseSegment::getTaskGroupLevel() const {
  * as the task encounters the taskgroup start/end point.
  */
 uint16_t BaseSegment::getTaskGroupPhase() const {
-  return static_cast<uint16_t>((m_taskGroup & TASKGROUP_PHASE_MASK) >> 16);
+  return static_cast<uint16_t>((mTaskGroup & TASKGROUP_PHASE_MASK) >> 16);
 }
 
 void BaseSegment::setTaskwaited() {
-  m_value |= TASKWAIT_SYNC_MASK; 
+  mValue |= TASKWAIT_SYNC_MASK; 
 }
 
 bool BaseSegment::isTaskwaited() const {
-  return (m_value & TASKWAIT_SYNC_MASK) != 0;
+  return (mValue & TASKWAIT_SYNC_MASK) != 0;
 }
 
 bool BaseSegment::isSingleExecutor() const {
-  return (m_value & SINGLE_MASK) >>  SINGLE_EXECUTOR_SHIFT;
+  return (mValue & SINGLE_MASK) >>  SINGLE_EXECUTOR_SHIFT;
 }
 
 bool BaseSegment::isSingleOther() const {
-  return (m_value & SINGLE_MASK) >> SINGLE_OTHER_SHIFT;
+  return (mValue & SINGLE_MASK) >> SINGLE_OTHER_SHIFT;
 }
 
 void BaseSegment::toggleSingleExecutor() {
-  m_value ^= 1UL << SINGLE_EXECUTOR_SHIFT;   
+  mValue ^= 1UL << SINGLE_EXECUTOR_SHIFT;   
 }
 
 void BaseSegment::toggleSingleOther() {
-  m_value ^= 1UL << SINGLE_OTHER_SHIFT;
+  mValue ^= 1UL << SINGLE_OTHER_SHIFT;
 }
 
 void BaseSegment::setTaskGroupSync() { 
-  m_value |= TASKGROUP_SYNC_MASK;
+  mValue |= TASKGROUP_SYNC_MASK;
 }
 
 bool BaseSegment::isTaskGroupSync() const {
-  return (m_value & TASKGROUP_SYNC_MASK) != 0;
+  return (mValue & TASKGROUP_SYNC_MASK) != 0;
 }
 
 void BaseSegment::setTaskGroupLevel(uint16_t taskGroupLevel) {
-  m_taskGroup = static_cast<uint32_t>(
-          static_cast<uint64_t>(m_taskGroup) & ~TASKGROUP_LEVEL_MASK);
-  m_taskGroup |= static_cast<uint32_t>(
-          static_cast<uint64_t>(taskGroupLevel) & TASKGROUP_LEVEL_MASK);
+  mTaskGroup = static_cast<uint32_t>(static_cast<uint64_t>(mTaskGroup) & ~TASKGROUP_LEVEL_MASK);
+  mTaskGroup |= static_cast<uint32_t>(static_cast<uint64_t>(taskGroupLevel) & TASKGROUP_LEVEL_MASK);
 }
 
 bool BaseSegment::operator==(const Segment& segment) const {
-  return m_value == dynamic_cast<const BaseSegment&>(segment).m_value;
+  return mValue == dynamic_cast<const BaseSegment&>(segment).mValue;
 }
 
 bool BaseSegment::operator!=(const Segment& segment) const {
   return !(*this == segment);
 }
-/*
- * Taskwait field is four bits. So if taskwait is more than 16, it overflows.
- */
+
 void BaseSegment::setTaskwait(uint64_t taskwait) {
-  RAW_CHECK(taskwait < 16, "taskwait count is overflowing");
-  m_value &= TASKWAIT_MASK; // clear the taskwait field
-  m_value |= (taskwait << TASKWAIT_SHIFT) & ~TASKWAIT_MASK;
+  RAW_CHECK(taskwait < (1 << 4), "taskwait count is overflowing");
+  mValue &= ~TASKWAIT_MASK; // clear the taskwait field 
+  mValue |= (taskwait << TASKWAIT_SHIFT) & TASKWAIT_MASK;
 }
 
 uint64_t BaseSegment::getTaskwait() const {
-  uint64_t taskwait = (m_value & ~TASKWAIT_MASK) >> TASKWAIT_SHIFT;
+  uint64_t taskwait = (mValue & TASKWAIT_MASK) >> TASKWAIT_SHIFT;
   return taskwait;
 }
 
-void BaseSegment::setTaskcreate(uint64_t taskcreate) { 
-  RAW_CHECK(taskcreate < (1 << 15), "taskcreate count is overflowing");
-  m_value &= ~TASK_CREATE_MASK;
-  m_value |= (taskcreate << TASK_CREATE_SHIFT) & TASK_CREATE_MASK;
+void BaseSegment::setTaskCreateCount(uint64_t taskcreate) { 
+  RAW_CHECK(taskcreate < (1 << 13), "taskcreate count is overflowing");
+  mValue &= ~TASK_CREATE_MASK;
+  mValue |= (taskcreate << TASK_CREATE_SHIFT) & TASK_CREATE_MASK;
 }
 
 uint64_t BaseSegment::getTaskcreate() const {
-  uint64_t taskcreate = (m_value & TASK_CREATE_MASK) >> TASK_CREATE_SHIFT;
-  return taskcreate;
+  return static_cast<uint64_t>((mValue & TASK_CREATE_MASK) >> TASK_CREATE_SHIFT);
 }
 
 void BaseSegment::setPhase(uint64_t phase) {
   RAW_CHECK(phase < 16, "phase count is overflowing");
-  m_value &= ~PHASE_MASK;
-  m_value |= (phase << PHASE_SHIFT) & PHASE_MASK;
-
+  mValue &= ~PHASE_MASK;
+  mValue |= (phase << PHASE_SHIFT) & PHASE_MASK;
 }
 
 uint64_t BaseSegment::getPhase() const {
-  uint64_t phase = (m_value & PHASE_MASK) >> PHASE_SHIFT;
-  return phase;
+  return static_cast<uint64_t>((mValue & PHASE_MASK) >> PHASE_SHIFT);
 }
 
 void BaseSegment::setLoopCount(uint64_t loopCount) {
-  RAW_CHECK(loopCount < 16, "loop count is overflowing");
-  m_value &= ~LOOP_CNT_MASK;
-  m_value |= (loopCount << LOOP_CNT_SHIFT) & LOOP_CNT_MASK;
+  RAW_CHECK(loopCount < (1 << LOOP_COUNT_MASK_BITS), "loop count is overflowing");
+  mValue &= ~LOOP_COUNT_MASK;
+  mValue |= (loopCount << LOOP_COUNT_SHIFT) & LOOP_COUNT_MASK;
 }
 
 uint64_t BaseSegment::getLoopCount() const {
-  uint64_t loopCount = (m_value & LOOP_CNT_MASK) >> LOOP_CNT_SHIFT;
-  return loopCount;
+  return static_cast<uint64_t>((mValue & LOOP_COUNT_MASK) >> LOOP_COUNT_SHIFT);
 }
 
 void BaseSegment::setType(SegmentType type) {
-  m_value |= static_cast<uint64_t>(type);
+  mValue |= static_cast<uint64_t>(type);
 }
 
 SegmentType BaseSegment::getType() const {
-  auto mask = m_value & SEG_TYPE_MASK;
+  auto mask = mValue & SEGMENT_TYPE_MASK;
   switch(mask) {
     case 0x1:
       return eImplicit;
@@ -274,29 +298,39 @@ SegmentType BaseSegment::getType() const {
 std::string WorkShareSegment::toString() const {
   std::stringstream stream;
   auto baseResult = BaseSegment::toString();
-  stream << "ws:" << std::hex << std::setw(16) << std::setfill('0') << 
-      m_workShareId;
+  stream << "worksharing:" << std::hex << std::setw(16) << std::setfill('0') << mWorkShareID;
   auto result = "[" + baseResult + stream.str() + "]";
   return result;
 }
 
-std::shared_ptr<Segment> WorkShareSegment::clone() const {
+std::string WorkShareSegment::toFieldsBreakdown() const {
+  std::stringstream stream;
+  auto baseResult = BaseSegment::toFieldsBreakdown();
+  if (isWorkSharePlaceHolder()) {
+    stream << " is workshare placeholder";
+  }
+  stream << " workshare type: " << getWorkShareType() << " work share id: " << getWorkShareId();
+  stream << "ws:" << std::hex << std::setw(16) << std::setfill('0') << mWorkShareID;
+  auto result = "[" + baseResult + stream.str() + "]";
+  return result;
+}
+
+std::shared_ptr<BaseSegment> WorkShareSegment::clone() const {
   return std::make_shared<WorkShareSegment>(*this);
 }
 
 void WorkShareSegment::toggleWorkSharePlaceHolderFlag() {
-  m_value ^= 1UL << WORK_SHARE_PLACE_HOLDER_SHIFT;   
+  mValue ^= 1UL << WORK_SHARE_PLACEHOLDER_SHIFT;   
 }
 
 bool WorkShareSegment::isWorkSharePlaceHolder() const {
-  return (m_value & WORK_SHARE_PLACEHOLDER_MASK) >>  WORK_SHARE_PLACE_HOLDER_SHIFT;
+  return (mValue & WORK_SHARE_PLACEHOLDER_MASK) >>  WORK_SHARE_PLACEHOLDER_SHIFT;
 }
 
 bool WorkShareSegment::operator==(const Segment& segment) const {
-  if (m_value == dynamic_cast<const BaseSegment&>(segment).getValue()) {
+  if (mValue == dynamic_cast<const BaseSegment&>(segment).getValue()) {
     // we know `segment` is also a workshare segment
-    return m_workShareId == 
-        dynamic_cast<const WorkShareSegment&>(segment).m_workShareId;
+    return mWorkShareID == dynamic_cast<const WorkShareSegment&>(segment).mWorkShareID;
   } 
   return false;
 }
@@ -306,14 +340,60 @@ bool WorkShareSegment::operator!=(const Segment& segment) const {
 }
 
 uint64_t WorkShareSegment::getWorkShareId() const {
-  return m_workShareId;
+  return mWorkShareID;
 }
 
 void WorkShareSegment::setWorkShareType(WorkShareType type) {
-   m_workShareId &= ~WORK_SHARE_TYPE_MASK; // clear work share type 
-   m_workShareId |= (static_cast<uint64_t>(type) << WORK_SHARE_TYPE_SHIFT); 
+   mWorkShareID &= ~WORK_SHARE_TYPE_MASK; // clear work share type 
+   mWorkShareID |= (static_cast<uint64_t>(type) << WORK_SHARE_TYPE_SHIFT); 
 }
 
 WorkShareType WorkShareSegment::getWorkShareType() const {
-  return static_cast<WorkShareType>((m_workShareId & static_cast<uint64_t>(WORK_SHARE_TYPE_MASK)) >> WORK_SHARE_TYPE_SHIFT);
+  return static_cast<WorkShareType>((mWorkShareID & static_cast<uint64_t>(WORK_SHARE_TYPE_MASK)) >> WORK_SHARE_TYPE_SHIFT);
+}
+
+void WorkShareSegment::initialize() {
+  setType(eLogical);
+  setOffsetSpan(0, 1);
+}
+
+void ExplicitTaskSegment::initialize() {
+  setType(eExplicit); 
+  setOffsetSpan(0, 1);
+}
+
+void* ExplicitTaskSegment::getTaskPtr() const {
+  return mTaskDataPtr;
+}
+
+std::string ExplicitTaskSegment::toString() const {
+  std::stringstream stream;
+  auto baseResult = BaseSegment::toString();
+  stream << "explicit task data ptr:" << std::hex << std::setw(16) << std::setfill('0') << mTaskDataPtr;
+  auto result = "[" + baseResult + stream.str() + "]";
+  return result;
+}
+
+std::shared_ptr<BaseSegment> ExplicitTaskSegment::clone() const {
+  return std::make_shared<ExplicitTaskSegment>(*this);
+}
+  
+std::string ExplicitTaskSegment::toFieldsBreakdown() const {
+  std::stringstream stream;
+  auto baseResult = BaseSegment::toFieldsBreakdown();
+  stream << "explicit task data ptr:" << std::hex << std::setw(16) << std::setfill('0') << mTaskDataPtr << " | ";
+  auto result = "[" + baseResult + stream.str() + "]";
+  return result;
+}
+
+bool ExplicitTaskSegment::operator==(const Segment& segment) const {
+  if (mValue == dynamic_cast<const BaseSegment&>(segment).getValue()) {
+    // we know `segment` is also a workshare segment 
+    return mTaskDataPtr == dynamic_cast<const ExplicitTaskSegment&>(segment).mTaskDataPtr;
+  } 
+  return false;
+}
+
+bool ExplicitTaskSegment::operator!=(const Segment& segment) const {
+  return !(*this == segment);
 }

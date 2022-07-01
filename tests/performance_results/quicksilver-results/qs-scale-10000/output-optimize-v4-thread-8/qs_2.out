@@ -1,0 +1,111 @@
+Copyright (c) 2016
+Lawrence Livermore National Security, LLC
+All Rights Reserved
+Quicksilver Version     : 2020-Jul-2-17:30:57
+Quicksilver Git Hash    : 320d271cf68dafd92667cad08531a1caa744a834
+MPI Version             : 3.0
+Number of MPI ranks     : 1
+Number of OpenMP Threads: 8
+Number of OpenMP CPUs   : 72
+
+Simulation:
+   dt: 1e-08
+   fMax: 0.1
+   inputFile: 
+   energySpectrum: 
+   boundaryCondition: reflect
+   loadBalance: 0
+   cycleTimers: 0
+   debugThreads: 0
+   lx: 100
+   ly: 100
+   lz: 100
+   nParticles: 10000
+   batchSize: 0
+   nBatches: 10
+   nSteps: 10
+   nx: 10
+   ny: 10
+   nz: 10
+   seed: 1029384756
+   xDom: 0
+   yDom: 0
+   zDom: 0
+   eMax: 20
+   eMin: 1e-09
+   nGroups: 230
+   lowWeightCutoff: 0.001
+   bTally: 1
+   fTally: 1
+   cTally: 1
+   coralBenchmark: 0
+   crossSectionsOut:
+
+Geometry:
+   material: sourceMaterial
+   shape: brick
+   xMax: 100
+   xMin: 0
+   yMax: 100
+   yMin: 0
+   zMax: 100
+   zMin: 0
+
+Material:
+   name: sourceMaterial
+   mass: 1000
+   nIsotopes: 10
+   nReactions: 9
+   sourceRate: 1e+10
+   totalCrossSection: 1
+   absorptionCrossSection: flat
+   fissionCrossSection: flat
+   scatteringCrossSection: flat
+   absorptionCrossSectionRatio: 1
+   fissionCrossSectionRatio: 0.1
+   scatteringCrossSectionRatio: 1
+
+CrossSection:
+   name: flat
+   A: 0
+   B: 0
+   C: 0
+   D: 0
+   E: 1
+   nuBar: 2.4
+Building partition 0
+Building partition 1
+Building partition 2
+Building partition 3
+done building
+Building MC_Domain 0
+Building MC_Domain 1
+Building MC_Domain 2
+Building MC_Domain 3
+Starting Consistency Check
+Finished Consistency Check
+Finished initMesh
+cycle           start       source           rr        split       absorb      scatter      fission      produce      collisn       escape       census      num_seg   scalar_flux      cycleInit  cycleTracking  cycleFinalize
+       0            0         1000            0         9000        10799        10721         1098         2654        22618            0          757        26516  2.290527e+08   7.500000e-04   8.937000e-03   1.000000e-06
+       1          757         1000            0         8256        11030        10958         1060         2554        23048            0          477        27267  2.354922e+08   1.061000e-03   6.744000e-03   0.000000e+00
+       2          477         1000            0         8540        10706        10674         1064         2540        22444            0          787        26365  2.453440e+08   9.160000e-04   6.767000e-03   0.000000e+00
+       3          787         1000         1181         8207         9625         9441          919         2209        19985            0          478        23190  2.420439e+08   1.034000e-03   5.887000e-03   0.000000e+00
+       4          478         1000          467         8515        10406        10528         1024         2452        21958            0          548        25859  2.463373e+08   9.350000e-04   6.619000e-03   0.000000e+00
+       5          548         1000          206         8491        10865        10792         1083         2578        22740            0          463        26904  2.432193e+08   9.170000e-04   6.812000e-03   0.000000e+00
+       6          463         1000            7         8532        10906        11048         1075         2592        23029            0          599        27167  2.400559e+08   9.090000e-04   6.899000e-03   0.000000e+00
+       7          599         1000          559         8393        10406        10513         1033         2504        21952            0          498        25486  2.471677e+08   9.180000e-04   6.487000e-03   0.000000e+00
+       8          498         1000           53         8507        10891        11097         1128         2714        23116            0          647        27412  2.513174e+08   9.070000e-04   6.921000e-03   0.000000e+00
+       9          647         1000          905         8351         9871         9862          943         2254        20676            0          533        24001  2.386439e+08   9.730000e-04   6.126000e-03   0.000000e+00
+
+Timer                       Cumulative   Cumulative   Cumulative   Cumulative   Cumulative   Cumulative
+Name                            number    microSecs    microSecs    microSecs    microSecs   Efficiency
+                              of calls          min          avg          max       stddev       Rating
+main                                 1    8.167e+04    8.167e+04    8.167e+04    0.000e+00       100.00
+cycleInit                           10    9.320e+03    9.320e+03    9.320e+03    0.000e+00       100.00
+cycleTracking                       10    6.820e+04    6.820e+04    6.820e+04    0.000e+00       100.00
+cycleTracking_Kernel               708    6.637e+04    6.637e+04    6.637e+04    0.000e+00       100.00
+cycleTracking_MPI                  773    1.467e+03    1.467e+03    1.467e+03    0.000e+00       100.00
+cycleTracking_Test_Done              0    0.000e+00    0.000e+00    0.000e+00    0.000e+00         0.00
+cycleFinalize                       20    1.692e+03    1.692e+03    1.692e+03    0.000e+00       100.00
+Figure Of Merit              3.815e+06 [Num Segments / Cycle Tracking Time]
+Memory Usage: 15040 Time: 0:00.10

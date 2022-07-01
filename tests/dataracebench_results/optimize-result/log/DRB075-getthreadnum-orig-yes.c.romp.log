@@ -1,0 +1,56 @@
+*****     Log 1 for DRB075-getthreadnum-orig-yes.c with 8 threads and input size      *****
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0421 08:23:58.179468 48086 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB075-getthreadnum-orig-yes.c.romp.out.inst
+I0421 08:23:58.182597 48086 Initialize.h:51] start initializing ompt
+I0421 08:23:58.182626 48086 Initialize.h:89] ompt intialized
+I0421 08:23:58.194650 48086 Initialize.h:94] finalizing ompt
+I0421 08:23:58.194666 48086 Initialize.h:96] data race found:
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+numThreads=0
+numThreads=0
+numThreads=0
+numThreads=0
+numThreads=0
+numThreads=0
+numThreads=0
+*****     Log 2 for DRB075-getthreadnum-orig-yes.c with 8 threads and input size      *****
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0421 08:23:58.227977 48104 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/working-dir/test/dataracebench/results/exec/DRB075-getthreadnum-orig-yes.c.romp.out.inst
+I0421 08:23:58.230805 48104 Initialize.h:51] start initializing ompt
+I0421 08:23:58.230830 48104 Initialize.h:89] ompt intialized
+I0421 08:23:58.242564 48104 Initialize.h:94] finalizing ompt
+I0421 08:23:58.242580 48104 Initialize.h:96] data race found:
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+numThreads=0
+numThreads=0
+numThreads=0
+numThreads=0
+numThreads=0
+numThreads=0
+numThreads=8

@@ -1,0 +1,63 @@
+
+
+ NAS Parallel Benchmarks (NPB3.4-OMP) - CG Benchmark
+
+ Size:        1400
+ Iterations:                     15
+ Number of available threads:    72
+
+ Initialization time =           0.101 seconds
+
+   iteration           ||r||                 zeta
+        1       0.13833222955751E-12     9.9986441579140
+        2       0.21335520873499E-14     8.5733279203222
+        3       0.21355177108626E-14     8.5954510374058
+        4       0.18973716508312E-14     8.5969972340738
+        5       0.19022880517872E-14     8.5971549151767
+        6       0.19091884143144E-14     8.5971744311608
+        7       0.19146174357980E-14     8.5971770704913
+        8       0.19541649369904E-14     8.5971774440630
+        9       0.19618913299299E-14     8.5971774983942
+       10       0.18884137457096E-14     8.5971775064409
+       11       0.18825047030181E-14     8.5971775076486
+       12       0.19179540997298E-14     8.5971775078318
+       13       0.17921696361341E-14     8.5971775078598
+       14       0.18055802244616E-14     8.5971775078641
+       15       0.18859108868776E-14     8.5971775078648
+ Benchmark completed 
+ VERIFICATION SUCCESSFUL 
+ Zeta is     0.8597177507865E+01
+ Error is    0.1239725599088E-14
+
+
+ CG Benchmark Completed.
+ Class           =                        S
+ Size            =                     1400
+ Iterations      =                       15
+ Time in seconds =                     0.30
+ Total threads   =                       72
+ Avail threads   =                       72
+ Mop/s total     =                   225.48
+ Mop/s/thread    =                     3.13
+ Operation type  =           floating point
+ Verification    =               SUCCESSFUL
+ Version         =                    3.4.2
+ Compile date    =              18 Apr 2022
+
+ Compile options:
+    FC           = gfortran
+    FLINK        = $(FC)
+    F_LIB        = (none)
+    F_INC        = (none)
+    FFLAGS       = -O3 -fopenmp
+    FLINKFLAGS   = $(FFLAGS)
+    RAND         = randi8
+
+
+ Please send all errors/feedbacks to:
+
+ NPB Development Team
+ npb@nas.nasa.gov
+
+
+Memory Usage: 27240 Time: 0:00.40

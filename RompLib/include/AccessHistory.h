@@ -17,6 +17,7 @@ public:
   pfq_rwlock_t& getLock();
   std::vector<Record>* getRecords();
   void setFlag(AccessHistoryFlag flag);
+  void setOwner(void* owner);
   void clearRecords();
   void clearFlags();
   void clearFlag(AccessHistoryFlag flag);
@@ -28,8 +29,10 @@ public:
   uint8_t getState() const;
   uint8_t getRecordState() const;
   uint64_t getNumRecords() const;
+  void* getOwner() const;
 private:
   pfq_rwlock_t mLock; 
   uint8_t mState;  
   std::unique_ptr<std::vector<Record>> mRecords; 
+  void* mOwner;  // if the memory address is for a stack-allocated variable, record its owner.
 };

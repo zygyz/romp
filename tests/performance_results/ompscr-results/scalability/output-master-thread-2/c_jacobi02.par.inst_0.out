@@ -1,0 +1,45 @@
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0419 05:32:46.202065  6520 RompLib.cpp:126] ompt_start_tool on executable: /home/yg31/working-dir/romp/tests/OmpSCR_v2.0/bin/c_jacobi02.par.inst
+I0419 05:32:46.204852  6520 Initialize.h:51] start initializing ompt
+I0419 05:32:46.204880  6520 Initialize.h:89] ompt intialized
+I0419 05:32:49.672268  6520 Initialize.h:94] finalizing ompt
+I0419 05:32:49.672294  6520 Initialize.h:96] data race found:
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+
+This program is part of the OpenMP Source Code Repository (OmpSCR)
+
+Program:       /home/yg31/working-dir/romp/tests/OmpSCR_v2.0/bin/c_jacobi02.par.inst
+Description:   Jacobi Solver v1
+
+Argument Grid dimension: X dir = 100
+Argument Grid dimension: Y dir = 100
+Argument Helmhotlz constant = 0.8
+Argument Successive over-relaxation parameter = 1
+Argument error tolerance for iterative solver = 1e-07
+Argument Maximum iterations for solver = 10
+Argument NUMTHREADS 2
+
+Running ...
+
+-> 100, 100, 0.8, 1, 1e-07, 10
+Total Number of Iteratuons 11
+Residual                   0.000004591091031
+ elapsed time :     3.459990
+ MFlops       :     0.360845 (10, 100, 100, 3.45999)
+Solution Error : 0.00521344
+Timer Total_time     3.459990
+
+Memory Usage: 52708 Time: 0:03.49

@@ -1,0 +1,131 @@
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0428 04:27:52.954434 43676 RompLib.cpp:107] ompt_start_tool on executable: /home/yg31/Quicksilver/src/qs.inst
+I0428 04:27:52.969326 43676 Initialize.h:51] start initializing ompt
+I0428 04:27:52.969348 43676 Initialize.h:89] ompt intialized
+Copyright (c) 2016
+Lawrence Livermore National Security, LLC
+All Rights Reserved
+Quicksilver Version     : 2020-Jul-2-17:30:57
+Quicksilver Git Hash    : 320d271cf68dafd92667cad08531a1caa744a834
+MPI Version             : 3.0
+Number of MPI ranks     : 1
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+Number of OpenMP Threads: 64
+Number of OpenMP CPUs   : 72
+
+Simulation:
+   dt: 1e-08
+   fMax: 0.1
+   inputFile: 
+   energySpectrum: 
+   boundaryCondition: reflect
+   loadBalance: 0
+   cycleTimers: 0
+   debugThreads: 0
+   lx: 100
+   ly: 100
+   lz: 100
+   nParticles: 10000
+   batchSize: 0
+   nBatches: 10
+   nSteps: 10
+   nx: 10
+   ny: 10
+   nz: 10
+   seed: 1029384756
+   xDom: 0
+   yDom: 0
+   zDom: 0
+   eMax: 20
+   eMin: 1e-09
+   nGroups: 230
+   lowWeightCutoff: 0.001
+   bTally: 1
+   fTally: 1
+   cTally: 1
+   coralBenchmark: 0
+   crossSectionsOut:
+
+Geometry:
+   material: sourceMaterial
+   shape: brick
+   xMax: 100
+   xMin: 0
+   yMax: 100
+   yMin: 0
+   zMax: 100
+   zMin: 0
+
+Material:
+   name: sourceMaterial
+   mass: 1000
+   nIsotopes: 10
+   nReactions: 9
+   sourceRate: 1e+10
+   totalCrossSection: 1
+   absorptionCrossSection: flat
+   fissionCrossSection: flat
+   scatteringCrossSection: flat
+   absorptionCrossSectionRatio: 1
+   fissionCrossSectionRatio: 0.1
+   scatteringCrossSectionRatio: 1
+
+CrossSection:
+   name: flat
+   A: 0
+   B: 0
+   C: 0
+   D: 0
+   E: 1
+   nuBar: 2.4
+Building partition 0
+Building partition 1
+Building partition 2
+Building partition 3
+done building
+Building MC_Domain 0
+Building MC_Domain 1
+Building MC_Domain 2
+Building MC_Domain 3
+Starting Consistency Check
+Finished Consistency Check
+Finished initMesh
+cycle           start       source           rr        split       absorb      scatter      fission      produce      collisn       escape       census      num_seg   scalar_flux      cycleInit  cycleTracking  cycleFinalize
+       0            0         1000            0         9000        11668        11538         1194         2879        24400            0           17        27902  2.471474e+08   7.212400e-02   7.051947e+00   3.900000e-05
+       1           17         1000            0         8968        11456        11528         1105         2648        24089            0           72        27860  2.364566e+08   1.324060e-01   5.711057e+00   5.300000e-05
+       2           72         1000            0         8934        11067        11104         1076         2603        23247            0          466        27116  2.478095e+08   1.262200e-01   6.435617e+00   3.200000e-05
+       3          466         1000         2445         8550         8434         8292          759         1824        17485            0          202        20061  2.400703e+08   8.645500e-02   5.622651e+00   5.400000e-05
+       4          202         1000         1186         8824        10056        10166          998         2388        21220            0          174        24601  2.457502e+08   8.654500e-02   7.009010e+00   5.300000e-05
+       5          174         1000          301         8868        11165        11089         1111         2657        23365            0          122        27204  2.436061e+08   8.838300e-02   8.967281e+00   1.700000e-05
+       6          122         1000          230         8881        11200        11467         1080         2596        23747            0           89        27486  2.425437e+08   1.341260e-01   9.634211e+00   5.600000e-05
+       7           89         1000          399         8930        11013        11222         1063         2551        23298            0           95        26786  2.454558e+08   8.679900e-02   1.041032e+01   3.500000e-05
+       8           95         1000          202         8913        10932        11090         1081         2611        23103            0          404        27077  2.495529e+08   8.420200e-02   1.102853e+01   1.600000e-05
+       9          404         1000         2701         8595         8299         8224          780         1858        17303            0           77        19724  2.385498e+08   9.645300e-02   9.920256e+00   5.500000e-05
+I0428 04:29:16.948308 43676 Initialize.h:94] finalizing ompt
+I0428 04:29:16.948336 43676 Initialize.h:96] data race found:
+
+Timer                       Cumulative   Cumulative   Cumulative   Cumulative   Cumulative   Cumulative
+Name                            number    microSecs    microSecs    microSecs    microSecs   Efficiency
+                              of calls          min          avg          max       stddev       Rating
+main                                 1    8.343e+07    8.343e+07    8.343e+07    0.000e+00       100.00
+cycleInit                           10    9.937e+05    9.937e+05    9.937e+05    0.000e+00       100.00
+cycleTracking                       10    8.179e+07    8.179e+07    8.179e+07    0.000e+00       100.00
+cycleTracking_Kernel               678    8.169e+07    8.169e+07    8.169e+07    0.000e+00       100.00
+cycleTracking_MPI                  741    1.008e+05    1.008e+05    1.008e+05    0.000e+00       100.00
+cycleTracking_Test_Done              0    0.000e+00    0.000e+00    0.000e+00    0.000e+00         0.00
+cycleFinalize                       20    4.825e+03    4.825e+03    4.825e+03    0.000e+00       100.00
+Figure Of Merit              3.128e+03 [Num Segments / Cycle Tracking Time]
+Memory Usage: 9214000 Time: 1:24.14

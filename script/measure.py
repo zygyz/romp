@@ -1,5 +1,4 @@
 # measure.py
-# This script runs a given list of benchmark programs and calculate the time and memory overhead. 
 
 import argparse
 import csv
@@ -14,11 +13,11 @@ from datetime import datetime
 
 import benchmark_config
 
-def get_output_directory_path(benchmark_root_path: str, branch: str, output_suffix: str) -> str:
-  return os.path.join(benchmark_root_path, 'output-'+ branch + output_suffix);
+def get_output_directory_path(benchmark_root_path: str, branch: str) -> str:
+  return os.path.join(benchmark_root_path, 'output-'+ branch);
 
-def create_output_directory(benchmark_root_path: str, branch: str, output_suffix) -> str: 
-  output_path = get_output_directory_path(benchmark_root_path, branch, output_suffix);
+def create_output_directory(benchmark_root_path: str, branch: str) -> str: 
+  output_path = get_output_directory_path(benchmark_root_path, branch);
   if not os.path.exists(output_path):
     os.mkdir(output_path);
   else:
@@ -27,18 +26,18 @@ def create_output_directory(benchmark_root_path: str, branch: str, output_suffix
   print("Create output path: ", output_path);
   return output_path;
   
-def build_romp(romp_root_path: str, branch: str, build_type: str) -> None:
+def build_romp(romp_root_path: str, branch: str) -> None:
   print("Build romp on branch ", branch);
   cwd = os.getcwd();
   os.chdir(romp_root_path);
   try: 
     os.system('git checkout ' + branch);
-    os.system('./install.sh ' + build_type);
+    os.system('./install.sh release');
   finally:
     os.chdir(cwd);
 
-def run_benchmark(output_directory: str, binary_path:str, binary_name: str, parameter: str, iteration: int, timeout: int) -> int:
-  output_file_path = os.path.join(output_directory, binary_name + "_" + str(iteration) + ".out");
+def run_benchmark(output_path: str, binary_path:str, binary_name: str, parameter: str, iteration: int, timeout: int) -> int:
+  output_file_path = os.path.join(output_path, binary_name + "_" + str(iteration) + ".out");
   run_string = assemble_run_string(binary_path, parameter, timeout);
   print('run: ', run_string);
   return os.system(run_string + ' &> ' + output_file_path); 
@@ -58,8 +57,8 @@ def process_output_files(output_path: str) -> dict:
   return result;
 
 #calculate the average time and memory overhead
-def calculate_metrics(output_directory: str, benchmark: str) -> dict:
-  output_files = [os.path.join(output_directory, f) for f in listdir(output_directory) if benchmark in f]
+def calculate_metrics(output_path: str, benchmark: str) -> dict:
+  output_files = [os.path.join(output_path, f) for f in listdir(output_path) if benchmark in f]
   original_memory_list = [];
   instrument_memory_list = [];
   original_time_list = [];
@@ -100,11 +99,6 @@ def calculate_metrics(output_directory: str, benchmark: str) -> dict:
   instrument_time_average = sum(instrument_time_list) / len(instrument_time_list);
   original_memory_average = sum(original_memory_list) / len(original_memory_list);
   instrument_memory_average = sum(instrument_memory_list) / len(instrument_memory_list);
-  
-  if original_time_average == 0:
-    time_overhead = 'N/A'
-  else:
-    time_overhead = instrument_time_average / original_time_average
 
   result = {
                'benchmark' : benchmark,
@@ -113,13 +107,14 @@ def calculate_metrics(output_directory: str, benchmark: str) -> dict:
                'instrument_memory' : instrument_memory_average, 
                'instrument_time' : instrument_time_average,
                'memory_overhead' : instrument_memory_average / original_memory_average, 
-               'time_overhead' : time_overhead,
+               'time_overhead' : instrument_time_average / original_time_average, 
              }
   return result
     
 
 
-def run(benchmark_root_path: str, output_directory: str, branch: str, iteration: int, timeout: int) -> list:
+def run(benchmark_root_path: str, output_path: str, branch: str, iteration: int, timeout: int) -> list:
+  print('run benchmarks');
   results = []
   for benchmark, parameter in benchmark_config.benchmark_parameter_map.items():
     print('running benchmark: ' + benchmark + ", with parameter: " + parameter)
@@ -132,47 +127,34 @@ def run(benchmark_root_path: str, output_directory: str, branch: str, iteration:
     not_success_finish = False; 
     for i in range(0, iteration):  
       print('running iteration : ', i);
-      ret_val_original = run_benchmark(output_directory, original_binary_path, original_binary_name, parameter, i, timeout);
-      ret_val_instrument = run_benchmark(output_directory, instrument_binary_path, instrument_binary_name, parameter, i, timeout);
+      ret_val_original = run_benchmark(output_path, original_binary_path, original_binary_name, parameter, i, timeout);
+      ret_val_instrument = run_benchmark(output_path, instrument_binary_path, instrument_binary_name, parameter, i, timeout);
       print('origin return value: ', ret_val_original, ' instrument return value: ', ret_val_instrument)
       if ret_val_original != 0 or ret_val_instrument != 0:
         not_success_finish = True
         break
     if not_success_finish:
       continue;
-    result = calculate_metrics(output_directory, benchmark);
+    result = calculate_metrics(output_path, benchmark);
     result['branch'] = branch
     results.append(result) 
   return results  
     
-def write_results(output_directory: str, results: list) -> None:
+def write_results(output_path: str, results: list) -> None:
   if len(results) == 0:
-    print("WARNING: length of results is 0, output directory:  ", output_directory);
     return
-  output_csv_file = os.path.join(output_directory, 'result.csv');
+  output_csv_file = os.path.join(output_path, 'result.csv');
   with open(output_csv_file, 'w') as f:
     writer = csv.DictWriter(f, fieldnames=results[0].keys())
     writer.writeheader()
     writer.writerows(results) 
 
-def run_benchmarks_for_branch(romp_root_path: str, benchmark_root_path: str, branch: str, iteration: int, timeout: int, should_build_romp: bool, build_type: str, output_suffix: str) -> str:
-  if should_build_romp == True:
-    build_romp(romp_root_path, branch, build_type)
-  output_directory = create_output_directory(benchmark_root_path, branch, output_suffix);
-  results = run(benchmark_root_path, output_directory, branch, iteration, timeout);
-  print('writing results to ', output_directory);
-  write_results(output_directory, results);
-  return output_directory 
+def run_benchmarks_for_branch(romp_root_path: str, benchmark_root_path: str, branch: str, iteration: int, timeout: int) -> None:
+  build_romp(romp_root_path, branch);
+  output_path = create_output_directory(benchmark_root_path, branch);
+  results = run(benchmark_root_path, output_path, branch, iteration, timeout);
+  write_results(output_path, results);
 
-def run_scalability_test(romp_root_path: str, benchmark_root_path: str, branch: str, iteration: int, timeout: int, build_type: str) -> None:
-  threads_list = [2,4,8,16,32,64,72];
-  build_romp(romp_root_path, branch, build_type);
-  for num_thread in threads_list:
-    os.environ['OMP_NUM_THREADS'] = str(num_thread);
-    print('OMP_NUM_THREADS set to: ', os.environ.get('OMP_NUM_THREADS', '-1'));
-    output_suffix = '-thread-' + str(num_thread);
-    output_path = run_benchmarks_for_branch(romp_root_path, benchmark_root_path, branch, iteration, timeout, False, build_type, output_suffix); 
-    print('finished ', output_path);
   
 def main() -> int:
   parser = argparse.ArgumentParser(description='Argument parsing for performance measurer');
@@ -181,13 +163,8 @@ def main() -> int:
   parser.add_argument('branch', type=str, help='branch name');
   parser.add_argument('timeout', type=int, help="time out in minute");
   parser.add_argument('iteration', type=int, help="num iterations");
-  parser.add_argument('build_type', type=str, help="build type");
-  parser.add_argument('-s', '--scalability', action='store_true', help='run scalability test');
   args = parser.parse_args();
-  if args.scalability:
-    run_scalability_test(args.romp_root_path, args.benchmark_root_path, args.branch, args.iteration, args.timeout, args.build_type);
-    return 0;
-  run_benchmarks_for_branch(args.romp_root_path, args.benchmark_root_path, args.branch, args.iteration, args.timeout, True, args.build_type, '');
+  run_benchmarks_for_branch(args.romp_root_path, args.benchmark_root_path, args.branch, args.iteration, args.timeout);
   return 0;
 
 

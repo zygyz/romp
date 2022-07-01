@@ -23,7 +23,7 @@ OSCR_USE_C=y
 #
 # 1.2. The name of your C compiler or front-end
 #
-OSCR_CC=gcc
+OSCR_CC=clang
 
 #
 # 1.3. Flag/s needed to activate OpenMP pragmas recognition
@@ -44,7 +44,7 @@ OSCR_C_REPORT=
 #
 # 1.6. (Optional) Other common flags (e.g. optimization)
 #
-OSCR_C_OTHERS=-O3
+OSCR_C_OTHERS=-g -O3
 
 
 
@@ -63,7 +63,7 @@ OSCR_USE_CPP=y
 #
 # 2.2. The name of your C++ compiler or front-end
 #
-OSCR_CPPC=g++
+OSCR_CPPC=clang++
 
 #
 # 2.3. Flag/s needed to activate OpenMP pragmas recognition
@@ -84,7 +84,11 @@ OSCR_CPP_REPORT=
 #
 # 2.6. (Optional) Other common flags (e.g. optimization)
 #
+<<<<<<< HEAD
 OSCR_CPP_OTHERS=-O3
+=======
+OSCR_CPP_OTHERS=-g -O3
+>>>>>>> baseline-debug
 
 
 
@@ -103,12 +107,12 @@ OSCR_USE_F=n
 #
 # 3.2. The name of your Frotran90/95 compiler or front-end
 #
-OSCR_FF=
+OSCR_FF=gfortran
 
 #
 # 3.3. Flag/s needed to activate OpenMP pragmas recognition
 #
-OSCR_F_OMPFLAG=
+OSCR_F_OMPFLAG=-fopenmp -lomp
 
 #
 # 3.4. Flag/s needed for serial compilation (No OpenMP)
