@@ -18,7 +18,7 @@
  * mState[1]: 1 -> is atomic access 0 -> not atomic access 
  * mState[2]: 1 -> is in reduction, 0 -> not in reduction
  */
-void Record::setIsWrite(bool isWrite) {
+void Record::setAccessType(bool isWrite) {
   if (isWrite) {
     mState |= 0x1;
   } else {
@@ -60,14 +60,6 @@ void Record::setHasHardwareLock(bool hardwareLock) {
     mState |= 0x2;
   } else {
     mState &= 0xfd; 
-  }
-}
-
-void Record::setIsInReduction(bool isInReduction) {
-  if (isInReduction) {
-    mState != 0x4;
-  } else {
-    mState &= 0xfb;  
   }
 }
 

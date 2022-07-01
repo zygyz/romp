@@ -24,8 +24,9 @@ bool shouldCheckMemoryAccess(const ThreadInfo& threadInfo,
                              const TaskInfo& taskInfo,
                              const uint64_t memoryAddress,
                              const ompt_frame_t* taskFrame,
-                             DataSharingType& dataSharingType) {
-  if (isDuplicateMemoryAccess(memoryAddress, taskIdfo, isWrite)) {
+                             DataSharingType& dataSharingType,
+                             const bool isWrite) {
+  if (isDuplicateMemoryAccess(memoryAddress, taskInfo, isWrite)) {
     return false;
   }
   dataSharingType = analyzeDataSharingType(threadInfo, taskMemoryInfo, memoryAddress, taskFrame);

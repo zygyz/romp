@@ -26,9 +26,9 @@ enum LockRelation {
 };
 
 enum OtherSynchronizationInfo {
-  eUndefinedOtherSynchronizationInfo = 0,
-  eInReduction = 1,
-  eIsMutexTask = 2,
+//  eUndefinedOtherSynchronizationInfo = 0,
+//  eInReduction = 1,
+//  eIsMutexTask = 2,
 };
 
 typedef struct RecordManagementInfo {

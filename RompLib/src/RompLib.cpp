@@ -64,7 +64,12 @@ rollback: // will refactor to remove the tag. Using goto tag is actually more re
       return false;
     }
   }
-  auto curRecord = Record(isWrite, curLabel, curLockSet, currentTaskData, checkedAddress, hasHardwareLock, static_cast<TaskData*>(currentTaskData)->inReduction);
+
+  auto taskDataPtr = static_cast<TaskData*>(currentTaskData);
+  auto isInReduction = taskDataPtr->getIsInReduction();
+  auto workShareRegionId = taskDataPtr->workShareRegionId;
+  auto owner = accessHistory->getOwner();
+  auto curRecord = Record(isWrite, curLabel, curLockSet, currentTaskData, checkedAddress, hasHardwareLock,  isInReduction, (int)dataSharingType, instnAddr, workShareRegionId, isTLSAccess, owner);
   if (!accessHistory->hasRecords()) {
     // no access record, add current access to the record
     auto hasWriteWriteContention = guard.upgradeFromReaderToWriter();
@@ -147,7 +152,7 @@ void checkAccess(void* baseAddress, uint32_t bytesAccessed, void* instnAddr, boo
   for (uint64_t i = 0; i < memUnitAccessed; ++i) {
     auto checkedAddress = gUseWordLevelCheck ? reinterpret_cast<uint64_t>(baseAddress) + i * 4 : reinterpret_cast<uint64_t>(baseAddress) + i;      
     DataSharingType dataSharingType = eUnknown;
-    auto shouldCheckAccess = shouldCheckMemoryAccess(threadInfo, taskMemoryInfo, checkedAddress, taskInfo.taskFrame, dataSharingType);
+    auto shouldCheckAccess = shouldCheckMemoryAccess(threadInfo, taskMemoryInfo, checkedAddress, taskInfo.taskFrame, dataSharingType,isWrite);
     auto accessHistory = shadowMemory.getShadowMemorySlot(checkedAddress);
     setMemoryOwner(accessHistory, dataSharingType, static_cast<void*>(currentTaskData), reinterpret_cast<void*>(checkedAddress));
     if (shouldCheckAccess) {

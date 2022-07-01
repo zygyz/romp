@@ -6,12 +6,6 @@
 #include "RecordManagement.h"
 #include "TaskData.h"
 
-enum AccessHistoryManagementDecision{
-  eNoOperation,
-  eSkipAddCurrentRecord,
-  eDeleteHistoryRecord,
-};
-
 bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex, TaskData* histTaskData, TaskData* curTaskData, RecordManagementInfo& recordManagementInfo);
 bool analyzeSiblingImplicitTask(Label* histLabel, Label* curLabel, int index, RecordManagementInfo& recordManagementInfo);
 bool analyzeSameTask(Label* histLabel, Label* curLabel, int index, RecordManagementInfo& recordManagementInfo);
