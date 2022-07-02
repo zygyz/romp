@@ -287,7 +287,7 @@ bool analyzeOrderedSection(Label* histLabel, Label* curLabel, int startIndex, bo
     } else {
       // recordManagementInfo will be overwritten 
       return analyzeOrderedDescendants(histLabel, startIndex, histPhase, recordManagementInfo);
-    is from sibling implicit task}
+    }
   } else if (leftPhase > rightPhase) {
     return false;
   } else { // leftPhase < rightPhase
