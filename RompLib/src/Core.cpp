@@ -154,7 +154,7 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex, TaskData* 
         recordManagementInfo.nodeRelation = eHappensBefore;
         return true;
       case eLogical:
-        histHappensBeforeCur = analyzeOrderedSection(histLabel, curLabel,  diffIndex, false, recordManagementInfo);
+        histHappensBeforeCur = analyzeOrderedSection(histLabel, curLabel,  diffIndex, false /*isFromSiblingImplicitTasks*/, recordManagementInfo);
       case eExplicit:
         // same explciit task for T(histLabel[diffIndex]) and T(curLabel[diffIndex])
         histHappensBeforeCur = analyzeSameTask(histLabel, curLabel, diffIndex, recordManagementInfo);
@@ -171,7 +171,6 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex, TaskData* 
                before current access");
       recordManagementInfo.nodeRelation = eHappensBefore;
       histHappensBeforeCur = true;
-      return true; 
     } else {
       histHappensBeforeCur = analyzeSiblingImplicitTask(histLabel, curLabel, diffIndex, recordManagementInfo);
     } 
@@ -247,7 +246,7 @@ bool analyzeSiblingImplicitTask(Label* histLabel, Label* curLabel, int diffIndex
     auto histSegLoopCount = histSeg->getLoopCount();
     auto curSegLoopCount = curSeg->getLoopCount();
     if (histSegLoopCount == curSegLoopCount) {
-      return analyzeOrderedSection(histLabel, curLabel, diffIndex + 1, true, recordManagementInfo);
+      return analyzeOrderedSection(histLabel, curLabel, diffIndex + 1, true/*isFromSiblingImplicitTasks*/, recordManagementInfo);
     } 
     recordManagementInfo.nodeRelation = eNonSiblingParallel;
     return false;
@@ -288,7 +287,7 @@ bool analyzeOrderedSection(Label* histLabel, Label* curLabel, int startIndex, bo
     } else {
       // recordManagementInfo will be overwritten 
       return analyzeOrderedDescendants(histLabel, startIndex, histPhase, recordManagementInfo);
-    }
+    is from sibling implicit task}
   } else if (leftPhase > rightPhase) {
     return false;
   } else { // leftPhase < rightPhase
