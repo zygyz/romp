@@ -74,7 +74,7 @@ rollback: // will refactor to remove the tag. Using goto tag is actually more re
     // no access record, add current access to the record
     auto hasWriteWriteContention = guard.upgradeFromReaderToWriter();
     if (!hasWriteWriteContention || hasWriteWriteContention && !accessHistory->hasRecords()) {
-      RAW_DLOG(INFO, "add record to access history memory address: %lx in reduction %d is write: %d", curRecord.getCheckedMemoryAddress(), curRecord.isInReduction(), curRecord.isWrite());
+      //RAW_DLOG(INFO, "add record to access history memory address: %lx in reduction %d is write: %d", curRecord.getCheckedMemoryAddress(), curRecord.isInReduction(), curRecord.isWrite());
       accessHistory->addRecordToAccessHistory(curRecord);
       return false;
     } else {
