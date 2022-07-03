@@ -123,6 +123,9 @@ void checkAccess(void* baseAddress, uint32_t bytesAccessed, void* instnAddr, boo
 #ifdef PERFORMANCE
   gPerformanceCounters.bumpNumMemoryAccessInstrumentationCall();
 #endif
+  if ((uint64_t)instnAddr == 0x401407 || (uint64_t)instnAddr == 0x401332) {
+    RAW_LOG(INFO, "check access called on instn addr: %lx", instnAddr);
+  }
   if (!gOmptInitialized || bytesAccessed == 0) {
     return;
   }

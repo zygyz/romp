@@ -15,7 +15,7 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, Rec
   auto checkedAddress = curRecord.getCheckedMemoryAddress();
   auto histLabel = histRecord.getLabel(); 
   auto curLabel = curRecord.getLabel(); 
-  RAW_DLOG(INFO, "analyze race condition - address: %lx hist label: %s hist is write: %d cur label: %s cur is write: %d\n", checkedAddress, histLabel->toString().c_str(), histRecord.isWrite(), curLabel->toString().c_str(), curRecord.isWrite());
+  RAW_DLOG(INFO, "analyze race condition - address: %lx hist label: %s hist is write: %d hist instn addr: %lx cur label: %s cur is write: %d cur instn addr: %lx\n", checkedAddress, histLabel->toString().c_str(), histRecord.isWrite(), histRecord.getInstructionAddress(), curLabel->toString().c_str(), curRecord.isWrite(), curRecord.getInstructionAddress());
   // we want to set both lock set info and node relation info so we don't early return.
   recordManagementInfo.nodeRelation = eUndefinedNodeRelation;
   recordManagementInfo.lockRelation = eUndefinedLockRelation;
@@ -28,36 +28,43 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, Rec
   if (histTaskData == curTaskData) {
     // both memory accesses are performed by the same task. 
     // the record management info has been collected 
+    RAW_DLOG(INFO, "hist task data = cur task data, memr addr: %lx cur instn: %lx hist instn: %lx", checkedAddress, curRecord.getInstructionAddress(), histRecord.getInstructionAddress());
     return false;
   }
 
   auto histRecordMemoryOwner = histRecord.getMemoryAddressOwner();
   auto curRecordMemoryOwner = curRecord.getMemoryAddressOwner(); 
   if (histRecordMemoryOwner != curRecordMemoryOwner) {
+    RAW_DLOG(INFO, "memory owner not match , memr addr: %lx cur instn: %lx hist instn: %lx", checkedAddress, curRecord.getInstructionAddress(), histRecord.getInstructionAddress());
     return false;
   }
 
   if (hasCommonLock) {
+    RAW_DLOG(INFO, "has common lock , memr addr: %lx cur instn: %lx hist instn: %lx", checkedAddress, curRecord.getInstructionAddress(), histRecord.getInstructionAddress());
     return false;
   }
 
   if (isHistoryAccessBeforeCurrentAccess) {
+    RAW_DLOG(INFO, "has happens before relation , memr addr: %lx cur instn: %lx hist instn: %lx", checkedAddress, curRecord.getInstructionAddress(), histRecord.getInstructionAddress());
     return false;
   }
 
   if ((curTaskData->getIsExplicitTask() && histTaskData->getIsExplicitTask() && curTaskData->getIsMutexTask() && histTaskData->getIsMutexTask())) {
     // two memory accesses are performed by two mutex tasks. In these cases, there is no data race.
     // there exists happens-before relationship between two memory accesses. No data race.
+    RAW_DLOG(INFO, "mutex task , memr addr: %lx cur instn: %lx hist instn: %lx", checkedAddress, curRecord.getInstructionAddress(), histRecord.getInstructionAddress());
     return false; 
   } 
 
   if (histRecord.isTLSAccess() && curRecord.isTLSAccess()) {
     // both memory access are performed as thread local storage. 
+    RAW_DLOG(INFO, "TLS access , memr addr: %lx cur instn: %lx hist instn: %lx", checkedAddress, curRecord.getInstructionAddress(), histRecord.getInstructionAddress());
     return false; 
   }
    
   if (histRecord.isInReduction() && curRecord.isInReduction() && histTaskData->parallelRegionDataPtr == curTaskData->parallelRegionDataPtr && histRecord.getWorkShareRegionId() == curRecord.getWorkShareRegionId()) {
     // both accesses are in reduction in the same work share region, no data race.
+    RAW_DLOG(INFO, "in reduction , memr addr: %lx cur instn: %lx hist instn: %lx", checkedAddress, curRecord.getInstructionAddress(), histRecord.getInstructionAddress());
     return false; 
   }
  
@@ -65,6 +72,9 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, Rec
   auto historyDataSharingType = histRecord.getDataSharingType();
   auto bothAccessesAreTaskPrivate = ((currentDataSharingType == eThreadPrivateAccessCurrentTask || currentDataSharingType == eExplicitTaskPrivate) && (historyDataSharingType == eThreadPrivateAccessCurrentTask || historyDataSharingType == eExplicitTaskPrivate));
   auto hasDataRace = !isHistoryAccessBeforeCurrentAccess && (histRecord.isWrite() || curRecord.isWrite()) && !bothAccessesAreTaskPrivate;
+  if (!hasDataRace) {
+    RAW_DLOG(INFO, "both access are task private: %d hist is write: %d cur is write: %d , memr addr: %lx cur instn: %lx hist instn: %lx", bothAccessesAreTaskPrivate, histRecord.isWrite(), curRecord.isWrite(), checkedAddress, curRecord.getInstructionAddress(), histRecord.getInstructionAddress());
+  }
   return hasDataRace;
 }
 
@@ -609,6 +619,7 @@ bool manageAccessRecords(AccessHistory* accessHistory, const Record& currentReco
 bool checkDataRaceForMemoryAddress(uint64_t checkedAddress, AccessHistory* accessHistory, const Record& currentRecord, std::vector<RecordManagementInfo>& info) {
   auto records = accessHistory->getRecords();
   auto dataRaceFound = false;
+  RAW_DLOG(INFO, "check data race for memory address: %lx , instruction address: %lx", checkedAddress, currentRecord.getInstructionAddress());
 #ifdef PERFORMANCE
   uint64_t numAccessRecordsTraversed = 0;
 #endif
