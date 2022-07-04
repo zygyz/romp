@@ -305,7 +305,9 @@ bool analyzeSameTask(Label* histLabel, Label* curLabel, int diffIndex) {
   auto histDiffSegmentIsLeaf = diffIndex == (lenHistLabel - 1);
   auto curDiffSegmentIsLeaf = diffIndex == (lenCurLabel - 1);
   auto isHappensBefore = false; 
-  if (histDiffSegmentIsLeaf) {  
+  if (histDiffSegmentIsLeaf && curDiffSegmentIsLeaf) {
+    isHappensBefore = true;
+  } else if (histDiffSegmentIsLeaf) {  
     auto histDiffSegment = histLabel->getKthSegment(diffIndex);
     auto curDiffSegment = curLabel->getKthSegment(diffIndex);  
     auto curNextSegment = curLabel->getKthSegment(diffIndex + 1);
