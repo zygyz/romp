@@ -25,10 +25,12 @@ bool shouldCheckMemoryAccess(const ThreadInfo& threadInfo,
                              const uint64_t memoryAddress,
                              const ompt_frame_t* taskFrame,
                              DataSharingType& dataSharingType,
-                             const bool isWrite) {
-  if (isDuplicateMemoryAccess(memoryAddress, taskInfo, isWrite)) {
-    return false;
-  }
+                             const bool isWrite,
+                             void* instructionAddress) {
+  //if (isDuplicateMemoryAccess(memoryAddress, taskInfo, isWrite)) {
+  //  RAW_DLOG(INFO, "shouldCheckMemoryAccess, is duplicate memory access, instn addr: %lx memory addr: %lx", instructionAddress, memoryAddress);
+  //  return false;
+ // }
   dataSharingType = analyzeDataSharingType(threadInfo, taskMemoryInfo, memoryAddress, taskFrame);
   return dataSharingType != eNonWorkerThread && dataSharingType != eInitialThread;
 }

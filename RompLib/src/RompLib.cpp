@@ -28,6 +28,7 @@ extern PerformanceCounters gPerformanceCounters;
 bool checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const LockSetPtr& curLockSet, void* instnAddr, 
                    void* currentTaskData, int taskFlags, bool isWrite, bool hasHardwareLock, uint64_t checkedAddress, 
                    DataSharingType dataSharingType, bool isTLSAccess) {
+ RAW_DLOG(INFO, "checkDataRace called on instruciton address: %lx mem addr: %lx", instnAddr, checkedAddress);
 #ifdef PERFORMANCE
   gPerformanceCounters.bumpNumCheckAccessFunctionCall();
 #endif
@@ -123,10 +124,9 @@ void checkAccess(void* baseAddress, uint32_t bytesAccessed, void* instnAddr, boo
 #ifdef PERFORMANCE
   gPerformanceCounters.bumpNumMemoryAccessInstrumentationCall();
 #endif
-  if ((uint64_t)instnAddr == 0x401407 || (uint64_t)instnAddr == 0x401332) {
-    RAW_LOG(INFO, "check access called on instn addr: %lx", instnAddr);
-  }
+  RAW_DLOG(INFO, "checkAccess called on instruction addr: %lx", instnAddr);
   if (!gOmptInitialized || bytesAccessed == 0) {
+    RAW_DLOG(INFO, "early retrun 0 : instn: %lx", instnAddr);
     return;
   }
   TaskInfo taskInfo;
@@ -137,10 +137,12 @@ void checkAccess(void* baseAddress, uint32_t bytesAccessed, void* instnAddr, boo
   }
   if (taskInfo.flags == ompt_task_initial) { 
     // don't check data race for initial task
+    RAW_DLOG(INFO, "early retrun 1 : instn: %lx", instnAddr);
     return;
   }
   if (!taskInfo.taskData->ptr) {
     RAW_LOG(WARNING, "pointer to current task data is null");
+    RAW_DLOG(INFO, "early retrun 2 : instn: %lx", instnAddr);
     return;
   }
 
@@ -155,8 +157,9 @@ void checkAccess(void* baseAddress, uint32_t bytesAccessed, void* instnAddr, boo
   for (uint64_t i = 0; i < memUnitAccessed; ++i) {
     auto checkedAddress = gUseWordLevelCheck ? reinterpret_cast<uint64_t>(baseAddress) + i * 4 : reinterpret_cast<uint64_t>(baseAddress) + i;      
     DataSharingType dataSharingType = eUnknown;
-    auto shouldCheckAccess = shouldCheckMemoryAccess(threadInfo, taskMemoryInfo, taskInfo, checkedAddress, taskInfo.taskFrame, dataSharingType,isWrite);
+    auto shouldCheckAccess = shouldCheckMemoryAccess(threadInfo, taskMemoryInfo, taskInfo, checkedAddress, taskInfo.taskFrame, dataSharingType,isWrite, instnAddr);
     auto accessHistory = shadowMemory.getShadowMemorySlot(checkedAddress);
+    RAW_DLOG(INFO, "should check access: %d instn: %lx", shouldCheckAccess, instnAddr);
     setMemoryOwner(accessHistory, dataSharingType, static_cast<void*>(currentTaskData), reinterpret_cast<void*>(checkedAddress));
     if (shouldCheckAccess) {
       if (checkDataRace(accessHistory, curLabel, curLockSet, instnAddr, static_cast<void*>(currentTaskData), taskInfo.flags, isWrite, hasHardwareLock, checkedAddress, dataSharingType, isTLSAccess)){
