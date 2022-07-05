@@ -72,8 +72,8 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, Rec
   auto historyDataSharingType = histRecord.getDataSharingType();
   auto bothAccessesAreTaskPrivate = ((currentDataSharingType == eThreadPrivateAccessCurrentTask || currentDataSharingType == eExplicitTaskPrivate) && (historyDataSharingType == eThreadPrivateAccessCurrentTask || historyDataSharingType == eExplicitTaskPrivate));
   auto hasDataRace = !isHistoryAccessBeforeCurrentAccess && (histRecord.isWrite() || curRecord.isWrite()) && !bothAccessesAreTaskPrivate;
-  if (!hasDataRace) {
-    RAW_DLOG(INFO, "both access are task private: %d hist is write: %d cur is write: %d , memr addr: %lx cur instn: %lx hist instn: %lx", bothAccessesAreTaskPrivate, histRecord.isWrite(), curRecord.isWrite(), checkedAddress, curRecord.getInstructionAddress(), histRecord.getInstructionAddress());
+  if (hasDataRace) {
+    RAW_DLOG(INFO, "data race found! task private: %d hist is write: %d cur is write: %d , memr addr: %lx cur instn: %lx hist instn: %lx", bothAccessesAreTaskPrivate, histRecord.isWrite(), curRecord.isWrite(), checkedAddress, curRecord.getInstructionAddress(), histRecord.getInstructionAddress());
   }
   return hasDataRace;
 }
