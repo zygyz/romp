@@ -9,7 +9,7 @@
 #include "BPatch_function.h"
 #include "BPatch_point.h"
 #include "BPatch_process.h"
-//#include "Symtab.h"
+#include "Symtab.h"
 
 #define MODULE_NAME_LENGTH 128
 

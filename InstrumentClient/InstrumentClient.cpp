@@ -20,8 +20,8 @@ InstrumentClient::InstrumentClient(
         shared_ptr<BPatch> bpatchPtr,
         const string& arch,
         const string& modSuffix) : mBpatchPtr(move(bpatchPtr)), 
-                                   mProgramName(programName),
                                    mSourceFileName(sourceFileName),
+                                   mProgramName(programName),
                                    mArchitecture(arch),
                                    mModuleSuffix(modSuffix) {
   mAddressSpacePtr = initInstrumenter(programName, rompLibPath);
@@ -112,7 +112,7 @@ InstrumentClient::getFunctionsVector(
  */
 void
 InstrumentClient::instrumentMemoryAccess() {  
-  findAllOmpDirectiveLineNumbers();
+  findAllOmpDirectiveLineNumbers();  
   findInstructionRanges();
   auto functions = getFunctionsVector(mAddressSpacePtr);
   instrumentMemoryAccessInternal(mAddressSpacePtr, functions);
@@ -223,12 +223,13 @@ InstrumentClient::insertSnippet(
     }
 
     auto instructionAddress = point->getAddress();         
+    if (isInstructionForOmpDirective(reinterpret_cast<uint64_t>(instructionAddress))) {
+      continue;
+    }
     auto instruction = point->getInsnAtPoint();
     if (isCallInstruction(instruction)) {
       continue;
     }
-    if ( 
-
     auto isTLSAccess = isThreadLocalStorageAccess(instruction);
     auto hardWareLock = hasHardwareLock(instruction, mArchitecture);
 
@@ -291,6 +292,7 @@ inline std::string execute(std::string command) {
 }
 
 
+// use grep command to find line numbers of lines that contain openmp directive. 
 void InstrumentClient::findAllOmpDirectiveLineNumbers() {
   std::string command = "grep -n '#pragma omp' ./" + mSourceFileName + " | grep -o '[0-9]\\+' "; 
   auto result = execute(command);
@@ -316,8 +318,4 @@ void InstrumentClient::findInstructionRanges() {
     obj->getAddressRanges(ranges, filePathString, lineNumber);
     mLineNumberInstructionRangeMap[lineNumber] = ranges;  
   }
-}
-
-bool InstrumentClient::isInstructionForOmpDirective(const uint64_t instructionAddress) {
-  
 }
