@@ -111,6 +111,7 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex, TaskData* 
         return true;
       case eLogical:
         histHappensBeforeCur = analyzeOrderedSection(histLabel, curLabel,  diffIndex);
+        break;
       case eExplicit:
         histHappensBeforeCur = analyzeSameTask(histLabel, curLabel, diffIndex);
         break;
