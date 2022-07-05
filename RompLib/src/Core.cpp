@@ -157,14 +157,14 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex, TaskData* 
   if (histSpan == 1) { // explicit task or work share task or initial task
     auto histType = histSegment->getType();
     auto curType = curSegment->getType();
-    RAW_CHECK(histType == curType, "not expecting hist seg type\
-            != cur seg type");
+    RAW_CHECK(histType == curType, "not expecting hist seg type != cur seg type");
     switch(histType) {
       case eImplicit:
         recordManagementInfo.nodeRelation = eHappensBefore;
         return true;
       case eLogical:
         histHappensBeforeCur = analyzeOrderedSection(histLabel, curLabel,  diffIndex, false /*isFromSiblingImplicitTasks*/, recordManagementInfo);
+        break;
       case eExplicit:
         // same explciit task for T(histLabel[diffIndex]) and T(curLabel[diffIndex])
         histHappensBeforeCur = analyzeSameTask(histLabel, curLabel, diffIndex, recordManagementInfo);
@@ -185,6 +185,7 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex, TaskData* 
       histHappensBeforeCur = analyzeSiblingImplicitTask(histLabel, curLabel, diffIndex, recordManagementInfo);
     } 
   } else {
+    RAW_DLOG(INFO, "analyze same task called based on same offset hist: %s cur: %s", histLabel->toString().c_str(), curLabel->toString().c_str());
     histHappensBeforeCur = analyzeSameTask(histLabel, curLabel, diffIndex, recordManagementInfo); 
   } 
   // comparing task label does not infer happens-before relation. Addtionally we check other situations
@@ -374,6 +375,7 @@ bool analyzeExplicitTaskSynchronizationWithTaskWait(Label* label, int startIndex
 // There exists fields in histLabel[diffIndex] and curLabel[diffIndex] that are different.
 // Return true if there exists happens-before relationship. Return false otherwise.
 bool analyzeSameTask(Label* histLabel, Label* curLabel, int diffIndex, RecordManagementInfo& recordManagementInfo) {
+  RAW_DLOG(INFO, "analyzeSameTask, hist: %s cur: %s index: %d", histLabel->toString().c_str(), curLabel->toString().c_str(), diffIndex);  
   auto lenHistLabel = histLabel->getLabelLength(); 
   auto lenCurLabel = curLabel->getLabelLength();
   auto histDiffSegmentIsLeaf = diffIndex == (lenHistLabel - 1);
@@ -450,6 +452,15 @@ bool analyzeSameTask(Label* histLabel, Label* curLabel, int diffIndex, RecordMan
     if (histNextType == eExplicit && curNextType == eExplicit) {
       // curLabel[diffIndex + 1] and histLabel[diffIndex + 1] are explicit task label segments.
       return analyzeExplicitTask(histLabel, curLabel, diffIndex, recordManagementInfo); 
+    } 
+    if (histNextType == eImplicit && curNextType == eImplicit) {
+      auto histDiffSegment = histLabel->getKthSegment(diffIndex); 
+      auto curDiffSegment = curLabel->getKthSegment(diffIndex);
+      uint64_t histOffset, histSpan;
+      uint64_t curOffset, curSpan;
+      histDiffSegment->getOffsetSpan(histOffset, histSpan);
+      curDiffSegment->getOffsetSpan(curOffset, curSpan);
+      RAW_LOG(INFO, "both next segments are implicit tasks: hist: %s cur: %s diffIndex: %d hist offset: %d hist span: %d cur offset: %d cur span: %d", histLabel->toString().c_str(), curLabel->toString().c_str(), diffIndex, histOffset, histSpan, curOffset, curSpan);
     } 
     RAW_CHECK(!(histNextType == eImplicit && curNextType == eImplicit), "not expecting next level tasks are sibling implicit tasks");
     RAW_CHECK(!(histNextType == eLogical && curNextType == eLogical), "not expecting next level tasks are sibling logical tasks");
