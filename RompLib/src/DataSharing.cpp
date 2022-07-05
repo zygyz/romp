@@ -27,16 +27,26 @@ bool shouldCheckMemoryAccess(const ThreadInfo& threadInfo,
                              DataSharingType& dataSharingType,
                              const bool isWrite,
                              void* instructionAddress) {
-  //if (isDuplicateMemoryAccess(memoryAddress, taskInfo, isWrite)) {
-  //  RAW_DLOG(INFO, "shouldCheckMemoryAccess, is duplicate memory access, instn addr: %lx memory addr: %lx", instructionAddress, memoryAddress);
-  //  return false;
- // }
+  if (isDuplicateMemoryAccess(memoryAddress, taskInfo, isWrite)) {
+    RAW_DLOG(INFO, "shouldCheckMemoryAccess, is duplicate memory access, instn addr: %lx memory addr: %lx", instructionAddress, memoryAddress);
+    return false;
+  }
   dataSharingType = analyzeDataSharingType(threadInfo, taskMemoryInfo, memoryAddress, taskFrame);
   return dataSharingType != eNonWorkerThread && dataSharingType != eInitialThread;
 }
 
 bool isDuplicateMemoryAccess(const uint64_t memoryAddress, const TaskInfo& taskInfo, bool isWrite) {
-  const auto taskData = static_cast<TaskData*>(taskInfo.taskData->ptr);  
+//  const auto taskData = static_cast<TaskData*>(taskInfo.taskData->ptr);  
+//  auto mutateCount = taskData->mutateCount;
+//  if (taskData->duplicateMap.find(mutateCount) == taskData->duplicateMap.end()) {
+//    std::unordered_map<uint64_t, bool> map;
+//    map[memoryAddress] = isWrite;
+//    taskData->duplicateMap[mutateCount] = map;
+//    return false;
+//  } else {
+//    if (taskData->duplicateMap[mutateCount].find(memoryAddress) == taskData->duplicateMap[mutateCount].end() || 
+//        taskData->duplicateMap[mutateCount][memoryAddress] == false && isWrite)
+//  }
   if (taskData->duplicateMap.find(memoryAddress) == taskData->duplicateMap.end() || 
       (taskData->duplicateMap[memoryAddress] == false && isWrite)) {
     taskData->duplicateMap[memoryAddress] = isWrite;
