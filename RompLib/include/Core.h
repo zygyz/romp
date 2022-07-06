@@ -20,4 +20,4 @@ uint64_t computeExitRank(uint64_t phase);
 uint64_t computeEnterRank(uint64_t phase);
 bool manageAccessRecords(AccessHistory* accessHistory, const Record& currentRecord, ReaderWriterLockGuard& lockGuard, std::vector<RecordManagementInfo>& info);
 bool checkDataRaceForMemoryAddress(uint64_t checkedAddress, AccessHistory* accessHistory, const Record& accessRecord, std::vector<RecordManagementInfo>& recordManagementInfo);
-void* setMemoryOwner(AccessHistory* accessHistory, int dataSharingType, void* taskData, void* memoryAddress);
+void setMemoryOwner(AccessHistory* accessHistory, int dataSharingType, void* taskData, void* memoryAddress);

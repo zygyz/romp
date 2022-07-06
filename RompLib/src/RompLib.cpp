@@ -137,12 +137,10 @@ void checkAccess(void* baseAddress, uint32_t bytesAccessed, void* instnAddr, boo
   }
   if (taskInfo.flags == ompt_task_initial) { 
     // don't check data race for initial task
-    RAW_DLOG(INFO, "early retrun 1 : instn: %lx", instnAddr);
     return;
   }
   if (!taskInfo.taskData->ptr) {
     RAW_LOG(WARNING, "pointer to current task data is null");
-    RAW_DLOG(INFO, "early retrun 2 : instn: %lx", instnAddr);
     return;
   }
 

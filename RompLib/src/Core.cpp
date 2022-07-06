@@ -37,6 +37,8 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, Rec
   if (histRecordMemoryOwner != curRecordMemoryOwner) {
     RAW_DLOG(INFO, "memory owner not match , memr addr: %lx cur instn: %lx hist instn: %lx", checkedAddress, curRecord.getInstructionAddress(), histRecord.getInstructionAddress());
     return false;
+  } else {
+    RAW_DLOG(INFO, "memory owner is matching! memr addr: %lx cur instn: %lx hist instn: %lx", checkedAddress, curRecord.getInstructionAddress(), histRecord.getInstructionAddress());
   }
 
   if (hasCommonLock) {
@@ -118,12 +120,13 @@ bool analyzeMutualExclusion(const Record& histRecord, const Record& curRecord, R
 }
 
 // assuming proper concurrency control for access history
-void* setMemoryOwner(AccessHistory* accessHistory, int dataSharingType, void* taskData, void* memoryAddress) {
+void  setMemoryOwner(AccessHistory* accessHistory, int dataSharingType, void* taskData, void* memoryAddress) {
   if (dataSharingType == eThreadPrivateAccessCurrentTask || dataSharingType == eExplicitTaskPrivate) {
+    pfq_rwlock_node_t me;
+    ReaderWriterLockGuard guard(&(accessHistory->getLock()), &me, &gPerformanceCounters);
+    guard.upgradeFromReaderToWriter();
     accessHistory->setOwner(taskData);
-    return taskData;
-  }
-  return accessHistory->getOwner();
+  } 
 }
 
 bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex, TaskData* histTaskData, TaskData* curTaskData, RecordManagementInfo& recordManagementInfo) {
