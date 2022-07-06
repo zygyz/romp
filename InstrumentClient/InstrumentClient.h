@@ -17,7 +17,7 @@ namespace romp {
   class InstrumentClient {
     public:
       InstrumentClient(
-              const std::string& sourceFileName,
+//              const std::string& sourceFileName,
               const std::string& programName, 
               const std::string& rompLibPath,
               std::shared_ptr<BPatch> bpatchPtr,
@@ -42,10 +42,10 @@ namespace romp {
       std::shared_ptr<BPatch> mBpatchPtr;
       std::vector<BPatch_function*> mCheckAccessFunctions;
       std::string mProgramName;
-      std::string mSourceFileName;
+//      std::string mSourceFileName;
       std::string mArchitecture;
       std::string mModuleSuffix;
-      std::vector<int> mOmpDirectiveLineNumbers;
-      std::unordered_map<int, std::vector<Dyninst::SymtabAPI::AddressRange> > mLineNumberInstructionRangeMap;
+ //     std::vector<int> mOmpDirectiveLineNumbers;
+  //    std::unordered_map<int, std::vector<Dyninst::SymtabAPI::AddressRange> > mLineNumberInstructionRangeMap;
   };
 }
