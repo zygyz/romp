@@ -112,8 +112,8 @@ InstrumentClient::getFunctionsVector(
  */
 void
 InstrumentClient::instrumentMemoryAccess() {  
-  findAllOmpDirectiveLineNumbers();  
-  findInstructionRanges();
+  //findAllOmpDirectiveLineNumbers();  
+  //findInstructionRanges();
   auto functions = getFunctionsVector(mAddressSpacePtr);
   instrumentMemoryAccessInternal(mAddressSpacePtr, functions);
   finishInstrumentation(mAddressSpacePtr);
@@ -223,9 +223,9 @@ InstrumentClient::insertSnippet(
     }
 
     auto instructionAddress = point->getAddress();         
-    if (isInstructionForOmpDirective(reinterpret_cast<uint64_t>(instructionAddress))) {
-      continue;
-    }
+    //if (isInstructionForOmpDirective(reinterpret_cast<uint64_t>(instructionAddress))) {
+    //  continue;
+    //}
     auto instruction = point->getInsnAtPoint();
     if (isCallInstruction(instruction)) {
       continue;
