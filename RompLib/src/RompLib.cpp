@@ -158,7 +158,7 @@ void checkAccess(void* baseAddress, uint32_t bytesAccessed, void* instnAddr, boo
     DataSharingType dataSharingType = eUnknown;
     auto shouldCheckAccess = shouldCheckMemoryAccess(threadInfo, taskMemoryInfo, taskInfo, checkedAddress, taskInfo.taskFrame, dataSharingType,isWrite, instnAddr);
     auto accessHistory = shadowMemory.getShadowMemorySlot(checkedAddress);
-    RAW_DLOG(INFO, "should check access: %d instn: %lx", shouldCheckAccess, instnAddr);
+    //RAW_DLOG(INFO, "should check access: %d instn: %lx", shouldCheckAccess, instnAddr);
     setMemoryOwner(accessHistory, dataSharingType, static_cast<void*>(currentTaskData), reinterpret_cast<void*>(checkedAddress));
     if (shouldCheckAccess) {
       if (checkDataRace(accessHistory, curLabel, curLockSet, instnAddr, static_cast<void*>(currentTaskData), taskInfo.flags, isWrite, hasHardwareLock, checkedAddress, dataSharingType, isTLSAccess)){

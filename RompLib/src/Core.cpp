@@ -75,7 +75,7 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, Rec
   auto bothAccessesAreTaskPrivate = ((currentDataSharingType == eThreadPrivateAccessCurrentTask || currentDataSharingType == eExplicitTaskPrivate) && (historyDataSharingType == eThreadPrivateAccessCurrentTask || historyDataSharingType == eExplicitTaskPrivate));
   auto hasDataRace = !isHistoryAccessBeforeCurrentAccess && (histRecord.isWrite() || curRecord.isWrite()) && !bothAccessesAreTaskPrivate;
   if (hasDataRace) {
-    RAW_DLOG(INFO, "data race found! task private: %d hist is write: %d cur is write: %d , memr addr: %lx cur instn: %lx hist instn: %lx", bothAccessesAreTaskPrivate, histRecord.isWrite(), curRecord.isWrite(), checkedAddress, curRecord.getInstructionAddress(), histRecord.getInstructionAddress());
+    RAW_DLOG(INFO, "data race found! task private: %d hist is write: %d cur is write: %d , memr addr: %lx cur instn: %lx hist instn: %lx hist label: %s cur label: %s", bothAccessesAreTaskPrivate, histRecord.isWrite(), curRecord.isWrite(), checkedAddress, curRecord.getInstructionAddress(), histRecord.getInstructionAddress(), histRecord.getLabel()->toString().c_str(), curRecord.getLabel()->toString().c_str());
   }
   return hasDataRace;
 }
@@ -121,13 +121,13 @@ bool analyzeMutualExclusion(const Record& histRecord, const Record& curRecord, R
 
 // assuming proper concurrency control for access history
 void  setMemoryOwner(AccessHistory* accessHistory, int dataSharingType, void* taskData, void* memoryAddress) {
-  RAW_DLOG(INFO, "trying to set memory owner for address: %lx data sharing type: %d", memoryAddress, dataSharingType); 
+  //RAW_DLOG(INFO, "trying to set memory owner for address: %lx data sharing type: %d", memoryAddress, dataSharingType); 
   if (dataSharingType == eThreadPrivateAccessCurrentTask || dataSharingType == eExplicitTaskPrivate) {
     pfq_rwlock_node_t me;
     ReaderWriterLockGuard guard(&(accessHistory->getLock()), &me, &gPerformanceCounters);
     guard.upgradeFromReaderToWriter();
     accessHistory->setOwner(taskData);
-    RAW_DLOG(INFO, "set owner for memory address: %lx, task data: %lx", memoryAddress, taskData);
+   // RAW_DLOG(INFO, "set owner for memory address: %lx, task data: %lx", memoryAddress, taskData);
   } 
 }
 
@@ -457,15 +457,6 @@ bool analyzeSameTask(Label* histLabel, Label* curLabel, int diffIndex, RecordMan
     if (histNextType == eExplicit && curNextType == eExplicit) {
       // curLabel[diffIndex + 1] and histLabel[diffIndex + 1] are explicit task label segments.
       return analyzeExplicitTask(histLabel, curLabel, diffIndex, recordManagementInfo); 
-    } 
-    if (histNextType == eImplicit && curNextType == eImplicit) {
-      auto histDiffSegment = histLabel->getKthSegment(diffIndex); 
-      auto curDiffSegment = curLabel->getKthSegment(diffIndex);
-      uint64_t histOffset, histSpan;
-      uint64_t curOffset, curSpan;
-      histDiffSegment->getOffsetSpan(histOffset, histSpan);
-      curDiffSegment->getOffsetSpan(curOffset, curSpan);
-      RAW_LOG(INFO, "both next segments are implicit tasks: hist: %s cur: %s diffIndex: %d hist offset: %d hist span: %d cur offset: %d cur span: %d", histLabel->toString().c_str(), curLabel->toString().c_str(), diffIndex, histOffset, histSpan, curOffset, curSpan);
     } 
     RAW_CHECK(!(histNextType == eImplicit && curNextType == eImplicit), "not expecting next level tasks are sibling implicit tasks");
     RAW_CHECK(!(histNextType == eLogical && curNextType == eLogical), "not expecting next level tasks are sibling logical tasks");
