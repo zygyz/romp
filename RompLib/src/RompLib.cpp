@@ -116,7 +116,6 @@ void checkAccess(void* baseAddress, uint32_t bytesAccessed, void* instnAddr, boo
 #endif
   RAW_DLOG(INFO, "checkAccess called on instruction addr: %lx", instnAddr);
   if (!gOmptInitialized || bytesAccessed == 0) {
-    RAW_DLOG(INFO, "early retrun 0 : instn: %lx", instnAddr);
     return;
   }
   TaskInfo taskInfo;

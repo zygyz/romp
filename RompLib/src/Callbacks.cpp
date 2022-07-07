@@ -107,7 +107,7 @@ void markExpChildSyncTaskwait(TaskData* taskData, Label* curLabel) {
     lastSegment->getOffsetSpan(offset, span);
     if (span == 1) { // if the last label segment is still explicit label segment, set the taskwaited flag in segment
       lastSegment->setTaskwaited();
-      lastSegment->setTaskwaitPhase(phase); // is this necessary? 
+      lastSegment->setTaskwaitPhase(phase); 
     }
   }
   taskData->childrenExplicitTasks.clear(); // clear the children after taskwait
@@ -175,7 +175,6 @@ void on_ompt_callback_sync_region(
       if (endPoint == ompt_scope_begin) {
         mutatedLabel = mutateTaskWait(labelPtr);
         markExpChildSyncTaskwait(taskDataPtr, labelPtr);
-        RAW_DLOG(INFO, "mutated task wait: %s taskptr: %lx ", mutatedLabel->toFieldsBreakdown().c_str(), taskDataPtr);
       }
       break;
     }
@@ -509,8 +508,10 @@ void on_ompt_callback_dependences(ompt_data_t *taskData, const ompt_dependence_t
 #else
   ReaderWriterLockGuard guard(&(parallelRegionData->lock), &node, nullptr);
 #endif
+  guard.upgradeFromReaderToWriter();   
   // while in mutual exculsion, maintain explicit task dependences
   for (int i = 0; i < ndeps; ++i) {
+    RAW_DLOG(INFO, "maintain task dependence: %lx", taskPtr);
     parallelRegionData->maintainTaskDependence(taskPtr, deps[i]);
   }
 }

@@ -4,7 +4,7 @@
 #include "TaskInfoQuery.h"
 
 enum DataSharingType { 
-  // memory address not in current thread stack address range
+  // memory address not in current thread stack address range and it is not explicit task private 
   eNonThreadPrivate= 1,  
   // memory access in current thread address range and within current task stack frame range
   eThreadPrivateAccessOtherTask = 2, 

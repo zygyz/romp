@@ -86,7 +86,7 @@ DataSharingType analyzeDataSharingType(const ThreadInfo& threadInfo,
       }
     }
     const auto taskPrivateMemoryBaseAddress = reinterpret_cast<const uint64_t>(taskMemoryInfo.blockAddress);
-    RAW_DLOG(INFO, "!!!!analyze data sharing type: mem: %lx stack top: %lx stack bottom: %lx private base: %lx ", memoryAddress, threadData->stackTopAddress, threadData->stackBaseAddress, taskPrivateMemoryBaseAddress);
+    RAW_DLOG(INFO, "?????? analyze data sharing type: mem: %lx stack top: %lx stack bottom: %lx private base: %lx ", memoryAddress, threadData->stackTopAddress, threadData->stackBaseAddress, taskPrivateMemoryBaseAddress);
     return eNonThreadPrivate;
   }
   // now the memory access is within current thread's stack range. We want to figure out if the memory access is task private.
