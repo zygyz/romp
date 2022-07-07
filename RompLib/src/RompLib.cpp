@@ -55,17 +55,6 @@ rollback: // will refactor to remove the tag. Using goto tag is actually more re
     }
     return true;
   }
-  if (accessHistory->memIsRecycled()) {
-    //  The memory slot is recycled because of the end of explicit task. 
-    //  reset the memory state flag and clear the access records.
-    guard.upgradeFromReaderToWriter(); 
-    if (accessHistory->memIsRecycled()) {
-      accessHistory->clearFlags();
-      accessHistory->clearRecords();
-      return false;
-    }
-  }
-
   auto taskDataPtr = static_cast<TaskData*>(currentTaskData);
   auto isInReduction = taskDataPtr->getIsInReduction();
   auto workShareRegionId = taskDataPtr->workShareRegionId;
@@ -158,7 +147,6 @@ void checkAccess(void* baseAddress, uint32_t bytesAccessed, void* instnAddr, boo
     DataSharingType dataSharingType = eUnknown;
     auto shouldCheckAccess = shouldCheckMemoryAccess(threadInfo, taskMemoryInfo, taskInfo, checkedAddress, taskInfo.taskFrame, dataSharingType,isWrite, instnAddr);
     auto accessHistory = shadowMemory.getShadowMemorySlot(checkedAddress);
-    //RAW_DLOG(INFO, "should check access: %d instn: %lx", shouldCheckAccess, instnAddr);
     setMemoryOwner(accessHistory, dataSharingType, static_cast<void*>(currentTaskData), reinterpret_cast<void*>(checkedAddress));
     if (shouldCheckAccess) {
       if (checkDataRace(accessHistory, curLabel, curLockSet, instnAddr, static_cast<void*>(currentTaskData), taskInfo.flags, isWrite, hasHardwareLock, checkedAddress, dataSharingType, isTLSAccess)){
