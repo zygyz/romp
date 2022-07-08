@@ -9,7 +9,7 @@
 #include "BPatch_function.h"
 #include "BPatch_point.h"
 #include "BPatch_process.h"
-//#include "Symtab.h"
+#include "Symtab.h"
 
 #define MODULE_NAME_LENGTH 128
 
@@ -17,6 +17,7 @@ namespace romp {
   class InstrumentClient {
     public:
       InstrumentClient(
+              const std::string& sourceFileName,
               const std::string& programName, 
               const std::string& rompLibPath,
               std::shared_ptr<BPatch> bpatchPtr,
@@ -41,6 +42,7 @@ namespace romp {
       std::shared_ptr<BPatch> mBpatchPtr;
       std::vector<BPatch_function*> mCheckAccessFunctions;
       std::string mProgramName;
+      std::string mSourceFileName;
       std::string mArchitecture;
       std::string mModuleSuffix;
       std::vector<int> mOmpDirectiveLineNumbers;
