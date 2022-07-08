@@ -14,13 +14,13 @@ using namespace std;
       buffer.find(target) != string::npos
 
 InstrumentClient::InstrumentClient(
-//        const string& sourceFileName,
+        const string& sourceFileName,
         const string& programName, 
         const string& rompLibPath,
         shared_ptr<BPatch> bpatchPtr,
         const string& arch,
         const string& modSuffix) : mBpatchPtr(move(bpatchPtr)), 
-                                   //mSourceFileName(sourceFileName),
+                                   mSourceFileName(sourceFileName),
                                    mProgramName(programName),
                                    mArchitecture(arch),
                                    mModuleSuffix(modSuffix) {
@@ -112,8 +112,8 @@ InstrumentClient::getFunctionsVector(
  */
 void
 InstrumentClient::instrumentMemoryAccess() {  
-  //findAllOmpDirectiveLineNumbers();  
-  //findInstructionRanges();
+  findAllOmpDirectiveLineNumbers();  
+  findInstructionRanges();
   auto functions = getFunctionsVector(mAddressSpacePtr);
   instrumentMemoryAccessInternal(mAddressSpacePtr, functions);
   finishInstrumentation(mAddressSpacePtr);
@@ -212,9 +212,9 @@ InstrumentClient::insertSnippet(
     }
 
     auto instructionAddress = point->getAddress();         
-    //if (isInstructionForOmpDirective(reinterpret_cast<uint64_t>(instructionAddress))) {
-    //  continue;
-    //}
+    if (isInstructionForOmpDirective(reinterpret_cast<uint64_t>(instructionAddress))) {
+      continue;
+    }
     auto instruction = point->getInsnAtPoint();
     if (isCallInstruction(instruction)) {
       continue;
@@ -282,41 +282,41 @@ inline std::string execute(std::string command) {
 
 
 // use grep command to find line numbers of lines that contain openmp directive. 
-//void InstrumentClient::findAllOmpDirectiveLineNumbers() {
-//  std::string command = "grep -n '#pragma omp' ./" + mSourceFileName + " | grep -o '[0-9]\\+' "; 
-//  auto result = execute(command);
-//  std::string lineNumber;
-//  std::istringstream split(result);
-//  while (std::getline(split, lineNumber, '\n')) {
-//    mOmpDirectiveLineNumbers.push_back(std::stoi(lineNumber));
-//  }  
-//}
-//
-//void InstrumentClient::findInstructionRanges() {
-//  SymtabAPI::Symtab *obj = nullptr;
-//  auto success = SymtabAPI::Symtab::openFile(obj, mProgramName);
-//  if (!success) {
-//    LOG(FATAL) << "failed to open file with symtab api";
-//    return;
-//  }
-//  auto sourceFilePath = std::filesystem::current_path() / mSourceFileName;
-//  auto filePathString = std::string(sourceFilePath.u8string());
-//  LOG(INFO) << "finding instruction ranges with file path:  " << filePathString;
-//  for (const auto lineNumber: mOmpDirectiveLineNumbers) {
-//    std::vector<SymtabAPI::AddressRange> ranges;
-//    obj->getAddressRanges(ranges, filePathString, lineNumber);
-//    mLineNumberInstructionRangeMap[lineNumber] = ranges;  
-//  }
-//}
-//
-//bool InstrumentClient::isInstructionForOmpDirective(const uint64_t instructionAddress) {
-//  for (const auto& item : mLineNumberInstructionRangeMap) {
-//    for (const auto& range : item.second) {
-//      if (instructionAddress <= range.second && instructionAddress >= range.first) {
-//        LOG(INFO) << " instruction: 0x" << std::hex << instructionAddress << std::dec << " maps to line number: " << item.first;
-//        return true;
-//      } 
-//    }
-//  }
-//  return false;
-//}
+void InstrumentClient::findAllOmpDirectiveLineNumbers() {
+  std::string command = "grep -n '#pragma omp' ./" + mSourceFileName + " | grep -o '[0-9]\\+' "; 
+  auto result = execute(command);
+  std::string lineNumber;
+  std::istringstream split(result);
+  while (std::getline(split, lineNumber, '\n')) {
+    mOmpDirectiveLineNumbers.push_back(std::stoi(lineNumber));
+  }  
+}
+
+void InstrumentClient::findInstructionRanges() {
+  SymtabAPI::Symtab *obj = nullptr;
+  auto success = SymtabAPI::Symtab::openFile(obj, mProgramName);
+  if (!success) {
+    LOG(FATAL) << "failed to open file with symtab api";
+    return;
+  }
+  auto sourceFilePath = std::filesystem::current_path() / mSourceFileName;
+  auto filePathString = std::string(sourceFilePath.u8string());
+  LOG(INFO) << "finding instruction ranges with file path:  " << filePathString;
+  for (const auto lineNumber: mOmpDirectiveLineNumbers) {
+    std::vector<SymtabAPI::AddressRange> ranges;
+    obj->getAddressRanges(ranges, filePathString, lineNumber);
+    mLineNumberInstructionRangeMap[lineNumber] = ranges;  
+  }
+}
+
+bool InstrumentClient::isInstructionForOmpDirective(const uint64_t instructionAddress) {
+  for (const auto& item : mLineNumberInstructionRangeMap) {
+    for (const auto& range : item.second) {
+      if (instructionAddress <= range.second && instructionAddress >= range.first) {
+        LOG(INFO) << " instruction: 0x" << std::hex << instructionAddress << std::dec << " maps to line number: " << item.first;
+        return true;
+      } 
+    }
+  }
+  return false;
+}
