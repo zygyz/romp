@@ -283,6 +283,9 @@ inline std::string execute(std::string command) {
 
 // use grep command to find line numbers of lines that contain openmp directive. 
 void InstrumentClient::findAllOmpDirectiveLineNumbers() {
+  if (mSourceFileName == "") {
+    return;
+  }
   std::string command = "grep -n '#pragma omp' ./" + mSourceFileName + " | grep -o '[0-9]\\+' "; 
   auto result = execute(command);
   std::string lineNumber;
@@ -293,6 +296,9 @@ void InstrumentClient::findAllOmpDirectiveLineNumbers() {
 }
 
 void InstrumentClient::findInstructionRanges() {
+  if (mSourceFileName == "") {
+    return;
+  }
   SymtabAPI::Symtab *obj = nullptr;
   auto success = SymtabAPI::Symtab::openFile(obj, mProgramName);
   if (!success) {

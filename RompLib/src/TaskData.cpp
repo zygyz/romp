@@ -71,6 +71,14 @@ void TaskData::setIsInReduction(bool isInReduction) {
   }
 }
 
+void TaskData::setIsComplete(bool isComplete) {
+  if (!isComplete) {
+    metaData &= ~eIsComplete;
+  } else {
+    metaData |= eIsComplete;
+  }
+}
+
 void TaskData::setIsTaskwait(bool isTaskwait) {
   if (!isTaskwait) {
     metaData &= ~eIsTaskwait;
