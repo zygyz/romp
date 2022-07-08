@@ -15,7 +15,6 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, Rec
   auto checkedAddress = curRecord.getCheckedMemoryAddress();
   auto histLabel = histRecord.getLabel(); 
   auto curLabel = curRecord.getLabel(); 
-  //RAW_DLOG(INFO, "analyze race condition - address: %lx hist label: %s hist is write: %d hist instn addr: %lx cur label: %s cur is write: %d cur instn addr: %lx\n", checkedAddress, histLabel->toString().c_str(), histRecord.isWrite(), histRecord.getInstructionAddress(), curLabel->toString().c_str(), curRecord.isWrite(), curRecord.getInstructionAddress());
   // we want to set both lock set info and node relation info so we don't early return.
   recordManagementInfo.nodeRelation = eUndefinedNodeRelation;
   recordManagementInfo.lockRelation = eUndefinedLockRelation;
@@ -69,7 +68,7 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, Rec
   auto bothAccessesAreTaskPrivate = ((currentDataSharingType == eThreadPrivateAccessCurrentTask || currentDataSharingType == eExplicitTaskPrivate) && (historyDataSharingType == eThreadPrivateAccessCurrentTask || historyDataSharingType == eExplicitTaskPrivate));
   auto hasDataRace = !isHistoryAccessBeforeCurrentAccess && (histRecord.isWrite() || curRecord.isWrite()) && !bothAccessesAreTaskPrivate;
   if (hasDataRace) {
-    RAW_DLOG(INFO, "data race found! hist is write: %d cur is write: %d , memr addr: %lx cur instn: %lx hist instn: %lx hist label: %s cur label: %s hist fields breakd down: %s cur fields break down: %s", histRecord.isWrite(), curRecord.isWrite(), checkedAddress, curRecord.getInstructionAddress(), histRecord.getInstructionAddress(), histRecord.getLabel()->toString().c_str(), curRecord.getLabel()->toString().c_str(), histRecord.getLabel()->toFieldsBreakdown().c_str(), curRecord.getLabel()->toFieldsBreakdown().c_str());
+    RAW_DLOG(INFO, "data race found! hist is write: %d cur is write: %d , memr addr: %lx cur instn: %lx hist instn: %lx hist label: %s cur label: %s hist fields breakd down: %s cur fields break down: %s hist owner: %lx cur owner: %lx", histRecord.isWrite(), curRecord.isWrite(), checkedAddress, curRecord.getInstructionAddress(), histRecord.getInstructionAddress(), histRecord.getLabel()->toString().c_str(), curRecord.getLabel()->toString().c_str(), histRecord.getLabel()->toFieldsBreakdown().c_str(), curRecord.getLabel()->toFieldsBreakdown().c_str(), histRecord.getMemoryAddressOwner(), curRecord.getMemoryAddressOwner());
   }
   return hasDataRace;
 }
@@ -185,7 +184,6 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex, TaskData* 
       histHappensBeforeCur = analyzeSiblingImplicitTask(histLabel, curLabel, diffIndex, recordManagementInfo);
     } 
   } else {
-    RAW_DLOG(INFO, "analyze same task called based on same offset hist: %s cur: %s", histLabel->toString().c_str(), curLabel->toString().c_str());
     histHappensBeforeCur = analyzeSameTask(histLabel, curLabel, diffIndex, recordManagementInfo); 
   } 
   // comparing task label does not infer happens-before relation. Addtionally we check other situations
@@ -213,7 +211,6 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex, TaskData* 
         // i.e., if current thread executing the implicit task has encountered some undeferred task before. And there exists
         // explicit task dependence between history explicit task and the undeferred task. In this case, there exists happens-before  relationship between history task and current task.
         for (auto undeferredTask : curTaskData->undeferredTasks) {
-          RAW_DLOG(INFO, "undeferred task: %lx", undeferredTask);
           if (parallelRegionData->taskDependenceGraph.hasPath(static_cast<void*>(histTaskData), undeferredTask)) {
             return true;
           }
@@ -375,7 +372,6 @@ bool analyzeExplicitTaskSynchronizationWithTaskWait(Label* label, int startIndex
 // There exists fields in histLabel[diffIndex] and curLabel[diffIndex] that are different.
 // Return true if there exists happens-before relationship. Return false otherwise.
 bool analyzeSameTask(Label* histLabel, Label* curLabel, int diffIndex, RecordManagementInfo& recordManagementInfo) {
-  RAW_DLOG(INFO, "analyzeSameTask, hist: %s cur: %s index: %d", histLabel->toString().c_str(), curLabel->toString().c_str(), diffIndex);  
   auto lenHistLabel = histLabel->getLabelLength(); 
   auto lenCurLabel = curLabel->getLabelLength();
   auto histDiffSegmentIsLeaf = diffIndex == (lenHistLabel - 1);
@@ -490,7 +486,6 @@ bool analyzeExplicitTask(Label* histLabel, Label* curLabel, int diffIndex, Recor
   ReaderWriterLockGuard guard(&(parallelRegionData->lock), &node, nullptr);
 #endif
   if (parallelRegionData->taskDependenceGraph.hasPath(histNextTaskPtr, curNextTaskPtr)) {
-    RAW_DLOG(INFO, "analyzeExplicitTask, there exists explicit task dependence %lx %lx", histNextTaskPtr, curNextTaskPtr);
     return analyzeExplicitTaskSynchronizationWithTaskWait(histLabel, diffIndex + 2, recordManagementInfo) && analyzeExplicitTaskSynchronizationWithTaskWait(curLabel, diffIndex + 2, recordManagementInfo);
   } else {
     // There is no explicit task dependence between T1 and T2, we further check the synchronization enforced by taskwait
@@ -542,7 +537,6 @@ bool manageAccessRecords(AccessHistory* accessHistory, const Record& currentReco
   auto records = accessHistory->getRecords();
   auto infoSize = info.size(); 
   auto recordsNum = records->size();
-  RAW_DLOG(INFO, "num access records: %d", recordsNum);
   RAW_CHECK(infoSize == recordsNum, "access records size is not equal to records number");
   std::vector<int> recordRemovalCandidates;
   recordRemovalCandidates.clear(); 
@@ -589,7 +583,6 @@ bool manageAccessRecords(AccessHistory* accessHistory, const Record& currentReco
     } 
   }
   if (recordRemovalCandidates.size() > 0) {
-    RAW_DLOG(INFO, "records removal candidate size: %d", recordRemovalCandidates.size());
     auto hasWriteWriteContention = lockGuard.upgradeFromReaderToWriter();
     if (!hasWriteWriteContention) {
       accessHistory->removeRecords(recordRemovalCandidates);
@@ -610,7 +603,6 @@ bool manageAccessRecords(AccessHistory* accessHistory, const Record& currentReco
   // if there is write write contention or not. 
     auto hasWriteWriteContention = lockGuard.upgradeFromReaderToWriter();  
     if (!hasWriteWriteContention) {
-      RAW_DLOG(INFO, "adding record to access history at %lx, memory address: %lx is in reduction %d\n", accessHistory, currentRecord.getCheckedMemoryAddress(), currentRecord.isInReduction());
       accessHistory->addRecordToAccessHistory(currentRecord);
       return false;
     } else {

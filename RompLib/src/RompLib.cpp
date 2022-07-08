@@ -28,7 +28,6 @@ extern PerformanceCounters gPerformanceCounters;
 bool checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const LockSetPtr& curLockSet, void* instnAddr, 
                    void* currentTaskData, int taskFlags, bool isWrite, bool hasHardwareLock, uint64_t checkedAddress, 
                    DataSharingType dataSharingType, bool isTLSAccess) {
- RAW_DLOG(INFO, "checkDataRace called on instruciton address: %lx mem addr: %lx", instnAddr, checkedAddress);
 #ifdef PERFORMANCE
   gPerformanceCounters.bumpNumCheckAccessFunctionCall();
 #endif
@@ -114,7 +113,6 @@ void checkAccess(void* baseAddress, uint32_t bytesAccessed, void* instnAddr, boo
 #ifdef PERFORMANCE
   gPerformanceCounters.bumpNumMemoryAccessInstrumentationCall();
 #endif
-  RAW_DLOG(INFO, "checkAccess called on instruction addr: %lx", instnAddr);
   if (!gOmptInitialized || bytesAccessed == 0) {
     return;
   }
