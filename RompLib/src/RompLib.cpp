@@ -113,6 +113,9 @@ void checkAccess(void* baseAddress, uint32_t bytesAccessed, void* instnAddr, boo
 #ifdef PERFORMANCE
   gPerformanceCounters.bumpNumMemoryAccessInstrumentationCall();
 #endif
+  if (gDataRaceFound) {
+    return;
+  }
   if (!gOmptInitialized || bytesAccessed == 0) {
     return;
   }
