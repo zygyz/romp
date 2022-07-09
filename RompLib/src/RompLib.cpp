@@ -124,21 +124,11 @@ ompt_start_tool_result_t* ompt_start_tool(
   ompt_data_t data;
   static ompt_start_tool_result_t startToolResult = { 
       &omptInitialize, &omptFinalize, data}; 
-  char result[PATH_MAX];
-  auto count = readlink("/proc/self/exe", result, PATH_MAX);
-  if (count == 0) {
-    LOG(FATAL) << "cannot get current executable path";
-  }
-  auto appPath = std::string(result, count);
-  LOG(INFO) << "ompt_start_tool on executable: " << appPath;
-  auto success = Dyninst::SymtabAPI::Symtab::openFile(gSymtabHandle, appPath);
-  if (!success) {
-    LOG(FATAL) << "cannot parse executable into symtab: " << appPath;
-  }
   return &startToolResult;
 }
 
 void checkAccess(void* baseAddress, uint32_t bytesAccessed, void* instnAddr, bool hasHardwareLock, bool isWrite, bool isTLSAccess) {
+ 
 #ifdef PERFORMANCE
   gPerformanceCounters.bumpNumMemoryAccessInstrumentationCall();
 #endif
