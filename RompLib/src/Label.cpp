@@ -269,9 +269,6 @@ std::shared_ptr<Label> mutateLogicalDispatch(Label* label, uint64_t id, WorkShar
   RAW_DCHECK(segment->getType() == eLogical, "not a workshare segment");
   auto newSegment = std::make_shared<WorkShareSegment>(id, workShareType); 
   newLabel->appendSegment(newSegment);   
-  if (id == 0 || id == 1) {
-    RAW_DLOG(INFO, "mutate logical dispatch: %lu, new label: %s", id, newLabel->toString().c_str());
-  } 
   return newLabel;
 }
 

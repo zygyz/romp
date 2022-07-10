@@ -25,11 +25,7 @@ bool shouldCheckMemoryAccess(const ThreadInfo& threadInfo,
                              const ompt_frame_t* taskFrame,
                              DataSharingType& dataSharingType) {
   dataSharingType = analyzeDataSharingType(threadInfo, taskMemoryInfo, memoryAddress, taskFrame);
-  auto shouldCheck = dataSharingType != eNonWorkerThread && dataSharingType != eInitialThread;
-  if (!shouldCheck) {
-    RAW_DLOG(INFO, "not checking mem addr: %lx", memoryAddress);
-  }
-  return shouldCheck;
+  return dataSharingType != eNonWorkerThread && dataSharingType != eInitialThread;
 }
 
 DataSharingType analyzeDataSharingType(const ThreadInfo& threadInfo, 
