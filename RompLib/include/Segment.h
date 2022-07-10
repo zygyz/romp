@@ -60,7 +60,6 @@ public:
   void setOffsetSpan(uint64_t offset, uint64_t span);
   void setTaskwait(uint64_t taskwait);
   void setTaskCreateCount(uint64_t taskcreate);
-  void setUndeferredTaskCount(uint16_t undeferredTaskCount);
   void setPhase(uint64_t phase);
   void setLoopCount(uint64_t loopCount);
   void setTaskGroupId(uint16_t taskGroupId);
