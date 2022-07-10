@@ -14,10 +14,10 @@ extern PerformanceCounters gPerformanceCounters;
 bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, bool& isHistBeforeCur, int& diffIndex, const uint64_t checkedAddress) {
   auto histTaskData = static_cast<TaskData*>(histRecord.getTaskPtr()); 
   auto curTaskData = static_cast<TaskData*>(curRecord.getTaskPtr());
-  if (histTaskData == curTaskData) {
-    // both memory accesses are performed by the same task. 
-    return false;
-  }
+//if (histTaskData == curTaskData) {
+//both memory accesses are performed by the same task. 
+//    return false;
+// }
   
   auto histRecordMemoryOwner = histRecord.getMemoryAddressOwner();
   auto curRecordMemoryOwner = curRecord.getMemoryAddressOwner(); 
@@ -31,7 +31,7 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, boo
    
   auto histLabel = histRecord.getLabel(); 
   auto curLabel = curRecord.getLabel(); 
-  isHistBeforeCur = happensBefore(histLabel, curLabel, diffIndex, histTaskData, curTaskData);
+  isHistBeforeCur = happensBefore(histLabel, curLabel, diffIndex, histTaskData, curTaskData, checkedAddress);
   
   if (isHistBeforeCur) {
     return false;
@@ -75,7 +75,7 @@ void* setMemoryOwner(AccessHistory* accessHistory, int dataSharingType, void* ta
   return accessHistory->getOwner();
 }
 
-bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex, TaskData* histTaskData, TaskData* curTaskData) {
+bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex, TaskData* histTaskData, TaskData* curTaskData, uint64_t checkedAddress) {
   diffIndex = compareLabels(histLabel, curLabel);
   auto histHappensBeforeCur = false;
   if (diffIndex < 0) {
@@ -110,7 +110,7 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex, TaskData* 
       case eImplicit:
         return true;
       case eLogical:
-        histHappensBeforeCur = analyzeOrderedSection(histLabel, curLabel,  diffIndex);
+        histHappensBeforeCur = analyzeOrderedSection(histLabel, curLabel,  diffIndex); // TODO: is it right?
         break;
       case eExplicit:
         histHappensBeforeCur = analyzeSameTask(histLabel, curLabel, diffIndex);
@@ -157,7 +157,6 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex, TaskData* 
         // i.e., if current thread executing the implicit task has encountered some undeferred task before. And there exists
         // explicit task dependence between history explicit task and the undeferred task. In this case, there exists happens-before  relationship between history task and current task.
         for (auto undeferredTask : curTaskData->undeferredTasks) {
-          RAW_DLOG(INFO, "undeferred task: %lx", undeferredTask);
           if (parallelRegionData->taskDependenceGraph.hasPath(static_cast<void*>(histTaskData), undeferredTask)) {
             return true;
           }
@@ -297,7 +296,6 @@ bool analyzeSyncChain(Label* label, int startIndex) {
 
 
 // This function is called under the premise that offset field is the same.
-// histLabel[diffIndex] and curLabel[diffIndex] point to the same task.
 // There exists fields in histLabel[diffIndex] and curLabel[diffIndex] that are different.
 // Return true if there exists happens-before relationship. Return false otherwise.
 bool analyzeSameTask(Label* histLabel, Label* curLabel, int diffIndex) {
@@ -307,7 +305,17 @@ bool analyzeSameTask(Label* histLabel, Label* curLabel, int diffIndex) {
   auto curDiffSegmentIsLeaf = diffIndex == (lenCurLabel - 1);
   auto isHappensBefore = false; 
   if (histDiffSegmentIsLeaf && curDiffSegmentIsLeaf) {
-    isHappensBefore = true;
+    auto histDiffSegment = histLabel->getKthSegment(diffIndex);
+    auto curDiffSegment = curLabel->getKthSegment(diffIndex);  
+    auto histDiffSegmentType = histDiffSegment->getType();
+    auto curDiffSegmentType = curDiffSegment->getType();          
+    if (histDiffSegmentType == eLogical && curDiffSegmentType == eLogical) {
+      auto histWorkShareID = static_cast<WorkShareSegment*>(histDiffSegment)->getWorkShareId();
+      auto curWorkShareID = static_cast<WorkShareSegment*>(curDiffSegment)->getWorkShareId();
+      return histWorkShareID == curWorkShareID;
+    } 
+    // otherwise, should be same implicit task at different phases, has happens-before relationship.
+    return true;  
   } else if (histDiffSegmentIsLeaf) {  
     auto histDiffSegment = histLabel->getKthSegment(diffIndex);
     auto curDiffSegment = curLabel->getKthSegment(diffIndex);  
@@ -405,7 +413,6 @@ bool analyzeExplicitTask(Label* histLabel, Label* curLabel, int diffIndex) {
   LockGuard guard(&(parallelRegionData->lock), &node, nullptr);
 #endif
   if (parallelRegionData->taskDependenceGraph.hasPath(histNextTaskPtr, curNextTaskPtr)) {
-    RAW_DLOG(INFO, "analyzeExplicitTask, there exists explicit task dependence %lx %lx", histNextTaskPtr, curNextTaskPtr);
     return analyzeSyncChain(histLabel, diffIndex + 2) && analyzeSyncChain(curLabel, diffIndex + 2); 
   } else {
     // There is no explicit task dependence between T1 and T2, we further check the synchronization enforced by taskwait

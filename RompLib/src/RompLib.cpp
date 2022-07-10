@@ -54,13 +54,6 @@ bool checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
     }
     return true;
   }
-  if (accessHistory->memIsRecycled()) {
-    //  The memory slot is recycled because of the end of explicit task. 
-    //  reset the memory state flag and clear the access records.
-     accessHistory->clearFlags();
-     accessHistory->clearRecords();
-     return false;
-  }
 
   auto taskDataPtr = static_cast<TaskData*>(currentTaskData);
   auto isInReduction = taskDataPtr->getIsInReduction();
@@ -128,11 +121,11 @@ ompt_start_tool_result_t* ompt_start_tool(
 }
 
 void checkAccess(void* baseAddress, uint32_t bytesAccessed, void* instnAddr, bool hasHardwareLock, bool isWrite, bool isTLSAccess) {
- 
 #ifdef PERFORMANCE
   gPerformanceCounters.bumpNumMemoryAccessInstrumentationCall();
 #endif
   if (gDataRaceFound) {
+    // Note: this may cause seg fault of DRB180
     return;
   }
   if (!gOmptInitialized || bytesAccessed == 0) {
