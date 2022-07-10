@@ -31,7 +31,7 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, boo
    
   auto histLabel = histRecord.getLabel(); 
   auto curLabel = curRecord.getLabel(); 
-  isHistBeforeCur = happensBefore(histLabel, curLabel, diffIndex, histTaskData, curTaskData, checkedAddress);
+  isHistBeforeCur = happensBefore(histLabel, curLabel, diffIndex, histTaskData, curTaskData);
   
   if (isHistBeforeCur) {
     return false;
