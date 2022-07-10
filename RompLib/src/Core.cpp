@@ -75,7 +75,7 @@ void* setMemoryOwner(AccessHistory* accessHistory, int dataSharingType, void* ta
   return accessHistory->getOwner();
 }
 
-bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex, TaskData* histTaskData, TaskData* curTaskData, uint64_t checkedAddress) {
+bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex, TaskData* histTaskData, TaskData* curTaskData) {
   diffIndex = compareLabels(histLabel, curLabel);
   auto histHappensBeforeCur = false;
   if (diffIndex < 0) {
