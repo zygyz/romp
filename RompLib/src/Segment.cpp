@@ -47,7 +47,7 @@
  * [40, 43]: taskwait count
  * [36, 39]: phase count
  * [24, 35]: loop count 
- * [20, 23]: undeferred explicit task count
+ * [20, 23]: reserved
  * [7, 19]: task create count
  * [5, 6]: bit 5 set: is single executable; bit 6 set: is single other
  * [4]: mark if current task sync by taskgroup with its parent task
