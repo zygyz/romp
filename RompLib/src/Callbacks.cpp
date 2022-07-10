@@ -576,9 +576,11 @@ void on_ompt_callback_dispatch(
    case ompt_dispatch_section:
       mutatedLabel = mutateSectionDispatch(parentLabel, instance.ptr);
       break; 
-  taskDataPtr->label = std::move(mutatedLabel);
-  taskDataPtr->mutateCount++;
+   default:
+     RAW_LOG(FATAL, "unexpected case %d", kind);
  }
+ taskDataPtr->label = std::move(mutatedLabel);
+ taskDataPtr->mutateCount++;
 }
 
 void on_ompt_callback_reduction(

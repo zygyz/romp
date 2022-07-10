@@ -24,11 +24,11 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, Rec
   auto curTaskData = static_cast<TaskData*>(curRecord.getTaskPtr());
   auto isHistoryAccessBeforeCurrentAccess = happensBefore(histLabel, curLabel, diffIndex, histTaskData, curTaskData, recordManagementInfo);    
 
-  if (histTaskData == curTaskData) {
-    // both memory accesses are performed by the same task. 
-    // the record management info has been collected 
-    return false;
-  }
+//  if (histTaskData == curTaskData) {
+//    // both memory accesses are performed by the same task. 
+//    // the record management info has been collected 
+//    return false;
+//  }
 
   auto histRecordMemoryOwner = histRecord.getMemoryAddressOwner();
   auto curRecordMemoryOwner = curRecord.getMemoryAddressOwner(); 
@@ -368,7 +368,6 @@ bool analyzeExplicitTaskSynchronizationWithTaskWait(Label* label, int startIndex
 }
 
 // This function is called under the premise that offset field is the same.
-// histLabel[diffIndex] and curLabel[diffIndex] point to the same task.
 // There exists fields in histLabel[diffIndex] and curLabel[diffIndex] that are different.
 // Return true if there exists happens-before relationship. Return false otherwise.
 bool analyzeSameTask(Label* histLabel, Label* curLabel, int diffIndex, RecordManagementInfo& recordManagementInfo) {
@@ -378,6 +377,17 @@ bool analyzeSameTask(Label* histLabel, Label* curLabel, int diffIndex, RecordMan
   auto curDiffSegmentIsLeaf = diffIndex == (lenCurLabel - 1);
   auto isHappensBefore = false; 
   if (histDiffSegmentIsLeaf && curDiffSegmentIsLeaf) {
+    auto histDiffSegment = histLabel->getKthSegment(diffIndex);
+    auto curDiffSegment = curLabel->getKthSegment(diffIndex);  
+    auto histDiffSegmentType = histDiffSegment->getType();
+    auto curDiffSegmentType = curDiffSegment->getType();          
+    if (histDiffSegmentType == eLogical && curDiffSegmentType == eLogical) {
+      auto histWorkShareID = static_cast<WorkShareSegment*>(histDiffSegment)->getWorkShareId();
+      auto curWorkShareID = static_cast<WorkShareSegment*>(curDiffSegment)->getWorkShareId();
+      recordManagementInfo.nodeRelation = eSiblingParallel; 
+      return histWorkShareID == curWorkShareID;
+    } 
+    // otherwise, should be same implicit task at different phases, has happens-before relationship.
     recordManagementInfo.nodeRelation = eHappensBefore;
     return true; 
   } else if (histDiffSegmentIsLeaf) {  
