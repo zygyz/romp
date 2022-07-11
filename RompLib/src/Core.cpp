@@ -58,8 +58,7 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, Rec
     return false; 
   }
    
-  if (histRecord.isInReduction() && curRecord.isInReduction() && histTaskData->parallelRegionDataPtr == curTaskData->parallelRegionDataPtr && histRecord.getWorkShareRegionId() == curRecord.getWorkShareRegionId()) {
-    // both accesses are in reduction in the same work share region, no data race.
+  if ((histRecord.isInReduction() || curRecord.isInReduction())&& histTaskData->parallelRegionDataPtr == curTaskData->parallelRegionDataPtr) {
     return false; 
   }
  
@@ -114,7 +113,6 @@ bool analyzeMutualExclusion(const Record& histRecord, const Record& curRecord, R
 
 // assuming proper concurrency control for access history
 void  setMemoryOwner(AccessHistory* accessHistory, int dataSharingType, void* taskData, void* memoryAddress) {
-  RAW_DLOG(INFO, "!!!!! set mem owner: mem addr: %lx data sharing type: %d", memoryAddress, dataSharingType);
   if (dataSharingType == eThreadPrivateAccessCurrentTask || dataSharingType == eExplicitTaskPrivate) {
     pfq_rwlock_node_t me;
     ReaderWriterLockGuard guard(&(accessHistory->getLock()), &me, &gPerformanceCounters);

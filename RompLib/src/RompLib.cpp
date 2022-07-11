@@ -56,10 +56,10 @@ rollback: // will refactor to remove the tag. Using goto tag is actually more re
   }
   auto taskDataPtr = static_cast<TaskData*>(currentTaskData);
   auto isInReduction = taskDataPtr->getIsInReduction();
-  auto workShareRegionId = taskDataPtr->workShareRegionId;
+  //auto workShareRegionId = taskDataPtr->workShareRegionId;
   auto owner = accessHistory->getOwner();
   RAW_DLOG(INFO, "set record checkedAddress: %lx owner: %lx", checkedAddress, owner);
-  auto curRecord = Record(isWrite, curLabel, curLockSet, currentTaskData, checkedAddress, hasHardwareLock,  isInReduction, (int)dataSharingType, instnAddr, workShareRegionId, isTLSAccess, owner);
+  auto curRecord = Record(isWrite, curLabel, curLockSet, currentTaskData, checkedAddress, hasHardwareLock,  isInReduction, (int)dataSharingType, instnAddr, isTLSAccess, owner);
   if (!accessHistory->hasRecords()) {
     // no access record, add current access to the record
     auto hasWriteWriteContention = guard.upgradeFromReaderToWriter();

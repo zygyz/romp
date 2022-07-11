@@ -110,6 +110,3 @@ void* Record::getInstructionAddress() const {
   return mInstructionAddress;
 }
 
-uint8_t Record::getWorkShareRegionId() const {
-  return mWorkShareRegionId;
-}

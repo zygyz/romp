@@ -326,14 +326,6 @@ inline std::shared_ptr<Label> mutateTaskLabelOnWorkSingleOtherCallback(
   return mutatedLabel;
 }
 
-inline void updateWorkShareRegionCount(void* data, ompt_scope_endpoint_t endPoint) {
-  if (data == nullptr || endPoint == ompt_scope_end) {
-    return;
-  }
-  auto taskData = static_cast<TaskData*>(data);
-  taskData->workShareRegionId += 1;
-}
-    
 void on_ompt_callback_work(
       ompt_work_t workType,
       ompt_scope_endpoint_t endPoint,
@@ -350,11 +342,9 @@ void on_ompt_callback_work(
   switch(workType) {
     case ompt_work_loop: 
       mutatedLabel = mutateTaskLabelOnWorkLoopCallback(endPoint, label);
-      updateWorkShareRegionCount(taskData->ptr, endPoint);
       break;
     case ompt_work_sections:
       mutatedLabel = mutateTaskLabelOnWorkSectionsCallback(endPoint, label, count);
-      updateWorkShareRegionCount(taskData->ptr, endPoint);
       break;
     case ompt_work_single_executor:
       mutatedLabel = mutateTaskLabelOnWorkSingleExecutorCallback(endPoint, label);
@@ -370,7 +360,6 @@ void on_ompt_callback_work(
       break;
     case ompt_work_taskloop:
       mutatedLabel = mutateTaskLabelOnTaskLoopCallback(endPoint, label, count); 
-      updateWorkShareRegionCount(taskData->ptr, endPoint);
       break;
     default:
       break;
