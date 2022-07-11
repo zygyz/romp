@@ -43,6 +43,7 @@ bool checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
   gPerformanceCounters.bumpNumAccessHistoryOverflow(numRecords);
   gPerformanceCounters.updateMaximumAccessRecordsNum(accessHistory->getNumRecords()); 
 #endif
+  RAW_DLOG(INFO, "check access: %lx curLabel: %s", checkedAddress, curLabel->toString().c_str());
   if (accessHistory->dataRaceFound()) {
     //  data race has already been found on this memory location, romp only 
     //  reports one data race on any memory location in one run. Once the data 
@@ -54,7 +55,7 @@ bool checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
     }
     return true;
   }
-
+   
   auto taskDataPtr = static_cast<TaskData*>(currentTaskData);
   auto isInReduction = taskDataPtr->getIsInReduction();
   auto workShareRegionId = taskDataPtr->workShareRegionId;

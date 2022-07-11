@@ -32,7 +32,7 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, boo
   auto histLabel = histRecord.getLabel(); 
   auto curLabel = curRecord.getLabel(); 
   isHistBeforeCur = happensBefore(histLabel, curLabel, diffIndex, histTaskData, curTaskData);
-  
+  RAW_DLOG(INFO, "analzye Race condition: mem addr: %lx hist: %s cur %s isHistBeforeCur: %d", checkedAddress, histLabel->toString().c_str(), curLabel->toString().c_str(), isHistBeforeCur);
   if (isHistBeforeCur) {
     return false;
   }
@@ -47,12 +47,13 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, boo
     // both memory access are performed as thread local storage. 
     return false; 
   }
-   
-  if (histRecord.isInReduction() && curRecord.isInReduction() && histTaskData->parallelRegionDataPtr == curTaskData->parallelRegionDataPtr && histRecord.getWorkShareRegionId() == curRecord.getWorkShareRegionId()) {
+
+  if ((histRecord.isInReduction() || curRecord.isInReduction()) && histTaskData->parallelRegionDataPtr == curTaskData->parallelRegionDataPtr) {
     // both accesses are in reduction in the same work share region, no data race.
+    RAW_DLOG(INFO, "mem addr: %lx, hist in reduction: %d cur in reduction: %d, hist laebl: %lx cur label: %lx", checkedAddress, histRecord.isInReduction(), curRecord.isInReduction(), histLabel->toString().c_str(), curLabel->toString().c_str());
     return false; 
   }
- 
+   
   auto currentDataSharingType = curRecord.getDataSharingType();
   auto historyDataSharingType = histRecord.getDataSharingType();
   auto bothAccessesAreTaskPrivate = ((currentDataSharingType == eThreadPrivateAccessCurrentTask || currentDataSharingType == eExplicitTaskPrivate) && (historyDataSharingType == eThreadPrivateAccessCurrentTask || historyDataSharingType == eExplicitTaskPrivate));
