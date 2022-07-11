@@ -31,13 +31,10 @@ typedef struct TaskData {
   std::shared_ptr<LockSet> lockSet;
   void* exitFrame;
   void* parallelRegionDataPtr;
-  void* parentTaskDataPtr;  
   std::vector<void*> childrenExplicitTasks;
   std::vector<void*> undeferredTasks; // record the TaskData pointers for undeferred task encountered.
   uint16_t metaData;
-  uint8_t workShareRegionId;
   TaskData();
-  //TaskData(void* parentTaskData);
 
   void recordExplicitTaskData(TaskData*);
   void recordUndeferredTaskData(TaskData*);

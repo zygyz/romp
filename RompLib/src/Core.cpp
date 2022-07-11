@@ -48,8 +48,8 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, boo
     return false; 
   }
 
-  if ((histRecord.isInReduction() || curRecord.isInReduction()) && histTaskData->parallelRegionDataPtr == curTaskData->parallelRegionDataPtr) {
-    // both accesses are in reduction in the same work share region, no data race.
+  if ((histRecord.isInReduction() ||  curRecord.isInReduction()) && histTaskData->parallelRegionDataPtr == curTaskData->parallelRegionDataPtr) {
+    //TODO: better handling of reduction case
     RAW_DLOG(INFO, "mem addr: %lx, hist in reduction: %d cur in reduction: %d, hist laebl: %lx cur label: %lx", checkedAddress, histRecord.isInReduction(), curRecord.isInReduction(), histLabel->toString().c_str(), curLabel->toString().c_str());
     return false; 
   }

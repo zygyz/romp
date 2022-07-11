@@ -18,14 +18,12 @@ public:
          bool isInReduction,
          int dataSharingType, 
          void* instructionAddress, 
-         uint8_t workShareRegionId, 
          bool isTLSAccess,
          void* owner
       ): 
       mLabel(label), mLockSet(lockSet), mTaskPtr(taskPtr), 
       mCheckedMemoryAddress(checkedMemoryAddress),
-      mInstructionAddress(instructionAddress),
-      mWorkShareRegionId(workShareRegionId)
+      mInstructionAddress(instructionAddress)
       { 
         mState = 0;
         setAccessType(isWrite); 

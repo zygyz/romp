@@ -58,9 +58,8 @@ bool checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
    
   auto taskDataPtr = static_cast<TaskData*>(currentTaskData);
   auto isInReduction = taskDataPtr->getIsInReduction();
-  auto workShareRegionId = taskDataPtr->workShareRegionId;
   auto owner = accessHistory->getOwner();
-  auto curRecord = Record(isWrite, curLabel, curLockSet, currentTaskData, checkedAddress, hasHardwareLock, isInReduction, (int)dataSharingType, instnAddr, workShareRegionId, isTLSAccess, owner);
+  auto curRecord = Record(isWrite, curLabel, curLockSet, currentTaskData, checkedAddress, hasHardwareLock, isInReduction, (int)dataSharingType, instnAddr, isTLSAccess, owner);
 
   if (!accessHistory->hasRecords()) {
     // no access record, add current access to the record
