@@ -5,6 +5,7 @@ TaskData::TaskData() {
   lockSet = nullptr;
   exitFrame = nullptr;
   metaData = 0;
+  workShareRegionId = 0;
 }
 
 void TaskData::recordExplicitTaskData(TaskData* taskData) {
