@@ -12,11 +12,29 @@ Label::Label(const Label& label) {
   mLabel = label.mLabel; 
 }
 
+inline std::shared_ptr<BaseSegment> Clone(BaseSegment* segment) {
+  auto segmentType = segment->getType();
+  if (segmentType == eLogical) {
+    return static_cast<WorkShareSegment*>(segment)->clone(); 
+  } else if (segmentType == eExplicit) {
+    return static_cast<ExplicitTaskSegment*>(segment)->clone(); 
+  } else {
+    return segment->clone();
+  }
+}
+
 std::string Label::toString() const {
   auto result = std::string("");
   for (const auto& segment : mLabel) {
-    result += segment->toString();
-    result += std::string("|");
+    auto type = segment->getType();
+    if (type == eExplicit) {
+      result += static_cast<ExplicitTaskSegment*>(segment.get())->toString();
+    } else if (type == eLogical) {
+      result += static_cast<WorkShareSegment*>(segment.get())->toString();
+    } else {
+      result += segment->toString();
+    } 
+     result += std::string("|");
   }
   return result;
 }
@@ -140,7 +158,7 @@ std::shared_ptr<Label> mutateParentTaskCreate(Label* parentLabel) {
   auto newLabel = std::make_shared<Label>(*parentLabel);  
   auto lastSegment = newLabel->popSegment();
   auto taskCreate = lastSegment->getTaskcreate();
-  auto newSegment = lastSegment->clone();
+  auto newSegment = Clone(lastSegment.get());
   newSegment->setTaskCreateCount(taskCreate + 1);  
   newLabel->appendSegment(newSegment);
   return newLabel;
@@ -158,7 +176,7 @@ std::shared_ptr<Label> mutateBarrierEnd(Label* label) {
   segment->getOffsetSpan(offset, span); //get the offset and span value
   offset += span;
   //because we don't know the actual derived type of segment, should do a clone
-  auto newSegment = segment->clone(); 
+  auto newSegment = Clone(segment.get());
   newSegment->setOffsetSpan(offset, span); //set the new offset and span
   newLabel->setLastKthSegment(2, newSegment); 
   return newLabel; 
@@ -174,7 +192,7 @@ std::shared_ptr<Label> mutateTaskWait(Label* label) {
   auto lastSegment = newLabel->popSegment(); // replace the last segment
   auto taskwait = lastSegment->getTaskwait();
   taskwait += 1;
-  auto newSegment = lastSegment->clone();
+  auto newSegment = Clone(lastSegment.get());
   newSegment->setTaskwait(taskwait);
   newLabel->appendSegment(newSegment);
   return newLabel;
@@ -190,7 +208,7 @@ std::shared_ptr<Label> mutateOrderSection(Label* label) {
   auto lastSegment = newLabel->popSegment(); // replace the last segment
   auto phase = lastSegment->getPhase();
   phase += 1;
-  auto newSegment = lastSegment->clone();
+  auto newSegment = Clone(lastSegment.get());
   newSegment->setPhase(phase);
   newLabel->appendSegment(newSegment);
   return newLabel;
@@ -219,7 +237,7 @@ std::shared_ptr<Label> mutateLoopEnd(Label* label) {
   auto segment = newLabel->popSegment();
   auto loopCount = segment->getLoopCount();
   loopCount += 1;
-  auto newSegment = segment->clone(); 
+  auto newSegment = Clone(segment.get());
   newSegment->setLoopCount(loopCount);
   newLabel->appendSegment(newSegment);
   return newLabel;
@@ -240,7 +258,7 @@ std::shared_ptr<Label> mutateSectionEnd(Label* label) {
 std::shared_ptr<Label> mutateSingleExecutor(Label* label) {
   auto newLabel = std::make_shared<Label>(*label); 
   auto segment = newLabel->getLastKthSegment(1); 
-  auto newSegment = segment->clone(); 
+  auto newSegment = Clone(segment.get());
   newSegment->toggleSingleExecutor(); 
   newLabel->setLastKthSegment(1, newSegment); 
   return newLabel;
@@ -249,7 +267,7 @@ std::shared_ptr<Label> mutateSingleExecutor(Label* label) {
 std::shared_ptr<Label> mutateSingleOther(Label* label) {
   auto newLabel = std::make_shared<Label>(*label); 
   auto segment = newLabel->getLastKthSegment(1); 
-  auto newSegment = segment->clone(); 
+  auto newSegment = Clone(segment.get());
   newSegment->toggleSingleOther(); 
   newLabel->setLastKthSegment(1, newSegment); 
   return newLabel;
@@ -292,7 +310,7 @@ std::shared_ptr<Label> mutateTaskGroupBegin(Label* label) {
  taskGroupId += 1;
  auto taskGroupLevel = segment->getTaskGroupLevel();
  taskGroupLevel += 1;
- auto newSegment = segment->clone();
+ auto newSegment = Clone(segment.get());
  newSegment->setTaskGroupId(taskGroupId);
  newSegment->setTaskGroupLevel(taskGroupLevel);
  newLabel->appendSegment(newSegment);
@@ -312,7 +330,7 @@ std::shared_ptr<Label> mutateTaskGroupEnd(Label* label) {
   auto taskGroupLevel = segment->getTaskGroupLevel();
   taskGroupLevel -= 1;
   RAW_CHECK(taskGroupLevel >= 0, "not expecting task group level < 0");
-  auto newSegment = segment->clone();
+  auto newSegment = Clone(segment.get()); 
   newSegment->setTaskGroupId(taskGroupId);
   newSegment->setTaskGroupLevel(taskGroupLevel);
   newLabel->appendSegment(newSegment);
