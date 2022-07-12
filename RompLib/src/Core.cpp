@@ -111,7 +111,7 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex, TaskData* 
       case eImplicit:
         return true;
       case eLogical:
-        histHappensBeforeCur = analyzeOrderedSection(histLabel, curLabel,  diffIndex); // TODO: is it right?
+        histHappensBeforeCur = analyzeLogicalTask(histLabel, curLabel,  diffIndex); 
         break;
       case eExplicit:
         histHappensBeforeCur = analyzeSameTask(histLabel, curLabel, diffIndex);
@@ -157,6 +157,7 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex, TaskData* 
         // current task is implicit task, history task is explicit task, check if there exists order by undeferred task 
         // i.e., if current thread executing the implicit task has encountered some undeferred task before. And there exists
         // explicit task dependence between history explicit task and the undeferred task. In this case, there exists happens-before  relationship between history task and current task.
+        // TODO: revisit the handling of undeferred tasks.
         for (auto undeferredTask : curTaskData->undeferredTasks) {
           if (parallelRegionData->taskDependenceGraph.hasPath(static_cast<void*>(histTaskData), undeferredTask)) {
             return true;
@@ -166,6 +167,22 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex, TaskData* 
     }
   }
   return histHappensBeforeCur;  
+}
+
+bool analyzeLogicalTask(Label* histLabel, Label* curLabel, int diffIndex) {
+  auto lenHistLabel = histLabel->getLabelLength();
+  auto lenCurLabel = curLabel->getLabelLength();
+  if ((lenHistLabel == lenCurLabel) && diffIndex == (lenHistLabel - 1)) {
+    auto histDiffSegment = static_cast<WorkShareSegment*>(histLabel->getKthSegment(diffIndex));
+    auto curDiffSegment = static_cast<WorkShareSegment*>(curLabel->getKthSegment(diffIndex));
+    auto histDiffSegmentType = histDiffSegment->getType();
+    auto curDiffSegmentType = curDiffSegment->getType();
+    if (histDiffSegment->isWorkSharePlaceHolder() && curDiffSegment->isWorkSharePlaceHolder() && 
+        histDiffSegment->getWorkShareId() == curDiffSegment->getWorkShareId()) {
+      return true;
+    }
+  }
+  return analyzeOrderedSection(histLabel, curLabel, diffIndex);
 }
 
 bool analyzeSiblingImplicitTask(Label* histLabel, Label* curLabel, int diffIndex) { 
@@ -201,7 +218,6 @@ bool analyzeSiblingImplicitTask(Label* histLabel, Label* curLabel, int diffIndex
   return false;
 }
 
-// startIndex-1 points to the first pair of different index
 bool analyzeOrderedSection(Label* histLabel, Label* curLabel, int startIndex) {
   auto histBaseSeg  = histLabel->getKthSegment(startIndex);
   auto curBaseSeg = curLabel->getKthSegment(startIndex);

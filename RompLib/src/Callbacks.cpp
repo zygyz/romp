@@ -105,7 +105,7 @@ void markExpChildSyncTaskwait(TaskData* taskData, Label* curLabel) {
     lastSegment->getOffsetSpan(offset, span);
     if (span == 1) { // if the last label segment is still explicit label segment, set the taskwaited flag in segment
       lastSegment->setTaskwaited();
-      lastSegment->setTaskwaitPhase(phase); // is this necessary? 
+      lastSegment->setTaskwaitPhase(phase); 
     }
   }
   taskData->childrenExplicitTasks.clear(); // clear the children after taskwait
@@ -265,11 +265,12 @@ void on_ompt_callback_mutex_released(
 
 inline std::shared_ptr<Label> mutateTaskLabelOnWorkLoopCallback(
                              ompt_scope_endpoint_t endPoint, 
-                             const std::shared_ptr<Label>& label) {
+                             const std::shared_ptr<Label>& label, 
+                             TaskData* taskDataPtr) {
   std::shared_ptr<Label> mutatedLabel = nullptr;
   auto labelPtr = label.get();
   if (endPoint == ompt_scope_begin) {
-    mutatedLabel = mutateLoopBegin(labelPtr);
+    mutatedLabel = mutateLoopBegin(labelPtr, taskDataPtr);
   } else if (endPoint == ompt_scope_end) {
     mutatedLabel = mutateLoopEnd(labelPtr);
   }  
@@ -279,11 +280,12 @@ inline std::shared_ptr<Label> mutateTaskLabelOnWorkLoopCallback(
 inline std::shared_ptr<Label> mutateTaskLabelOnWorkSectionsCallback(
         ompt_scope_endpoint_t endPoint, 
         const std::shared_ptr<Label>& label,
-        uint64_t count) {
+        uint64_t count,
+        TaskData* taskDataPtr) {
   std::shared_ptr<Label> mutatedLabel = nullptr;
   auto labelPtr = label.get();
   if (endPoint == ompt_scope_begin) {
-    mutatedLabel = mutateSectionBegin(labelPtr);
+    mutatedLabel = mutateSectionBegin(labelPtr, taskDataPtr);
   } else if (endPoint == ompt_scope_end) {
     mutatedLabel = mutateSectionEnd(labelPtr);
   }
@@ -293,12 +295,13 @@ inline std::shared_ptr<Label> mutateTaskLabelOnWorkSectionsCallback(
 inline std::shared_ptr<Label> mutateTaskLabelOnTaskLoopCallback(
     ompt_scope_endpoint_t endPoint,
     const std::shared_ptr<Label>& label, 
-    uint64_t count) {
+    uint64_t count,
+    void* taskPtr) {
   std::shared_ptr<Label> mutatedLabel = nullptr;
   auto labelPtr = label.get();
   RAW_DLOG(INFO, "mutate on task loop, count: %d", count);
   if (endPoint == ompt_scope_begin) {
-    mutatedLabel = mutateLoopBegin(labelPtr);
+    mutatedLabel = mutateLoopBegin(labelPtr, taskPtr);
   } else if (endPoint == ompt_scope_end) {
     mutatedLabel = mutateLoopEnd(labelPtr);
   }  
@@ -337,10 +340,10 @@ void on_ompt_callback_work(
   std::shared_ptr<Label> mutatedLabel = nullptr;
   switch(workType) {
     case ompt_work_loop: 
-      mutatedLabel = mutateTaskLabelOnWorkLoopCallback(endPoint, label);
+      mutatedLabel = mutateTaskLabelOnWorkLoopCallback(endPoint, label, taskDataPtr);
       break;
     case ompt_work_sections:
-      mutatedLabel = mutateTaskLabelOnWorkSectionsCallback(endPoint, label, count);
+      mutatedLabel = mutateTaskLabelOnWorkSectionsCallback(endPoint, label, count, taskDataPtr);
       break;
     case ompt_work_single_executor:
       mutatedLabel = mutateTaskLabelOnWorkSingleExecutorCallback(endPoint, label);
@@ -355,7 +358,7 @@ void on_ompt_callback_work(
       RAW_LOG(FATAL, "ompt_work_distribute is not supported yet");
       break;
     case ompt_work_taskloop:
-      mutatedLabel = mutateTaskLabelOnTaskLoopCallback(endPoint, label, count); 
+      mutatedLabel = mutateTaskLabelOnTaskLoopCallback(endPoint, label, count, taskDataPtr); 
       break;
     default:
       break;
@@ -426,6 +429,7 @@ void on_ompt_callback_task_create(
     parentTaskData->recordExplicitTaskData(taskData); 
   }
   if (isUndeferred) {
+     RAW_DLOG(INFO, "record undeferred : %lx", taskData);
     parentTaskData->recordUndeferredTaskData(taskData);
   } 
   newTaskData->ptr = static_cast<void*>(taskData);

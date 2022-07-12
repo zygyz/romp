@@ -34,8 +34,10 @@ typedef struct TaskData {
   std::vector<void*> childrenExplicitTasks;
   std::vector<void*> undeferredTasks; // record the TaskData pointers for undeferred task encountered.
   uint16_t metaData;
+  uint64_t logicalTaskPlaceholderID;
   TaskData();
-
+ 
+  uint64_t getPlaceholderID();
   void recordExplicitTaskData(TaskData*);
   void recordUndeferredTaskData(TaskData*);
   void setIsExplicitTask(bool);
