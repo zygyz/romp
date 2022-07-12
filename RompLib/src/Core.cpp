@@ -111,7 +111,7 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex, TaskData* 
       case eImplicit:
         return true;
       case eLogical:
-        histHappensBeforeCur = analyzeLogicalTask(histLabel, curLabel,  diffIndex); 
+        histHappensBeforeCur = analyzeOrderedSection(histLabel, curLabel, diffIndex);
         break;
       case eExplicit:
         histHappensBeforeCur = analyzeSameTask(histLabel, curLabel, diffIndex);
@@ -167,22 +167,6 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex, TaskData* 
     }
   }
   return histHappensBeforeCur;  
-}
-
-bool analyzeLogicalTask(Label* histLabel, Label* curLabel, int diffIndex) {
-  auto lenHistLabel = histLabel->getLabelLength();
-  auto lenCurLabel = curLabel->getLabelLength();
-  if ((lenHistLabel == lenCurLabel) && diffIndex == (lenHistLabel - 1)) {
-    auto histDiffSegment = static_cast<WorkShareSegment*>(histLabel->getKthSegment(diffIndex));
-    auto curDiffSegment = static_cast<WorkShareSegment*>(curLabel->getKthSegment(diffIndex));
-    auto histDiffSegmentType = histDiffSegment->getType();
-    auto curDiffSegmentType = curDiffSegment->getType();
-    if (histDiffSegment->isWorkSharePlaceHolder() && curDiffSegment->isWorkSharePlaceHolder() && 
-        histDiffSegment->getWorkShareId() == curDiffSegment->getWorkShareId()) {
-      return true;
-    }
-  }
-  return analyzeOrderedSection(histLabel, curLabel, diffIndex);
 }
 
 bool analyzeSiblingImplicitTask(Label* histLabel, Label* curLabel, int diffIndex) { 

@@ -8,14 +8,6 @@ TaskData::TaskData() {
   lockSet = nullptr;
   exitFrame = nullptr;
   metaData = 0;
-  logicalTaskPlaceholderID = 0;
-}
-
-uint64_t TaskData::getPlaceholderID() {
-  auto result = logicalTaskPlaceholderID;
-  logicalTaskPlaceholderID++;
-  RAW_DLOG(INFO, " get placeholder id: %d", logicalTaskPlaceholderID);
-  return result;
 }
 
 void TaskData::recordExplicitTaskData(TaskData* taskData) {

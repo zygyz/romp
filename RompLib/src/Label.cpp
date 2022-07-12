@@ -221,11 +221,9 @@ std::shared_ptr<Label> mutateOrderSection(Label* label) {
  * Mutate the label when workshare loop begin. Append a place holder segment
  * to mark the begin of the workshare loop.
  */
-std::shared_ptr<Label> mutateLoopBegin(Label* label, void* taskDataPtr) {
-  auto taskData = static_cast<TaskData*>(taskDataPtr);
+std::shared_ptr<Label> mutateLoopBegin(Label* label) {
   auto newLabel = std::make_shared<Label>(*label); 
-  auto placeholderID = taskData->getPlaceholderID(); 
-  auto newSegment = std::make_shared<WorkShareSegment>(placeholderID); 
+  auto newSegment = std::make_shared<WorkShareSegment>(); 
   newSegment->toggleWorkSharePlaceHolderFlag();
   newLabel->appendSegment(newSegment);   
   return newLabel;
@@ -252,8 +250,8 @@ std::shared_ptr<Label> mutateLoopEnd(Label* label) {
  * Sections construct is implemented as a dynamically scheduled workshare loop.
  * So we treat the sections as a workshared loop 
  */
-std::shared_ptr<Label> mutateSectionBegin(Label* label, void* taskPtr) { 
-  return mutateLoopBegin(label, taskPtr);
+std::shared_ptr<Label> mutateSectionBegin(Label* label) { 
+  return mutateLoopBegin(label);
 }
 
 std::shared_ptr<Label> mutateSectionEnd(Label* label) {

@@ -130,11 +130,6 @@ public:
     mWorkShareID = 0;
     mWorkShareType = eUnknownWorkShareType;
   }
-  WorkShareSegment(uint64_t placeholderID) {
-    initialize(); 
-    mWorkShareID = placeholderID;  
-    mWorkShareType = eUnknownWorkShareType;
-  }
   WorkShareSegment(uint64_t id, WorkShareType workShareType) {
     initialize();
     mWorkShareID = id;
