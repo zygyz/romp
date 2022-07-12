@@ -1,0 +1,46 @@
+*****     Log 1 for DRB133-taskdep5-orig-omp45-no.c with 32 threads and input size      *****
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0712 01:52:47.404847  3715 Initialize.h:51] start initializing ompt
+I0712 01:52:47.405076  3715 Initialize.h:89] ompt intialized
+W0000 00:00:00.000000  3748 Callbacks.cpp:471] RAW: unknown prior task status: 8
+I0712 01:52:47.420819  3715 Initialize.h:94] finalizing ompt
+I0712 01:52:47.420856  3715 Initialize.h:103] data race not found
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+x=1
+y=1
+*****     Log 2 for DRB133-taskdep5-orig-omp45-no.c with 32 threads and input size      *****
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0712 01:52:47.488696  3760 Initialize.h:51] start initializing ompt
+I0712 01:52:47.488924  3760 Initialize.h:89] ompt intialized
+W0000 00:00:00.000000  3764 Callbacks.cpp:471] RAW: unknown prior task status: 8
+I0712 01:52:47.504222  3760 Initialize.h:94] finalizing ompt
+I0712 01:52:47.504256  3760 Initialize.h:103] data race not found
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+x=1
+y=1
