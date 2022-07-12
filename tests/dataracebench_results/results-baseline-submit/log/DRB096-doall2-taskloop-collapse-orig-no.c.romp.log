@@ -1,0 +1,23 @@
+*****     Log 1 for DRB096-doall2-taskloop-collapse-orig-no.c with 32 threads and input size      *****
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0711 23:13:31.669898 41922 Initialize.h:51] start initializing ompt
+I0711 23:13:31.670126 41922 Initialize.h:89] ompt intialized
+F0000 00:00:00.000000 41935 Label.cpp:59] RAW: label is empty
+*****     Log 2 for DRB096-doall2-taskloop-collapse-orig-no.c with 32 threads and input size      *****
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0711 23:13:49.369266 41983 Initialize.h:51] start initializing ompt
+I0711 23:13:49.369489 41983 Initialize.h:89] ompt intialized
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
