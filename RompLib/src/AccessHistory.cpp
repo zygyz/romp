@@ -8,6 +8,14 @@ AccessHistory::AccessHistory() {
   mcs_init(&mLock);
 }
 
+void AccessHistory::setOwner(void* owner) {
+  mOwner = owner;
+}
+
+void* AccessHistory::getOwner() const {
+  return mOwner;
+}
+
 mcs_lock_t & AccessHistory::getLock() {
   return mLock;
 }

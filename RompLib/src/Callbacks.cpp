@@ -29,6 +29,7 @@ void on_ompt_callback_implicit_task(
     auto initTaskData = new TaskData();
     auto newTaskLabel = generateInitialTaskLabel();
     initTaskData->label = std::move(newTaskLabel);
+    initTaskData->parallelRegionDataPtr = parallelData->ptr;
     taskData->ptr = static_cast<void*>(initTaskData);
     return;
   } 
@@ -56,12 +57,12 @@ void on_ompt_callback_implicit_task(
     case ompt_scope_begin:
     {
       // begin of implcit task, create the label for this new task
-      auto newTaskLabel = generateImplicitTaskLabel((parentTaskData->label).get(), index, 
-            actualParallelism); 
+      auto newTaskLabel = generateImplicitTaskLabel((parentTaskData->label).get(), index, actualParallelism); 
       // return value optimization should avoid the ref count mod
       auto newTaskDataPtr = new TaskData();
       // cast to rvalue and avoid atomic ref count modification
       newTaskDataPtr->label = std::move(newTaskLabel); 
+      newTaskDataPtr->parallelRegionDataPtr = parallelData->ptr;
       taskData->ptr = static_cast<void*>(newTaskDataPtr);
       return;
     }
@@ -84,7 +85,7 @@ void on_ompt_callback_implicit_task(
   }
 }
 
-inline Segment* getLastSegment(Label* label) {
+inline BaseSegment* getLastSegment(Label* label) {
   auto lenLabel = label->getLabelLength();
   return label->getKthSegment(lenLabel - 1);
 }
@@ -94,16 +95,20 @@ inline Segment* getLastSegment(Label* label) {
  * be taskwaited, and record the ordered section phase value 
  */
 void markExpChildSyncTaskwait(TaskData* taskData, Label* curLabel) {
-  auto seg = getLastSegment(curLabel);
-  auto phase = seg->getPhase();
-  for (const auto& child : taskData->childrenExplicitTasksData) {
-    auto childTaskData = static_cast<const TaskData*>(child); 
-    auto lenLabel = childTaskData->label->getLabelLength(); 
-    auto lastSeg = childTaskData->label->getKthSegment(lenLabel - 1);
-    lastSeg->setTaskwaited();
-    lastSeg->setTaskwaitPhase(phase);
+  auto segment = getLastSegment(curLabel);
+  auto phase = segment->getPhase();
+  for (auto& child : taskData->childrenExplicitTasks) {
+    auto childTaskData = static_cast<TaskData*>(child); 
+    childTaskData->setIsTaskwait(true); 
+    auto lastSegment = getLastSegment(childTaskData->label.get());
+    uint64_t offset, span;
+    lastSegment->getOffsetSpan(offset, span);
+    if (span == 1) { // if the last label segment is still explicit label segment, set the taskwaited flag in segment
+      lastSegment->setTaskwaited();
+      lastSegment->setTaskwaitPhase(phase); 
+    }
   }
-  taskData->childrenExplicitTasksData.clear(); // clear the children after taskwait
+  taskData->childrenExplicitTasks.clear(); // clear the children after taskwait
 }
 
 /*
@@ -115,9 +120,9 @@ void markExpChildSyncTaskGroupEnd(TaskData* taskData, Label* curLabel) {
   auto phase = seg->getPhase();
   auto taskGroupLevel = seg->getTaskGroupLevel();
   auto taskGroupId = seg->getTaskGroupId(); 
-  auto it = taskData->childrenExplicitTasksData.begin();
+  auto it = taskData->childrenExplicitTasks.begin();
   auto lenParentLabel = curLabel->getLabelLength();
-  while (it != taskData->childrenExplicitTasksData.end()) {
+  while (it != taskData->childrenExplicitTasks.end()) {
     auto childTaskData = static_cast<TaskData*>(*it);
     auto childLabel = childTaskData->label;
     auto lenChildLabel = childLabel->getLabelLength();
@@ -131,7 +136,7 @@ void markExpChildSyncTaskGroupEnd(TaskData* taskData, Label* curLabel) {
       if (childTaskGroupId == taskGroupId) {
         auto mutatedChildLabel = mutateTaskGroupSyncChild(childLabel.get());
         childTaskData->label = std::move(mutatedChildLabel);
-        it = taskData->childrenExplicitTasksData.erase(it);
+        it = taskData->childrenExplicitTasks.erase(it);
       } else {
         it++;
       }
@@ -144,7 +149,7 @@ void on_ompt_callback_sync_region(
        ompt_scope_endpoint_t endPoint,
        ompt_data_t *parallelData,
        ompt_data_t *taskData,
-       const void* codePtrRa) {
+       const void* codePtrReturnAddress) {
   if (!taskData || !taskData->ptr) {
     RAW_LOG(FATAL, "task data pointer is null");  
     return;
@@ -168,6 +173,7 @@ void on_ompt_callback_sync_region(
       if (endPoint == ompt_scope_begin) {
         mutatedLabel = mutateTaskWait(labelPtr);
         markExpChildSyncTaskwait(taskDataPtr, labelPtr);
+        RAW_DLOG(INFO, "mutated task wait: %s taskptr: %lx ", mutatedLabel->toFieldsBreakdown().c_str(), taskDataPtr);
       }
       break;
     }
@@ -183,10 +189,11 @@ void on_ompt_callback_sync_region(
     }
     case ompt_sync_region_reduction:
     {
+      // Note: callback for reduction is replaced by ompt_callback_reduction
       if (endPoint == ompt_scope_begin) { 
-        taskDataPtr->inReduction = true;
+        taskDataPtr->setIsInReduction(true);
       } else if (endPoint == ompt_scope_end) {
-        taskDataPtr->inReduction = false;
+        taskDataPtr->setIsInReduction(false);
       } 
     }
     default:
@@ -283,6 +290,22 @@ inline std::shared_ptr<Label> mutateTaskLabelOnWorkSectionsCallback(
   return mutatedLabel;
 }
 
+inline std::shared_ptr<Label> mutateTaskLabelOnTaskLoopCallback(
+    ompt_scope_endpoint_t endPoint,
+    const std::shared_ptr<Label>& label, 
+    uint64_t count) {
+  std::shared_ptr<Label> mutatedLabel = nullptr;
+  auto labelPtr = label.get();
+  RAW_DLOG(INFO, "mutate on task loop, count: %d", count);
+  if (endPoint == ompt_scope_begin) {
+    mutatedLabel = mutateLoopBegin(labelPtr);
+  } else if (endPoint == ompt_scope_end) {
+    mutatedLabel = mutateLoopEnd(labelPtr);
+  }  
+  return mutatedLabel;  
+}
+   
+
 inline std::shared_ptr<Label> mutateTaskLabelOnWorkSingleExecutorCallback(
         ompt_scope_endpoint_t endPoint, 
         const std::shared_ptr<Label>& label) {
@@ -298,7 +321,7 @@ inline std::shared_ptr<Label> mutateTaskLabelOnWorkSingleOtherCallback(
   std::shared_ptr<Label> mutatedLabel =  mutateSingleOther(labelPtr);
   return mutatedLabel;
 }
-    
+
 void on_ompt_callback_work(
       ompt_work_t workType,
       ompt_scope_endpoint_t endPoint,
@@ -332,7 +355,7 @@ void on_ompt_callback_work(
       RAW_LOG(FATAL, "ompt_work_distribute is not supported yet");
       break;
     case ompt_work_taskloop:
-      RAW_LOG(FATAL, "ompt_work_taskloop is not supported yet :(");
+      mutatedLabel = mutateTaskLabelOnTaskLoopCallback(endPoint, label, count); 
       break;
     default:
       break;
@@ -367,35 +390,47 @@ void on_ompt_callback_task_create(
         int flags,
         int hasDependences,
         const void *codePtrRa) {
-  switch(flags) {
-    case ompt_task_target:
-      RAW_LOG(FATAL, "ompt_task_target is not supported yet");
-      return;
-    case ompt_task_explicit:
-      // create label for explicit task
-      auto parentTaskData = static_cast<TaskData*>(encounteringTaskData->ptr);
-      if (!parentTaskData || !parentTaskData->label) {
-        RAW_LOG(FATAL, "cannot get parent task label");
-        return;
-      }
-      auto taskData = new TaskData();
-      auto parentLabel = (parentTaskData->label).get();
-      taskData->label = generateExplicitTaskLabel(parentLabel);
-      taskData->isExplicitTask = true; // mark current task as explicit task
-      auto mutatedParentLabel = mutateParentTaskCreate(parentLabel); 
-      parentTaskData->label = std::move(mutatedParentLabel);
-      parentTaskData->childrenExplicitTasksData.push_back(static_cast<void*>(taskData));
-      // get parallel region info, atomic fetch and add the explicit task id
-      ParallelRegionInfo parallelRegionInfo;
-      if (!queryParallelRegionInfo(0, parallelRegionInfo)) {
-        RAW_LOG(FATAL, "cannot get parallel region data");
-        return;
-      }
-      auto parallelRegionData  = static_cast<ParallelRegionData*>(parallelRegionInfo.parallelData->ptr);
-      auto taskId = parallelRegionData->expTaskCount.fetch_add(1,std::memory_order_relaxed);
-      taskData->expLocalId = taskId;        
-      newTaskData->ptr = static_cast<void*>(taskData);
-   }
+  // In current llvm-openmp implementation:
+  // https://github.com/llvm/llvm-project/blob/83914ee96fc2d828e1cfb8913f5d156d39150e2c/openmp/runtime/src/kmp_tasking.cpp#L795
+  // flags is a variable where multiple bits can be set
+  // e.g., flags = ompt_task_explicit | ompt_task_undeferred | ompt_task_untied 
+  RAW_DLOG(INFO, "ompt_callback_task_create called");
+  auto isExplicitTask = (flags & ompt_task_explicit) == ompt_task_explicit;
+  auto isUndeferred = (flags & ompt_task_undeferred) == ompt_task_undeferred;
+  auto isUntied = (flags & ompt_task_untied) == ompt_task_untied; 
+  auto isFinal = (flags & ompt_task_final) == ompt_task_final;
+  auto isMergeable = (flags & ompt_task_mergeable) == ompt_task_mergeable;
+  auto isTaskwait = (flags & ompt_task_taskwait) == ompt_task_taskwait;
+  auto parentTaskData = static_cast<TaskData*>(encounteringTaskData->ptr); 
+  if (!parentTaskData || !parentTaskData->label) {
+    RAW_LOG(FATAL, "cannot get parent task label");
+    return;
+  }  
+  auto taskData = new TaskData();
+  // the explicit task being created share the same parallel region with its parent task.
+  taskData->parallelRegionDataPtr = parentTaskData->parallelRegionDataPtr; 
+  taskData->setIsExplicitTask(isExplicitTask);
+  taskData->setIsUndeferredTask(isUndeferred);
+  taskData->setIsUntiedTask(isUntied);
+  taskData->setIsFinalTask(isFinal);
+  taskData->setIsMergeableTask(isMergeable);
+  taskData->setIsTaskwait(isTaskwait);
+  taskData->setHasDependence(hasDependences > 0);
+  // there is one case where the flags == ompt_task_taskwait | ompt_task_undeferred | ompt_task_mergeable
+  // one example is #pragma omp task deps(in:x) if(0) we still treat this as explicit task.
+  auto parentLabel = (parentTaskData->label).get();
+  taskData->label = generateExplicitTaskLabel(parentLabel, static_cast<void*>(taskData));
+  auto mutatedParentLabel = mutateParentTaskCreate(parentLabel); 
+  parentTaskData->label = std::move(mutatedParentLabel);
+  if (isExplicitTask) {
+    parentTaskData->recordExplicitTaskData(taskData); 
+  }
+  if (isUndeferred) {
+     RAW_DLOG(INFO, "record undeferred : %lx", taskData);
+    parentTaskData->recordUndeferredTaskData(taskData);
+  } 
+  newTaskData->ptr = static_cast<void*>(taskData);
+  RAW_DLOG(INFO, "task create new task ptr: %lx", newTaskData->ptr);
 }
 
 void handleTaskComplete(void* taskPtr) {
@@ -417,16 +452,12 @@ void on_ompt_callback_task_schedule(
   switch(priorTaskStatus) {
     case ompt_task_complete:
       handleTaskComplete(priorTaskPtr);
-      //recycleTaskThreadStackMemory(priorTaskPtr);
-      //recycleTaskPrivateMemory();
       break;
     case ompt_task_switch:
-     // recycleTaskThreadStackMemory(priorTaskPtr);
-     // recycleTaskPrivateMemory();
-      break;
     case ompt_task_yield:
     case ompt_task_cancel:
     case ompt_task_detach:
+      break;
     case ompt_task_early_fulfill:
     case ompt_task_late_fulfill:
       break;
@@ -436,10 +467,8 @@ void on_ompt_callback_task_schedule(
   } 
 }
 
-void on_ompt_callback_dependences(
-        ompt_data_t *taskData,
-        const ompt_dependence_t *deps,
-        int ndeps) {
+void on_ompt_callback_dependences(ompt_data_t *taskData, const ompt_dependence_t *deps, int ndeps) {
+  RAW_DLOG(INFO, "ompt_callback_dependences");
   auto taskPtr = taskData->ptr;
   if (!taskPtr) {
     RAW_LOG(WARNING, "callback dependences: current task data ptr is null");
@@ -462,11 +491,9 @@ void on_ompt_callback_dependences(
 #else
   LockGuard guard(&(parallelRegionData->lock), &node, nullptr);
 #endif
-  // while in mutual exculsion, maintain explicit task dependencies
+  // while in mutual exculsion, maintain explicit task dependences
   for (int i = 0; i < ndeps; ++i) {
-    auto variable = deps[i].variable; 
-    auto depType = deps[i].dependence_type;
-    maintainTaskDeps(deps[i], taskPtr, parallelRegionData);
+    parallelRegionData->maintainTaskDependence(taskPtr, deps[i]);
   }
 }
 
@@ -530,8 +557,10 @@ void on_ompt_callback_dispatch(
    case ompt_dispatch_section:
       mutatedLabel = mutateSectionDispatch(parentLabel, instance.ptr);
       break; 
+   default:
+      RAW_LOG(FATAL, "unexpected case %d", kind);
+  }
   taskDataPtr->label = std::move(mutatedLabel);
- }
 }
 
 void on_ompt_callback_reduction(
@@ -539,7 +568,7 @@ void on_ompt_callback_reduction(
        ompt_scope_endpoint_t endPoint,
        ompt_data_t *parallelData,
        ompt_data_t *taskData,
-       const void *codePtrRa) {
+       const void *codePtrReturnAddress) {
   if (!taskData || !taskData->ptr) {
     RAW_LOG(FATAL, "task data pointer is null");
     return;
@@ -547,9 +576,13 @@ void on_ompt_callback_reduction(
   auto taskDataPtr = static_cast<TaskData*>(taskData->ptr);
   switch(endPoint) {
     case ompt_scope_begin:
-      taskDataPtr->inReduction = true;
+      taskDataPtr->setIsInReduction(true);
       break;
     case ompt_scope_end:
-      taskDataPtr->inReduction = false;
+      taskDataPtr->setIsInReduction(false);
+      break;
+    default:
+      break;
   }
 }
+

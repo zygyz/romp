@@ -12,6 +12,7 @@
 #include "Initialize.h"
 #include "Label.h"
 #include "LockSet.h"
+#include "ParallelRegionData.h"
 #include "ShadowMemory.h"
 #include "TaskData.h"
 #include "ThreadData.h"
@@ -25,7 +26,8 @@ ShadowMemory<AccessHistory> shadowMemory;
 extern PerformanceCounters gPerformanceCounters;
 
 bool checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const LockSetPtr& curLockSet, void* instnAddr, 
-                   void* currentTaskData, int taskFlags, bool isWrite, bool hasHardwareLock, uint64_t checkedAddress) {
+                   void* currentTaskData, int taskFlags, bool isWrite, bool hasHardwareLock, uint64_t checkedAddress, 
+                   DataSharingType dataSharingType, bool isTLSAccess) {
 #ifdef PERFORMANCE
   gPerformanceCounters.bumpNumCheckAccessFunctionCall();
 #endif
@@ -41,6 +43,7 @@ bool checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
   gPerformanceCounters.bumpNumAccessHistoryOverflow(numRecords);
   gPerformanceCounters.updateMaximumAccessRecordsNum(accessHistory->getNumRecords()); 
 #endif
+  RAW_DLOG(INFO, "check access: %lx curLabel: %s", checkedAddress, curLabel->toString().c_str());
   if (accessHistory->dataRaceFound()) {
     //  data race has already been found on this memory location, romp only 
     //  reports one data race on any memory location in one run. Once the data 
@@ -52,16 +55,12 @@ bool checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
     }
     return true;
   }
-  if (accessHistory->memIsRecycled()) {
-    //  The memory slot is recycled because of the end of explicit task. 
-    //  reset the memory state flag and clear the access records.
-     accessHistory->clearFlags();
-     accessHistory->clearRecords();
-     return false;
-  }
+   
+  auto taskDataPtr = static_cast<TaskData*>(currentTaskData);
+  auto isInReduction = taskDataPtr->getIsInReduction();
+  auto owner = accessHistory->getOwner();
+  auto curRecord = Record(isWrite, curLabel, curLockSet, currentTaskData, checkedAddress, hasHardwareLock, isInReduction, (int)dataSharingType, instnAddr, isTLSAccess, owner);
 
-  auto curRecord = Record(isWrite, curLabel, curLockSet, 
-		currentTaskData, checkedAddress, hasHardwareLock);
   if (!accessHistory->hasRecords()) {
     // no access record, add current access to the record
     accessHistory->addRecordToAccessHistory(curRecord);
@@ -83,15 +82,16 @@ bool checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
 #ifdef PERFORMANCE
     numAccessRecordsTraversed++;
 #endif
+    //RAW_DLOG(INFO, "analyze race condition on memory address: %lx instnAddr: %lx hist: isWrite: %d %s %s cur: isWrite: %d %s %s", checkedAddress, instnAddr, histRecord.isWrite(), histRecord.getLabel()->toString().c_str(), histRecord.getLabel()->toFieldsBreakdown().c_str(), curRecord.isWrite(), curLabel->toString().c_str(), curLabel->toFieldsBreakdown().c_str());
     if (analyzeRaceCondition(histRecord, curRecord, isHistBeforeCurrent, diffIndex, checkedAddress)) {
-      RAW_DLOG(INFO, "FOUND data race on: %lx hist: isWrite: %d %s cur: isWrite: %d %s", checkedAddress, histRecord.isWrite(), histRecord.getLabel()->toString().c_str(), curRecord.isWrite(), curLabel->toString().c_str());
+      RAW_DLOG(INFO, "FOUND data race on: %lx hist instruction: %lx hist data sharing type: %lx cur instruction: %lx cur data sharing type: %lx hist: isWrite: %d hist breakdown: %s cur: isWrite: %d cur breakdown: %s, hist mem owner: %lx cur mem owner: %lx hist label: %s cur label: %s", 
+            checkedAddress, histRecord.getInstructionAddress(), histRecord.getDataSharingType(),  curRecord.getInstructionAddress(), curRecord.getDataSharingType(), histRecord.isWrite(), histRecord.getLabel()->toFieldsBreakdown().c_str(), curRecord.isWrite(), curLabel->toFieldsBreakdown().c_str(), histRecord.getMemoryAddressOwner(), curRecord.getMemoryAddressOwner(), histRecord.getLabel()->toString().c_str(), curRecord.getLabel()->toString().c_str()); 
       gDataRaceFound = true;
       accessHistory->setFlag(eDataRaceFound);
       dataRaceFound = true;
       break;
     }
-    auto decision = manageAccessRecord(histRecord, curRecord, 
-            isHistBeforeCurrent, diffIndex);
+    auto decision = manageAccessRecord(histRecord, curRecord, isHistBeforeCurrent, diffIndex);
     if (decision == eSkipAddCurrentRecord) {
       skipAddCurrentRecord = true;
     }
@@ -117,28 +117,17 @@ ompt_start_tool_result_t* ompt_start_tool(
   ompt_data_t data;
   static ompt_start_tool_result_t startToolResult = { 
       &omptInitialize, &omptFinalize, data}; 
-  char result[PATH_MAX];
-  auto count = readlink("/proc/self/exe", result, PATH_MAX);
-  if (count == 0) {
-    LOG(FATAL) << "cannot get current executable path";
-  }
-  auto appPath = std::string(result, count);
-  LOG(INFO) << "ompt_start_tool on executable: " << appPath;
-  auto success = Dyninst::SymtabAPI::Symtab::openFile(gSymtabHandle, appPath);
-  if (!success) {
-    LOG(FATAL) << "cannot parse executable into symtab: " << appPath;
-  }
   return &startToolResult;
 }
 
-void checkAccess(void* baseAddress,
-                 uint32_t bytesAccessed,
-                 void* instnAddr,
-                 bool hasHardwareLock,
-                 bool isWrite) {
+void checkAccess(void* baseAddress, uint32_t bytesAccessed, void* instnAddr, bool hasHardwareLock, bool isWrite, bool isTLSAccess) {
 #ifdef PERFORMANCE
   gPerformanceCounters.bumpNumMemoryAccessInstrumentationCall();
 #endif
+  if (gDataRaceFound) {
+    // Note: this may cause seg fault of DRB180
+    return;
+  }
   if (!gOmptInitialized || bytesAccessed == 0) {
     return;
   }
@@ -166,11 +155,13 @@ void checkAccess(void* baseAddress,
   TaskMemoryInfo taskMemoryInfo;
   queryTaskMemoryInfo(taskMemoryInfo);
   for (uint64_t i = 0; i < memUnitAccessed; ++i) {
-    auto checkedAddress = gUseWordLevelCheck ? reinterpret_cast<uint64_t>(baseAddress) + i * 4 :
-                                           reinterpret_cast<uint64_t>(baseAddress) + i;      
-    if (shouldCheckMemoryAccess(threadInfo, taskMemoryInfo, checkedAddress, taskInfo.taskFrame)) {
-      auto accessHistory = shadowMemory.getShadowMemorySlot(checkedAddress);
-      if (checkDataRace(accessHistory, curLabel, curLockSet, instnAddr, static_cast<void*>(currentTaskData), taskInfo.flags, isWrite, hasHardwareLock, checkedAddress)) {
+    auto checkedAddress = gUseWordLevelCheck ? reinterpret_cast<uint64_t>(baseAddress) + i * 4 : reinterpret_cast<uint64_t>(baseAddress) + i;      
+    DataSharingType dataSharingType = eUnknown;
+    auto shouldCheckAccess = shouldCheckMemoryAccess(threadInfo, taskMemoryInfo, checkedAddress, taskInfo.taskFrame, dataSharingType);
+    auto accessHistory = shadowMemory.getShadowMemorySlot(checkedAddress);
+    setMemoryOwner(accessHistory, dataSharingType, static_cast<void*>(currentTaskData), reinterpret_cast<void*>(checkedAddress));
+    if (shouldCheckAccess) {
+      if (checkDataRace(accessHistory, curLabel, curLockSet, instnAddr, static_cast<void*>(currentTaskData), taskInfo.flags, isWrite, hasHardwareLock, checkedAddress, dataSharingType, isTLSAccess)){
         return;
       }
     }

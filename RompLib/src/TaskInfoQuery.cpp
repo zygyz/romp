@@ -22,9 +22,8 @@ bool queryIsSuccessful(const int queryResult) {
 }
 
 bool queryTaskInfo(const int ancestorLevel, TaskInfo& taskInfo) {
-  auto queryResult = omptGetTaskInfo(ancestorLevel, &taskInfo.flags, 
-                                     &taskInfo.taskData, &taskInfo.taskFrame, 
-                                     &taskInfo.parallelData, &taskInfo.threadNum);
+  auto queryResult = omptGetTaskInfo(ancestorLevel, &taskInfo.flags, &taskInfo.taskData, 
+                                     &taskInfo.taskFrame, &taskInfo.parallelData, &taskInfo.threadNum);
   return queryIsSuccessful(queryResult);
 }
 
@@ -73,9 +72,7 @@ bool queryTaskMemoryInfo(void** addr, size_t* size) {
   return omptGetTaskMemory(addr, size, 0) == 1; 
 }
 
-bool queryRuntimeInfo(ThreadInfo& threadInfo, 
-                      ParallelRegionInfo& parallelRegionInfo,              
-                      TaskInfo& taskInfo) {
+bool queryRuntimeInfo(ThreadInfo& threadInfo, ParallelRegionInfo& parallelRegionInfo, TaskInfo& taskInfo) {
   if (!queryParallelRegionInfo(0, parallelRegionInfo)) {
     return false;
   }

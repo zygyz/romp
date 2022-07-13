@@ -14,11 +14,10 @@ class TaskDependenceGraph {
 public:
   TaskDependenceGraph() {}
   ~TaskDependenceGraph(){}
-  void addDeps(const ompt_dependence_t& dependence, void* taskPtr);
+  void addDependence(void* taskPtr, const ompt_dependence_t& dependence);
   bool hasPath(void* from, void* to);
 private:
   void addEdge(void* from, void* to);
-  std::unordered_map<void*, 
-	  std::vector<std::pair<void*, ompt_dependence_type_t>>> _deps;
-  std::unordered_map<void*, std::vector<void*>> _graph;
+  std::unordered_map<void*, std::vector<std::pair<void*, ompt_dependence_type_t>>> mDependences;
+  std::unordered_map<void*, std::vector<void*>> mGraph;
 };

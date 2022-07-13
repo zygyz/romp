@@ -1,4 +1,5 @@
 #include "Label.h"
+#include "TaskData.h"
 
 #include <glog/logging.h>
 #include <glog/raw_logging.h>
@@ -9,63 +10,92 @@
  * will be affected.
  */
 Label::Label(const Label& label) {
-  _label = label._label; 
+  mLabel = label.mLabel; 
+}
+
+inline std::shared_ptr<BaseSegment> Clone(BaseSegment* segment) {
+  auto segmentType = segment->getType();
+  if (segmentType == eLogical) {
+    return static_cast<WorkShareSegment*>(segment)->clone(); 
+  } else if (segmentType == eExplicit) {
+    return static_cast<ExplicitTaskSegment*>(segment)->clone(); 
+  } else {
+    return segment->clone();
+  }
 }
 
 std::string Label::toString() const {
   auto result = std::string("");
-  for (const auto& segment : _label) {
-    result += segment->toString();
+  for (const auto& segment : mLabel) {
+    auto type = segment->getType();
+    if (type == eExplicit) {
+      result += static_cast<ExplicitTaskSegment*>(segment.get())->toString();
+    } else if (type == eLogical) {
+      result += static_cast<WorkShareSegment*>(segment.get())->toString();
+    } else {
+      result += segment->toString();
+    }
     result += std::string(" | ");
   }
   return result;
 }
 
-void Label::appendSegment(const std::shared_ptr<Segment>& segment) {
-  _label.push_back(segment);
+std::string Label::toFieldsBreakdown() const {
+  auto result = std::string("");
+  for (const auto& segment : mLabel) {
+    result += segment->toFieldsBreakdown();
+    result += std::string(" | ");
+  }
+  result += "\n";
+  return result;
 }
 
-std::shared_ptr<Segment> Label::popSegment() {
-  if (_label.empty()) {
+void Label::appendSegment(const std::shared_ptr<BaseSegment>& segment) {
+  mLabel.push_back(segment);
+}
+
+std::shared_ptr<BaseSegment> Label::popSegment() {
+  if (mLabel.empty()) {
     RAW_LOG(FATAL, "label is empty");
   }
-  auto lastSegment = _label.back();
-  _label.pop_back();
+  auto lastSegment = mLabel.back();
+  mLabel.pop_back();
   return lastSegment;
 }
 
-std::shared_ptr<Segment> Label::getLastKthSegment(int k) {
-  if (k > _label.size()) {
+std::shared_ptr<BaseSegment> Label::getLastKthSegment(int k) {
+  if (k > mLabel.size()) {
     RAW_LOG(FATAL, "index is out of bound");
     return nullptr;
   }
-  auto len = _label.size();
-  return _label.at(len - k);
+  auto len = mLabel.size();
+  return mLabel.at(len - k);
 }
 
-void Label::setLastKthSegment(int k, const std::shared_ptr<Segment>& segment) { 
-  if (k > _label.size()) {
+void Label::setLastKthSegment(int k, const std::shared_ptr<BaseSegment>& segment) { 
+  if (k > mLabel.size()) {
     RAW_LOG(FATAL, "%s %d", "set value out of bound", k);
     return;
   }
-  auto len = _label.size();
-  _label[len - k] = std::move(segment);
+  auto len = mLabel.size();
+  mLabel[len - k] = std::move(segment);
 }
 
-Segment* Label::getKthSegment(int k) {
-  if (k > _label.size()) {
+BaseSegment* Label::getKthSegment(int k) {
+  if (k > mLabel.size()) {
     RAW_LOG(FATAL, "index %d out of bound", k);
   }
-  return _label.at(k).get();
+  return mLabel.at(k).get();
 }
 
 int Label::getLabelLength() const {
-  return _label.size();
+  return mLabel.size();
 }
 
+// This function performs label comparison.
 int compareLabels(Label* left, Label* right) {
-  auto& leftLabel = left->_label;
-  auto& rightLabel = right->_label;  
+  auto& leftLabel = left->mLabel;
+  auto& rightLabel = right->mLabel;  
   auto lenLeftLabel = leftLabel.size();
   auto lenRightLabel = rightLabel.size();
   auto len = std::min(lenLeftLabel, lenRightLabel);
@@ -108,9 +138,9 @@ std::shared_ptr<Label> generateInitialTaskLabel() {
 /*
  * Given the parent task label, generate the label for the explicit task.
  */
-std::shared_ptr<Label> generateExplicitTaskLabel(Label* parentLabel) {
+std::shared_ptr<Label> generateExplicitTaskLabel(Label* parentLabel, void* taskDataPtr) {
   auto newLabel = std::make_shared<Label>(*parentLabel);
-  auto segment = std::make_shared<BaseSegment>(eExplicit, 0, 1); 
+  auto segment = std::make_shared<ExplicitTaskSegment>(taskDataPtr); 
   newLabel->appendSegment(segment);
   return newLabel;
 }
@@ -123,14 +153,16 @@ std::shared_ptr<Label> mutateParentImpEnd(Label* childLabel) {
 
 /*
  * Upon creating explicit task, increase the task create count in the segment 
- * of parent task.
+ * of parent task. 
  */
 std::shared_ptr<Label> mutateParentTaskCreate(Label* parentLabel) {
+  RAW_DLOG(INFO, "mutate parnet task create");
   auto newLabel = std::make_shared<Label>(*parentLabel);  
   auto lastSegment = newLabel->popSegment();
   auto taskCreate = lastSegment->getTaskcreate();
-  auto newSegment = lastSegment->clone();
-  newSegment->setTaskcreate(taskCreate + 1);  
+  auto lastSegmentType = lastSegment->getType();
+  auto newSegment = Clone(lastSegment.get());
+  newSegment->setTaskCreateCount(taskCreate + 1);  
   newLabel->appendSegment(newSegment);
   return newLabel;
 }
@@ -147,7 +179,7 @@ std::shared_ptr<Label> mutateBarrierEnd(Label* label) {
   segment->getOffsetSpan(offset, span); //get the offset and span value
   offset += span;
   //because we don't know the actual derived type of segment, should do a clone
-  auto newSegment = segment->clone(); 
+  auto newSegment = Clone(segment.get());
   newSegment->setOffsetSpan(offset, span); //set the new offset and span
   newLabel->setLastKthSegment(2, newSegment); 
   return newLabel; 
@@ -163,7 +195,7 @@ std::shared_ptr<Label> mutateTaskWait(Label* label) {
   auto lastSegment = newLabel->popSegment(); // replace the last segment
   auto taskwait = lastSegment->getTaskwait();
   taskwait += 1;
-  auto newSegment = lastSegment->clone();
+  auto newSegment = Clone(lastSegment.get());
   newSegment->setTaskwait(taskwait);
   newLabel->appendSegment(newSegment);
   return newLabel;
@@ -179,7 +211,7 @@ std::shared_ptr<Label> mutateOrderSection(Label* label) {
   auto lastSegment = newLabel->popSegment(); // replace the last segment
   auto phase = lastSegment->getPhase();
   phase += 1;
-  auto newSegment = lastSegment->clone();
+  auto newSegment = Clone(lastSegment.get());
   newSegment->setPhase(phase);
   newLabel->appendSegment(newSegment);
   return newLabel;
@@ -208,7 +240,7 @@ std::shared_ptr<Label> mutateLoopEnd(Label* label) {
   auto segment = newLabel->popSegment();
   auto loopCount = segment->getLoopCount();
   loopCount += 1;
-  auto newSegment = segment->clone(); 
+  auto newSegment = Clone(segment.get());
   newSegment->setLoopCount(loopCount);
   newLabel->appendSegment(newSegment);
   return newLabel;
@@ -229,7 +261,7 @@ std::shared_ptr<Label> mutateSectionEnd(Label* label) {
 std::shared_ptr<Label> mutateSingleExecutor(Label* label) {
   auto newLabel = std::make_shared<Label>(*label); 
   auto segment = newLabel->getLastKthSegment(1); 
-  auto newSegment = segment->clone(); 
+  auto newSegment = Clone(segment.get());
   newSegment->toggleSingleExecutor(); 
   newLabel->setLastKthSegment(1, newSegment); 
   return newLabel;
@@ -238,7 +270,7 @@ std::shared_ptr<Label> mutateSingleExecutor(Label* label) {
 std::shared_ptr<Label> mutateSingleOther(Label* label) {
   auto newLabel = std::make_shared<Label>(*label); 
   auto segment = newLabel->getLastKthSegment(1); 
-  auto newSegment = segment->clone(); 
+  auto newSegment = Clone(segment.get());
   newSegment->toggleSingleOther(); 
   newLabel->setLastKthSegment(1, newSegment); 
   return newLabel;
@@ -281,7 +313,7 @@ std::shared_ptr<Label> mutateTaskGroupBegin(Label* label) {
  taskGroupId += 1;
  auto taskGroupLevel = segment->getTaskGroupLevel();
  taskGroupLevel += 1;
- auto newSegment = segment->clone();
+ auto newSegment = Clone(segment.get());
  newSegment->setTaskGroupId(taskGroupId);
  newSegment->setTaskGroupLevel(taskGroupLevel);
  newLabel->appendSegment(newSegment);
@@ -301,7 +333,7 @@ std::shared_ptr<Label> mutateTaskGroupEnd(Label* label) {
   auto taskGroupLevel = segment->getTaskGroupLevel();
   taskGroupLevel -= 1;
   RAW_CHECK(taskGroupLevel >= 0, "not expecting task group level < 0");
-  auto newSegment = segment->clone();
+  auto newSegment = Clone(segment.get());
   newSegment->setTaskGroupId(taskGroupId);
   newSegment->setTaskGroupLevel(taskGroupLevel);
   newLabel->appendSegment(newSegment);

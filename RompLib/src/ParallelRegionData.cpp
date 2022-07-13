@@ -7,6 +7,6 @@
  * This function maintains task dependence relationship upon task dependence
  * callback. Task dependence forms a directed acyclic graph. 
  */
-void maintainTaskDeps(const ompt_dependence_t& dependence, void* taskPtr, ParallelRegionData* parRegionData) {
-  parRegionData->taskDepGraph.addDeps(dependence, taskPtr);   
+void ParallelRegionData::maintainTaskDependence(void* taskPtr, const ompt_dependence_t& dependence) {
+  taskDependenceGraph.addDependence(taskPtr, dependence);   
 }

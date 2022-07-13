@@ -18,8 +18,8 @@
 
 extern PerformanceCounters gPerformanceCounters;
 
-bool gOmptInitialized = false; 
 bool gDataRaceFound = false;
+bool gOmptInitialized = false; 
 bool gReportLineInfo = false;
 bool gReportAtRuntime = false;
 bool gUseWordLevelCheck = false;
