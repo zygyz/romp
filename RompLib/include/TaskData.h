@@ -1,5 +1,7 @@
 #pragma once
 #include <memory>
+#include <string>
+#include <unordered_map>
 #include <vector>
 
 class Label;
@@ -33,9 +35,15 @@ typedef struct TaskData {
   void* parallelRegionDataPtr;
   std::vector<void*> childrenExplicitTasks;
   std::vector<void*> undeferredTasks; // record the TaskData pointers for undeferred task encountered.
+  std::unordered_map<uint64_t, std::unordered_map<uint64_t, bool> > duplicateMap; // key is the mutateCount, value is another hashmap, key is the memory address.
   uint16_t metaData;
+  //uint8_t workShareRegionId;
+  uint64_t mutateCount;
   TaskData();
- 
+  ~TaskData() { 
+    duplicateMap.clear(); 
+  }
+
   void recordExplicitTaskData(TaskData*);
   void recordUndeferredTaskData(TaskData*);
   void setIsExplicitTask(bool);

@@ -49,11 +49,9 @@ public:
   int getDataSharingType() const;
   void* getTaskPtr() const;
   void* getInstructionAddress() const;
-  uint8_t getWorkShareRegionId() const;
   void* getMemoryAddressOwner() const;
 private:
   uint8_t mState; // store state information
-  uint8_t mWorkShareRegionId;
   std::shared_ptr<Label> mLabel; // task label associated with the record
   std::shared_ptr<LockSet> mLockSet; // lock set associated with the record
   void* mTaskPtr; // pointer to data of encountering task

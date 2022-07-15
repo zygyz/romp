@@ -31,82 +31,60 @@ bool checkDataRace(AccessHistory* accessHistory, const LabelPtr& curLabel, const
 #ifdef PERFORMANCE
   gPerformanceCounters.bumpNumCheckAccessFunctionCall();
 #endif
-  mcs_node_t node; // major bottleneck
-#ifdef PERFORMANCE
-  LockGuard guard(&(accessHistory->getLock()), &node, &gPerformanceCounters);
-#else
-  LockGuard guard(&(accessHistory->getLock()), &node, nullptr);
-#endif
-  auto records = accessHistory->getRecords();
+  pfq_rwlock_node_t me;
+  ReaderWriterLockGuard guard(&(accessHistory->getLock()), &me, &gPerformanceCounters);
 #ifdef PERFORMANCE
   auto numRecords = accessHistory->getNumRecords();
   gPerformanceCounters.bumpNumAccessHistoryOverflow(numRecords);
-  gPerformanceCounters.updateMaximumAccessRecordsNum(accessHistory->getNumRecords()); 
+  gPerformanceCounters.updateMaximumAccessRecordsNum(numRecords); 
 #endif
-  RAW_DLOG(INFO, "check access: %lx curLabel: %s", checkedAddress, curLabel->toString().c_str());
+rollback: // will refactor to remove the tag. Using goto tag is actually more readable for this case.
   if (accessHistory->dataRaceFound()) {
     //  data race has already been found on this memory location, romp only 
     //  reports one data race on any memory location in one run. Once the data 
     //  race is reported, romp clears the access history with respect to this
     //  memory location and mark this memory location as found. Future access 
     //  to this memory location does not go through data race checking.
+    if (!accessHistory->hasRecords()) {
+      return true;
+    }
+    guard.upgradeFromReaderToWriter();
     if (accessHistory->hasRecords()) {
-      accessHistory->clearRecords();
+      accessHistory->clearRecords(); 
     }
     return true;
   }
-   
   auto taskDataPtr = static_cast<TaskData*>(currentTaskData);
   auto isInReduction = taskDataPtr->getIsInReduction();
+  //auto workShareRegionId = taskDataPtr->workShareRegionId;
   auto owner = accessHistory->getOwner();
-  auto curRecord = Record(isWrite, curLabel, curLockSet, currentTaskData, checkedAddress, hasHardwareLock, isInReduction, (int)dataSharingType, instnAddr, isTLSAccess, owner);
-
+  RAW_DLOG(INFO, "set record checkedAddress: %lx owner: %lx", checkedAddress, owner);
+  auto curRecord = Record(isWrite, curLabel, curLockSet, currentTaskData, checkedAddress, hasHardwareLock,  isInReduction, (int)dataSharingType, instnAddr, isTLSAccess, owner);
   if (!accessHistory->hasRecords()) {
     // no access record, add current access to the record
-    accessHistory->addRecordToAccessHistory(curRecord);
-    return false;
+    auto hasWriteWriteContention = guard.upgradeFromReaderToWriter();
+    if (!hasWriteWriteContention || hasWriteWriteContention && !accessHistory->hasRecords()) {
+      //RAW_DLOG(INFO, "add record to access history memory address: %lx in reduction %d is write: %d", curRecord.getCheckedMemoryAddress(), curRecord.isInReduction(), curRecord.isWrite());
+      accessHistory->addRecordToAccessHistory(curRecord);
+      return false;
+    } else {
+      goto rollback; 
+    }
   }
-  // check previous access records with current access
-  auto isHistBeforeCurrent = false;
-  auto it = records->begin();
-  std::vector<Record>::const_iterator cit;
-  auto skipAddCurrentRecord = false;
-  int diffIndex;
-#ifdef PERFORMANCE
-  uint64_t numAccessRecordsTraversed = 0; 
-#endif
-  auto dataRaceFound = false;
-  while (it != records->end()) {
-    cit = it; 
-    auto histRecord = *cit;
-#ifdef PERFORMANCE
-    numAccessRecordsTraversed++;
-#endif
-    //RAW_DLOG(INFO, "analyze race condition on memory address: %lx instnAddr: %lx hist: isWrite: %d %s %s cur: isWrite: %d %s %s", checkedAddress, instnAddr, histRecord.isWrite(), histRecord.getLabel()->toString().c_str(), histRecord.getLabel()->toFieldsBreakdown().c_str(), curRecord.isWrite(), curLabel->toString().c_str(), curLabel->toFieldsBreakdown().c_str());
-    if (analyzeRaceCondition(histRecord, curRecord, isHistBeforeCurrent, diffIndex, checkedAddress)) {
-      RAW_DLOG(INFO, "FOUND data race on: %lx hist instruction: %lx hist data sharing type: %lx cur instruction: %lx cur data sharing type: %lx hist: isWrite: %d hist breakdown: %s cur: isWrite: %d cur breakdown: %s, hist mem owner: %lx cur mem owner: %lx hist label: %s cur label: %s", 
-            checkedAddress, histRecord.getInstructionAddress(), histRecord.getDataSharingType(),  curRecord.getInstructionAddress(), curRecord.getDataSharingType(), histRecord.isWrite(), histRecord.getLabel()->toFieldsBreakdown().c_str(), curRecord.isWrite(), curLabel->toFieldsBreakdown().c_str(), histRecord.getMemoryAddressOwner(), curRecord.getMemoryAddressOwner(), histRecord.getLabel()->toString().c_str(), curRecord.getLabel()->toString().c_str()); 
+  // check previous access records with current access, if there exists data race 
+  std::vector<RecordManagementInfo> info;
+  while (true) { // coordinate data race checking and rolling back of access histroy managemnt
+    info.clear();
+    if (checkDataRaceForMemoryAddress(checkedAddress, accessHistory, curRecord, info)) {
       gDataRaceFound = true;
-      accessHistory->setFlag(eDataRaceFound);
-      dataRaceFound = true;
-      break;
+      return true;
     }
-    auto decision = manageAccessRecord(histRecord, curRecord, isHistBeforeCurrent, diffIndex);
-    if (decision == eSkipAddCurrentRecord) {
-      skipAddCurrentRecord = true;
-    }
-    modifyAccessHistory(decision, records, it);
+    if (manageAccessRecords(accessHistory, curRecord, guard, info)) {
+      continue;
+    } 
+    break;
   }
-#ifdef PERFORMANCE
-  gPerformanceCounters.bumpNumTotalAccessRecordsTraversed(numAccessRecordsTraversed);
-  if (skipAddCurrentRecord) {
-    gPerformanceCounters.bumpNumSkipAddingCurrentRecord();
-  } 
-#endif
-  if (!skipAddCurrentRecord) {
-    accessHistory->addRecordToAccessHistory(curRecord); 
-  }
-  return dataRaceFound;
+  return false;
 }
 
 extern "C" {
@@ -125,7 +103,6 @@ void checkAccess(void* baseAddress, uint32_t bytesAccessed, void* instnAddr, boo
   gPerformanceCounters.bumpNumMemoryAccessInstrumentationCall();
 #endif
   if (gDataRaceFound) {
-    // Note: this may cause seg fault of DRB180
     return;
   }
   if (!gOmptInitialized || bytesAccessed == 0) {
@@ -157,7 +134,7 @@ void checkAccess(void* baseAddress, uint32_t bytesAccessed, void* instnAddr, boo
   for (uint64_t i = 0; i < memUnitAccessed; ++i) {
     auto checkedAddress = gUseWordLevelCheck ? reinterpret_cast<uint64_t>(baseAddress) + i * 4 : reinterpret_cast<uint64_t>(baseAddress) + i;      
     DataSharingType dataSharingType = eUnknown;
-    auto shouldCheckAccess = shouldCheckMemoryAccess(threadInfo, taskMemoryInfo, checkedAddress, taskInfo.taskFrame, dataSharingType);
+    auto shouldCheckAccess = shouldCheckMemoryAccess(threadInfo, taskMemoryInfo, taskInfo, checkedAddress, taskInfo.taskFrame, dataSharingType,isWrite, instnAddr);
     auto accessHistory = shadowMemory.getShadowMemorySlot(checkedAddress);
     setMemoryOwner(accessHistory, dataSharingType, static_cast<void*>(currentTaskData), reinterpret_cast<void*>(checkedAddress));
     if (shouldCheckAccess) {

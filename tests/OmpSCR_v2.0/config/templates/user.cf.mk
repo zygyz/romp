@@ -84,7 +84,11 @@ OSCR_CPP_REPORT=
 #
 # 2.6. (Optional) Other common flags (e.g. optimization)
 #
+<<<<<<< HEAD
+OSCR_CPP_OTHERS=-O3
+=======
 OSCR_CPP_OTHERS=-g -O3
+>>>>>>> baseline-debug
 
 
 

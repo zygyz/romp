@@ -13,12 +13,16 @@
 /*
  * If current access is write, set the lowest bit to 1. Otherwise, set to 0.
  * mState variable is 8-bit wide.
+ * Each bit represents the following information. From lowtest bit to highest bit:
+ * mState[0]: 1 -> is write, 0 -> is read 
+ * mState[1]: 1 -> is atomic access 0 -> not atomic access 
+ * mState[2]: 1 -> is in reduction, 0 -> not in reduction
  */
 void Record::setAccessType(bool isWrite) {
   if (isWrite) {
     mState |= 0x1;
   } else {
-    mState &= 0xfe; 
+    mState &= 0xfe;  
   }
 }
 
@@ -55,7 +59,7 @@ void Record::setHasHardwareLock(bool hardwareLock) {
   if (hardwareLock) {
     mState |= 0x2;
   } else {
-    mState &= 0xfd;
+    mState &= 0xfd; 
   }
 }
 
@@ -106,6 +110,3 @@ void* Record::getInstructionAddress() const {
   return mInstructionAddress;
 }
 
-uint8_t Record::getWorkShareRegionId() const {
-  return mWorkShareRegionId;
-}

@@ -62,6 +62,7 @@ void on_ompt_callback_implicit_task(
       auto newTaskDataPtr = new TaskData();
       // cast to rvalue and avoid atomic ref count modification
       newTaskDataPtr->label = std::move(newTaskLabel); 
+      newTaskDataPtr->mutateCount++;
       newTaskDataPtr->parallelRegionDataPtr = parallelData->ptr;
       taskData->ptr = static_cast<void*>(newTaskDataPtr);
       return;
@@ -78,6 +79,7 @@ void on_ompt_callback_implicit_task(
       }
       auto mutatedLabel = mutateParentImpEnd(taskDataPtr->label.get());
       parentTaskData->label = std::move(mutatedLabel);
+      parentTaskData->mutateCount++;
       delete taskDataPtr; 
       taskData->ptr = nullptr;
       return;
@@ -173,7 +175,6 @@ void on_ompt_callback_sync_region(
       if (endPoint == ompt_scope_begin) {
         mutatedLabel = mutateTaskWait(labelPtr);
         markExpChildSyncTaskwait(taskDataPtr, labelPtr);
-        RAW_DLOG(INFO, "mutated task wait: %s taskptr: %lx ", mutatedLabel->toFieldsBreakdown().c_str(), taskDataPtr);
       }
       break;
     }
@@ -202,6 +203,7 @@ void on_ompt_callback_sync_region(
   }
   if (mutatedLabel != nullptr) { // for default case, don't modify
     taskDataPtr->label = std::move(mutatedLabel);
+    taskDataPtr->mutateCount++;
   }
   return;
 }
@@ -234,6 +236,7 @@ void on_ompt_callback_mutex_acquired(
   }
   if (mutatedLabel) {
     taskDataPtr->label = std::move(mutatedLabel);
+    taskDataPtr->mutateCount++;
   }
 }
 
@@ -260,6 +263,7 @@ void on_ompt_callback_mutex_released(
   }
   if (mutatedLabel) {
     taskDataPtr->label = std::move(mutatedLabel);
+    taskDataPtr->mutateCount++;
   }
 }
 
@@ -361,6 +365,7 @@ void on_ompt_callback_work(
       break;
   }
   taskDataPtr->label = std::move(mutatedLabel);
+  taskDataPtr->mutateCount++;
 }
 
 void on_ompt_callback_parallel_begin(
@@ -422,6 +427,7 @@ void on_ompt_callback_task_create(
   taskData->label = generateExplicitTaskLabel(parentLabel, static_cast<void*>(taskData));
   auto mutatedParentLabel = mutateParentTaskCreate(parentLabel); 
   parentTaskData->label = std::move(mutatedParentLabel);
+  parentTaskData->mutateCount++; 
   if (isExplicitTask) {
     parentTaskData->recordExplicitTaskData(taskData); 
   }
@@ -442,6 +448,7 @@ void handleTaskComplete(void* taskPtr) {
   auto label = (taskDataPtr->label).get();
   auto mutatedLabel = mutateTaskComplete(label);
   taskDataPtr->label = std::move(mutatedLabel);
+  taskDataPtr->mutateCount++;
 }
 
 void on_ompt_callback_task_schedule(
@@ -485,14 +492,16 @@ void on_ompt_callback_dependences(ompt_data_t *taskData, const ompt_dependence_t
     RAW_LOG(FATAL, "callback dependences: current parallel data ptr is null");
     return;
   }
-  mcs_node_t node;      
+  pfq_rwlock_node_t node;      
 #ifdef PERFORMANCE
-  LockGuard guard(&(parallelRegionData->lock), &node, &gPerformanceCounters);
+  ReaderWriterLockGuard guard(&(parallelRegionData->lock), &node, &gPerformanceCounters);
 #else
-  LockGuard guard(&(parallelRegionData->lock), &node, nullptr);
+  ReaderWriterLockGuard guard(&(parallelRegionData->lock), &node, nullptr);
 #endif
+  guard.upgradeFromReaderToWriter();   
   // while in mutual exculsion, maintain explicit task dependences
   for (int i = 0; i < ndeps; ++i) {
+    RAW_DLOG(INFO, "maintain task dependence: %lx", taskPtr);
     parallelRegionData->maintainTaskDependence(taskPtr, deps[i]);
   }
 }
@@ -558,9 +567,11 @@ void on_ompt_callback_dispatch(
       mutatedLabel = mutateSectionDispatch(parentLabel, instance.ptr);
       break; 
    default:
-      RAW_LOG(FATAL, "unexpected case %d", kind);
-  }
-  taskDataPtr->label = std::move(mutatedLabel);
+     RAW_LOG(FATAL, "unexpected case %d", kind);
+ }
+ taskDataPtr->label = std::move(mutatedLabel);
+ taskDataPtr->mutateCount++;
+
 }
 
 void on_ompt_callback_reduction(

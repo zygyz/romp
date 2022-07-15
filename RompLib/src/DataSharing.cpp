@@ -21,11 +21,33 @@ extern PerformanceCounters gPerformanceCounters;
 
 bool shouldCheckMemoryAccess(const ThreadInfo& threadInfo, 
                              const TaskMemoryInfo& taskMemoryInfo,
+                             const TaskInfo& taskInfo,
                              const uint64_t memoryAddress,
                              const ompt_frame_t* taskFrame,
-                             DataSharingType& dataSharingType) {
+                             DataSharingType& dataSharingType,
+                             const bool isWrite,
+                             void* instructionAddress) {
   dataSharingType = analyzeDataSharingType(threadInfo, taskMemoryInfo, memoryAddress, taskFrame);
+  if (isDuplicateMemoryAccess(memoryAddress, taskInfo, isWrite)) {
+    return false;
+  }
   return dataSharingType != eNonWorkerThread && dataSharingType != eInitialThread;
+}
+
+bool isDuplicateMemoryAccess(const uint64_t memoryAddress, const TaskInfo& taskInfo, bool isWrite) {
+  const auto taskData = static_cast<TaskData*>(taskInfo.taskData->ptr);  
+  auto mutateCount = taskData->mutateCount;
+  if (taskData->duplicateMap.find(mutateCount) == taskData->duplicateMap.end()) {
+    std::unordered_map<uint64_t, bool> map;
+    map[memoryAddress] = isWrite;
+    taskData->duplicateMap[mutateCount] = map;
+    return false;
+  } else if (taskData->duplicateMap[mutateCount].find(memoryAddress) == taskData->duplicateMap[mutateCount].end() || 
+             taskData->duplicateMap[mutateCount][memoryAddress] == false && isWrite) {
+    taskData->duplicateMap[mutateCount][memoryAddress] = isWrite;
+    return false;
+  }
+  return true;
 }
 
 DataSharingType analyzeDataSharingType(const ThreadInfo& threadInfo, 
@@ -63,6 +85,8 @@ DataSharingType analyzeDataSharingType(const ThreadInfo& threadInfo,
         return eExplicitTaskPrivate;
       }
     }
+    const auto taskPrivateMemoryBaseAddress = reinterpret_cast<const uint64_t>(taskMemoryInfo.blockAddress);
+    RAW_DLOG(INFO, "?????? analyze data sharing type: mem: %lx stack top: %lx stack bottom: %lx private base: %lx ", memoryAddress, threadData->stackTopAddress, threadData->stackBaseAddress, taskPrivateMemoryBaseAddress);
     return eNonThreadPrivate;
   }
   // now the memory access is within current thread's stack range. We want to figure out if the memory access is task private.
@@ -83,69 +107,4 @@ DataSharingType analyzeDataSharingType(const ThreadInfo& threadInfo,
     return eThreadPrivateAccessOtherTask;
   } 
   return eUnknown;  
-}
-
-/*
- * This function is responsible for marking memory ranges in 
- * [lowerBound, upperBound] to be deallocated.
- */
-void recycleMemRange(void* lowerBound, void* upperBound) {
-  if (upperBound < lowerBound) {
-    RAW_LOG(WARNING, "upper bound is smaller than lower bound: %lx %lx, abort recycling", 
-            upperBound, lowerBound);
-    return;
-  }
-  auto start = reinterpret_cast<uint64_t>(lowerBound);
-  auto end = reinterpret_cast<uint64_t>(upperBound);
-  ShadowMemory<AccessHistory> shadowMemory;
-  for (auto addr = start; addr <= end; addr++) {
-    auto accessHistory = shadowMemory.getShadowMemorySlot(addr);
-    mcs_node_t node;
-#ifdef PERFORMANCE
-    LockGuard guard(&(accessHistory->getLock()), &node, &gPerformanceCounters);
-#else
-    LockGuard guard(&(accessHistory->getLock()), &node, nullptr);
-#endif
-    accessHistory->setFlag(eMemoryRecycled);
-  }
-}
-
-/*
- * This function is called when an explicit task is completed. This function 
- * looks up the task private thread stack memory locations and marks these 
- * locations as deallocated. The lower bound is the base of thread stack.
- */
-void recycleTaskThreadStackMemory(void* taskData) {
-  auto taskDataPtr = static_cast<TaskData*>(taskData);
-  auto exitFrameAddr = taskDataPtr->exitFrame;
-  ThreadInfo threadInfo; 
-  if (!queryOmpThreadInfo(threadInfo)) {
-    return;
-  }
-  auto threadData = threadInfo.threadData;
-  if (threadData == nullptr) {
-    RAW_LOG(FATAL, "cannot get thread data");
-    return;
-  }
-  auto threadInfoPtr = static_cast<ThreadData*>(threadData);
-  auto threadStackBase = threadInfoPtr->stackBaseAddress; 
-  auto lowerBound = threadStackBase; 
-  auto upperBound = exitFrameAddr;
-  recycleMemRange(lowerBound, upperBound);
-}
-
-/*
- * This function is called when an explicit task is completed or is switched
- * out for other tasks. This function looks up the private memory allocated 
- * for the explicit task on heap, marks these memory location as deallocated.
- */
-void recycleTaskPrivateMemory() {
-  void* taskPrivateDataBase = nullptr;
-  size_t taskPrivateDataSize = 0;
-  if (!queryTaskMemoryInfo(&taskPrivateDataBase, &taskPrivateDataSize)) {
-    return;
-  }
-  auto taskPrivateDataEnd = computeAddressRangeEnd(taskPrivateDataBase, 
-          taskPrivateDataSize);
-  recycleMemRange(taskPrivateDataBase, taskPrivateDataEnd);
 }

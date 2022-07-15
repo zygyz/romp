@@ -4,7 +4,7 @@
 #include "TaskInfoQuery.h"
 
 enum DataSharingType { 
-  // memory address not in current thread stack address range
+  // memory address not in current thread stack address range and it is not explicit task private 
   eNonThreadPrivate= 1,  
   // memory access in current thread address range and within current task stack frame range
   eThreadPrivateAccessOtherTask = 2, 
@@ -20,8 +20,9 @@ enum DataSharingType {
   eInitialThread = 7, 
 };
 
-bool shouldCheckMemoryAccess(const ThreadInfo& threadInfo, const TaskMemoryInfo& taskMemoryInfo, const uint64_t memoryAddress, const ompt_frame_t* taskFrame, DataSharingType& dataSharingType);
+bool shouldCheckMemoryAccess(const ThreadInfo& threadInfo, const TaskMemoryInfo& taskMemoryInfo, const TaskInfo& taskInfo, const uint64_t memoryAddress, const ompt_frame_t* taskFrame, DataSharingType& dataSharingType, const bool isWrite, void* instructionAddress);
 DataSharingType analyzeDataSharingType(const ThreadInfo& threadInfo, const TaskMemoryInfo& taskMemoryInfo, const uint64_t memoryAddress, const ompt_frame_t* taskFrame);
+bool isDuplicateMemoryAccess(const uint64_t memoryAddress, const TaskInfo& taskInfo, bool isWrite);
 void recycleTaskThreadStackMemory(void* taskData);
 void recycleTaskPrivateMemory();
 void recycleMemRange(void* lowerBound, void* higherBound);

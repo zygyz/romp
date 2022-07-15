@@ -34,8 +34,8 @@ std::string Label::toString() const {
       result += static_cast<WorkShareSegment*>(segment.get())->toString();
     } else {
       result += segment->toString();
-    }
-    result += std::string(" | ");
+    } 
+     result += std::string("|");
   }
   return result;
 }
@@ -160,7 +160,6 @@ std::shared_ptr<Label> mutateParentTaskCreate(Label* parentLabel) {
   auto newLabel = std::make_shared<Label>(*parentLabel);  
   auto lastSegment = newLabel->popSegment();
   auto taskCreate = lastSegment->getTaskcreate();
-  auto lastSegmentType = lastSegment->getType();
   auto newSegment = Clone(lastSegment.get());
   newSegment->setTaskCreateCount(taskCreate + 1);  
   newLabel->appendSegment(newSegment);
@@ -333,7 +332,7 @@ std::shared_ptr<Label> mutateTaskGroupEnd(Label* label) {
   auto taskGroupLevel = segment->getTaskGroupLevel();
   taskGroupLevel -= 1;
   RAW_CHECK(taskGroupLevel >= 0, "not expecting task group level < 0");
-  auto newSegment = Clone(segment.get());
+  auto newSegment = Clone(segment.get()); 
   newSegment->setTaskGroupId(taskGroupId);
   newSegment->setTaskGroupLevel(taskGroupLevel);
   newLabel->appendSegment(newSegment);

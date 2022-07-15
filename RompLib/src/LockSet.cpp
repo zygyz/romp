@@ -19,6 +19,10 @@ LockSet::LockSet(const LockSet& lockSet) {
   }
 }
 
+bool LockSet::isEmpty() const {
+  return mLock.empty();
+}
+
 void LockSet::addLock(uint64_t lock) {
   mLock[lock] = 1; 
 }
@@ -60,13 +64,14 @@ bool isSubSetImpl(const LockSet& l1, const LockSet& l2) {
   return true;
 }
 
+// return true if l1 is subet of l2 and both l1 and l2 are not null, and are not empty
 bool isSubSet(LockSet* l1, LockSet* l2) {
-  if (l1 == nullptr) {
-    return true;
-  }
-  if (l2 == nullptr) {
+  if (l1 == nullptr || l2 == nullptr) {
     return false;
-  } 
+  }
+  if (l1->isEmpty() || l2->isEmpty()) {
+    return false; 
+  }   
   return isSubSetImpl(*l1, *l2); 
 }
 
