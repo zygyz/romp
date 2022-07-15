@@ -1,8 +1,0 @@
-*****     Log 1 for DRB127-tasking-threadprivate1-orig-no.c with 32 threads and input size      *****
-WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0711 23:21:45.364120 45688 Initialize.h:51] start initializing ompt
-I0711 23:21:45.364359 45688 Initialize.h:89] ompt intialized
-*****     Log 2 for DRB127-tasking-threadprivate1-orig-no.c with 32 threads and input size      *****
-WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0711 23:21:45.573132 45702 Initialize.h:51] start initializing ompt
-I0711 23:21:45.573523 45702 Initialize.h:89] ompt intialized
