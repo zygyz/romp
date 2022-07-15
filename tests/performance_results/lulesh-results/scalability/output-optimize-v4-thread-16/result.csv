@@ -1,2 +1,0 @@
-benchmark,original_memory,original_time,instrument_memory,instrument_time,memory_overhead,time_overhead,branch
-lulesh2.0,8286.666666666666,16.666666666666668,2361908.0,3126.6666666666665,285.02510056315367,187.59999999999997,optimize-v4

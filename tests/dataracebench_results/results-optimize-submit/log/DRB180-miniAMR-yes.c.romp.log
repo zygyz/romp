@@ -1,8 +1,0 @@
-*****     Log 1 for DRB180-miniAMR-yes.c with 32 threads and input size      *****
-WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0712 01:58:23.809018  6788 Initialize.h:51] start initializing ompt
-I0712 01:58:23.809306  6788 Initialize.h:89] ompt intialized
-*****     Log 2 for DRB180-miniAMR-yes.c with 32 threads and input size      *****
-WARNING: Logging before InitGoogleLogging() is written to STDERR
-I0712 01:59:06.395992  6869 Initialize.h:51] start initializing ompt
-I0712 01:59:06.396281  6869 Initialize.h:89] ompt intialized
