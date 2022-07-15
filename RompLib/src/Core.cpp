@@ -30,6 +30,7 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, Rec
 //    return false;
 //  }
 
+
   auto histRecordMemoryOwner = histRecord.getMemoryAddressOwner();
   auto curRecordMemoryOwner = curRecord.getMemoryAddressOwner(); 
   if (histRecordMemoryOwner != curRecordMemoryOwner) {
@@ -61,7 +62,7 @@ bool analyzeRaceCondition(const Record& histRecord, const Record& curRecord, Rec
   if ((histRecord.isInReduction() || curRecord.isInReduction())&& histTaskData->parallelRegionDataPtr == curTaskData->parallelRegionDataPtr) {
     return false; 
   }
- 
+   
   auto currentDataSharingType = curRecord.getDataSharingType();
   auto historyDataSharingType = histRecord.getDataSharingType();
   auto bothAccessesAreTaskPrivate = ((currentDataSharingType == eThreadPrivateAccessCurrentTask || currentDataSharingType == eExplicitTaskPrivate) && (historyDataSharingType == eThreadPrivateAccessCurrentTask || historyDataSharingType == eExplicitTaskPrivate));
@@ -208,6 +209,7 @@ bool happensBefore(Label* histLabel, Label* curLabel, int& diffIndex, TaskData* 
         // current task is implicit task, history task is explicit task, check if there exists order by undeferred task 
         // i.e., if current thread executing the implicit task has encountered some undeferred task before. And there exists
         // explicit task dependence between history explicit task and the undeferred task. In this case, there exists happens-before  relationship between history task and current task.
+        // TODO: revisit the handling of undeferred tasks.
         for (auto undeferredTask : curTaskData->undeferredTasks) {
           if (parallelRegionData->taskDependenceGraph.hasPath(static_cast<void*>(histTaskData), undeferredTask)) {
             return true;

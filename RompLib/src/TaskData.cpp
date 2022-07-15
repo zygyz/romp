@@ -1,5 +1,8 @@
 #include "TaskData.h"
 
+#include <glog/logging.h>
+#include <glog/raw_logging.h>
+
 TaskData::TaskData() {
   label = nullptr;
   lockSet = nullptr;
@@ -68,6 +71,14 @@ void TaskData::setIsInReduction(bool isInReduction) {
     metaData &= ~eIsInReduction;
   } else {
     metaData |= eIsInReduction;
+  }
+}
+
+void TaskData::setIsComplete(bool isComplete) {
+  if (!isComplete) {
+    metaData &= ~eIsComplete;
+  } else {
+    metaData |= eIsComplete;
   }
 }
 

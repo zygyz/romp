@@ -18,6 +18,7 @@ typedef enum TaskFlag {
   eIsTaskwait = 0x0080,
   eIsMergedTask = 0x0100, 
   eHasDependence = 0x0200,
+  eIsComplete = 0x0400,
 } TaskFlag;
 
 /*
@@ -42,6 +43,7 @@ typedef struct TaskData {
   ~TaskData() { 
     duplicateMap.clear(); 
   }
+
   void recordExplicitTaskData(TaskData*);
   void recordUndeferredTaskData(TaskData*);
   void setIsExplicitTask(bool);
@@ -54,6 +56,7 @@ typedef struct TaskData {
   void setIsTaskwait(bool);  
   void setIsMergedTask(bool);
   void setHasDependence(bool);
+  void setIsComplete(bool);
 
   bool getIsExplicitTask() const;
   bool getIsMutexTask() const;

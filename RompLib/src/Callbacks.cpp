@@ -432,6 +432,7 @@ void on_ompt_callback_task_create(
     parentTaskData->recordExplicitTaskData(taskData); 
   }
   if (isUndeferred) {
+     RAW_DLOG(INFO, "record undeferred : %lx", taskData);
     parentTaskData->recordUndeferredTaskData(taskData);
   } 
   newTaskData->ptr = static_cast<void*>(taskData);
@@ -570,6 +571,7 @@ void on_ompt_callback_dispatch(
  }
  taskDataPtr->label = std::move(mutatedLabel);
  taskDataPtr->mutateCount++;
+
 }
 
 void on_ompt_callback_reduction(

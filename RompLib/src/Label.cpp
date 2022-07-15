@@ -1,4 +1,5 @@
 #include "Label.h"
+#include "TaskData.h"
 
 #include <glog/logging.h>
 #include <glog/raw_logging.h>
@@ -152,9 +153,10 @@ std::shared_ptr<Label> mutateParentImpEnd(Label* childLabel) {
 
 /*
  * Upon creating explicit task, increase the task create count in the segment 
- * of parent task. If the created task is undeferred task, increment the undeferred task count
+ * of parent task. 
  */
 std::shared_ptr<Label> mutateParentTaskCreate(Label* parentLabel) {
+  RAW_DLOG(INFO, "mutate parnet task create");
   auto newLabel = std::make_shared<Label>(*parentLabel);  
   auto lastSegment = newLabel->popSegment();
   auto taskCreate = lastSegment->getTaskcreate();

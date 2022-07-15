@@ -349,7 +349,7 @@ void WorkShareSegment::setWorkShareType(WorkShareType type) {
 }
 
 WorkShareType WorkShareSegment::getWorkShareType() const {
-  return static_cast<WorkShareType>((mWorkShareID & static_cast<uint64_t>(WORK_SHARE_TYPE_MASK)) >> WORK_SHARE_TYPE_SHIFT);
+  return static_cast<WorkShareType>(mWorkShareType);
 }
 
 void WorkShareSegment::initialize() {

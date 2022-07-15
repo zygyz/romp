@@ -13,6 +13,7 @@ enum SegmentType {
 enum WorkShareType {
   eIteration = 0,
   eSection = 1,
+  eUnknownWorkShareType = 2,
 };
 
 enum TaskSyncType {
@@ -127,15 +128,18 @@ public:
   WorkShareSegment() {
     initialize(); 
     mWorkShareID = 0;
+    mWorkShareType = eUnknownWorkShareType;
   }
-  WorkShareSegment(uint64_t id, WorkShareType workshareType) {
+  WorkShareSegment(uint64_t id, WorkShareType workShareType) {
     initialize();
     mWorkShareID = id;
-    setWorkShareType(workshareType);
+    mWorkShareType = workShareType;
   }
   WorkShareSegment(const WorkShareSegment& segment): BaseSegment(segment) {
     mWorkShareID = segment.mWorkShareID;
+    mWorkShareType = segment.mWorkShareType;
   }
+
   void toggleWorkSharePlaceHolderFlag();
   bool isWorkSharePlaceHolder() const;
   void setWorkShareType(WorkShareType workShareType);
@@ -150,4 +154,5 @@ public:
 private: 
   void initialize();
   uint64_t mWorkShareID; 
+  uint8_t mWorkShareType; 
 };

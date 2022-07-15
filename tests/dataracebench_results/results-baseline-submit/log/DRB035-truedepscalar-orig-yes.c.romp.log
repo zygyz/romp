@@ -1,0 +1,42 @@
+*****     Log 1 for DRB035-truedepscalar-orig-yes.c with 32 threads and input size      *****
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0711 21:58:10.598479 30471 Initialize.h:51] start initializing ompt
+I0711 21:58:10.598701 30471 Initialize.h:89] ompt intialized
+I0711 21:58:10.613767 30471 Initialize.h:94] finalizing ompt
+I0711 21:58:10.613799 30471 Initialize.h:96] data race found:
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+a[50]=4532
+*****     Log 2 for DRB035-truedepscalar-orig-yes.c with 32 threads and input size      *****
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0711 21:58:10.679817 30514 Initialize.h:51] start initializing ompt
+I0711 21:58:10.680038 30514 Initialize.h:89] ompt intialized
+I0711 21:58:10.694723 30514 Initialize.h:94] finalizing ompt
+I0711 21:58:10.694761 30514 Initialize.h:96] data race found:
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+a[50]=388
