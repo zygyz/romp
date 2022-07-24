@@ -37,6 +37,10 @@ bool shouldCheckMemoryAccess(const ThreadInfo& threadInfo,
 bool isDuplicateMemoryAccess(const uint64_t memoryAddress, const TaskInfo& taskInfo, bool isWrite) {
   const auto taskData = static_cast<TaskData*>(taskInfo.taskData->ptr);  
   auto mutateCount = taskData->mutateCount;
+  //TODO: looks like we are ignoring lock set information when looking up the table. 
+  //This is fine for most cases where no lock is being used in program.
+  // we may want to calculate a hash value from mutateCount and integer value from a set of locks,
+  // and use this as a key
   if (taskData->duplicateMap.find(mutateCount) == taskData->duplicateMap.end()) {
     std::unordered_map<uint64_t, bool> map;
     map[memoryAddress] = isWrite;
