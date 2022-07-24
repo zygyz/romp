@@ -1,0 +1,42 @@
+*****     Log 1 for DRB085-threadprivate-orig-no.c with 32 threads and input size      *****
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0712 01:38:24.192904 71120 Initialize.h:51] start initializing ompt
+I0712 01:38:24.193133 71120 Initialize.h:89] ompt intialized
+I0712 01:38:24.246584 71120 Initialize.h:94] finalizing ompt
+I0712 01:38:24.246616 71120 Initialize.h:103] data race not found
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+sum=499500; sum1=499500
+*****     Log 2 for DRB085-threadprivate-orig-no.c with 32 threads and input size      *****
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0712 01:38:24.314278 71162 Initialize.h:51] start initializing ompt
+I0712 01:38:24.314503 71162 Initialize.h:89] ompt intialized
+I0712 01:38:24.367022 71162 Initialize.h:94] finalizing ompt
+I0712 01:38:24.367053 71162 Initialize.h:103] data race not found
+registering callback: 'ompt_callback_mutex_acquired'
+registering callback: 'ompt_callback_mutex_released'
+registering callback: 'ompt_callback_reduction'
+registering callback: 'ompt_callback_implicit_task'
+registering callback: 'ompt_callback_sync_region'
+registering callback: 'ompt_callback_work'
+registering callback: 'ompt_callback_parallel_begin'
+registering callback: 'ompt_callback_parallel_end'
+registering callback: 'ompt_callback_task_create'
+registering callback: 'ompt_callback_task_schedule'
+registering callback: 'ompt_callback_dependences'
+registering callback: 'ompt_callback_thread_begin'
+registering callback: 'ompt_callback_thread_end'
+registering callback: 'ompt_callback_dispatch'
+sum=499500; sum1=499500

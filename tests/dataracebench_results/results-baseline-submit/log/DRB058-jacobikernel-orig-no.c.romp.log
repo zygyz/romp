@@ -1,0 +1,8 @@
+*****     Log 1 for DRB058-jacobikernel-orig-no.c with 32 threads and input size      *****
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0711 22:32:33.836494 35115 Initialize.h:51] start initializing ompt
+I0711 22:32:33.836724 35115 Initialize.h:89] ompt intialized
+*****     Log 2 for DRB058-jacobikernel-orig-no.c with 32 threads and input size      *****
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0711 22:42:33.872340 35779 Initialize.h:51] start initializing ompt
+I0711 22:42:33.872577 35779 Initialize.h:89] ompt intialized

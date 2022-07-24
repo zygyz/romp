@@ -89,6 +89,18 @@ packages:
    source ./env_setup.sh
    ./install.sh
   ```
+### About llvm-openmp library
+* One can build llvm-openmp library from source. The llvm-openmp library is now a part of llvm-project
+ 1. git clone https://github.com/llvm/llvm-project.git
+ 2. Suppose llvm-project is located in `/path/to/llvm-project`
+   ```
+      cd /path/to/llvm-project/openmp
+      mkdir build && cd build
+      cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_INSTALL_PREFIX=/path/to/llvm-project-install -DCMAKE_BUILD_TYPE=RelWithDebInfo -DLIBOMP_OMPT_OPTIONAL=ON ..
+      make && make install
+   ```
+ 3. Now we get the llvm-openmp library installed in `/path/to/llvm-project-install` directory. 
+ 4. Set up LD_PRELOAD environment variable `export LD_PRELOAD=/path/to/llvm-project/install/lib/libomp.so`. This makes sure this version on libomp.so is used. 
 ### Running ROMP 
 #### Setup environment variables so that we can run ROMP. 
 1. Load the following modules into environment variables. Remember to replace contents in env_setup.sh with your own system settings.
@@ -130,13 +142,13 @@ clang++ -g -fopenmp -lomp test.cpp -o test
 InstrumentMain --program=./test
 ```
 * this would generate an instrumented binary: `test.inst`
-3. check data races for a program
-* (optional) turn on line info report.
+3. check data races for a program 
+* ~~(optional) turn on line info report.~~ (Note: Line information requires additional customized patch for dyninst to write additional relocated linemap information. We temporarily disable this feature) 
 ```
 export ROMP_REPORT_LINE=on
 ```
-when enabled, this would print all data races found with line information
-* (optional) turn on on-the-fly data race report
+~~when enabled, this would print all data races found with line information~~
+* ~~(optional) turn on on-the-fly data race report
 ```
 export ROMP_REPORT=on
 ```
@@ -151,12 +163,4 @@ includes x bytes, ROMP checks ceil(x/4) words.
 
 * run `test.inst` to check data races for program `test`
 
-### Running DataRaceBench
-* check out my forked branch `romp-test` of data race bench, which contains modifications to scripts to support running romp
- https://github.com/zygyz/dataracebench 
-```
-git clone git@github.com:zygyz/dataracebench.git
-git checkout romp-test
-cd dataracebench
-./check-data-races.sh --romp
-```
+
