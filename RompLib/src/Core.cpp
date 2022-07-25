@@ -460,7 +460,7 @@ bool analyzeSameTask(Label* histLabel, Label* curLabel, int diffIndex, RecordMan
       return analyzeExplicitTask(histLabel, curLabel, diffIndex, recordManagementInfo); 
     } 
     RAW_CHECK(!(histNextType == eImplicit && curNextType == eImplicit), "not expecting next level tasks are sibling implicit tasks");
-    RAW_CHECK(!(histNextType == eLogical && curNextType == eLogical), "not expecting next level tasks are sibling logical tasks");
+    //RAW_CHECK(!(histNextType == eLogical && curNextType == eLogical), "not expecting next level tasks are sibling logical tasks");
     RAW_CHECK(!(histNextType == eLogical && curNextType == eImplicit), "not expecting next level tasks are implicit task and logcial task combination");
     RAW_CHECK(!(histNextType == eImplicit && curNextType == eLogical), "not expecting next level tasks are implicit task and logcial task combination");
     // in the rest of the cases, there is no case of sibling explicit tasks. 
