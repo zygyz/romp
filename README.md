@@ -90,13 +90,13 @@ packages:
    ./install.sh
   ```
 ### About llvm-openmp library
-* One can build llvm-openmp library from source. The llvm-openmp library is now a part of llvm-project
+* One can build llvm-openmp library from source. The llvm-openmp library is now a part of llvm-project. The main branch of llvm-project now officially supports `ompt_callback_dispatch_t` callback for both worksharing loop construct and task loop construct. 
  1. git clone https://github.com/llvm/llvm-project.git
  2. Suppose llvm-project is located in `/path/to/llvm-project`
    ```
       cd /path/to/llvm-project/openmp
-      mkdir build && cd build
-      cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_INSTALL_PREFIX=/path/to/llvm-project-install -DCMAKE_BUILD_TYPE=RelWithDebInfo -DLIBOMP_OMPT_OPTIONAL=ON ..
+      cmake -S llvm -B build -G "Unix Makefiles" -DLLVM_ENABLE_PROJECTS="clang;openmp" -DCMAKE_INSTALL_PREFIX=/path/to/llvm-project-install -DCMAKE_BUILD_TYPE=RelWithDebInfo
+      cd build 
       make && make install
    ```
  3. Now we get the llvm-openmp library installed in `/path/to/llvm-project-install` directory. 
