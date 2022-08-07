@@ -12,8 +12,12 @@ Architecture: x86_64
 
 1. Install `spack`
 
-* For the installation of Spack, please refer to the guide in Spack project readme. 
-
+* For the installation of Spack, please refer to the guide in Spack project readme.
+```
+git clone https://github.com/spack/spack.git
+ .  /path/to/spack/share/spack/setup-env.sh
+```
+Pleaes make sure environment module is available on the system. 
 2. Install environment module
 * We use environment module to manage environment variable settings. Section 'Bootstrapping Environment Modules' in link http://hpctoolkit.org/software-instructions.html#Building-a-New-Compiler provides a guide to installing environment module.
 
@@ -38,20 +42,19 @@ modules:
 ```
 One can replace `tcl` with `lmod` depending on which interpreter the system uses to manage modulefiles. 
 
-3. Install gcc a.b.c
+3. Install gcc (We recoomend gcc@8.5.0) 
 * Before installing using spack, it is important to make sure your system has a clean environment variable setting.
 This can be done by `printenv | grep PATH`. Then:
 ```
-spack install gcc@a.b.c
+spack install gcc@8.5.0
 ```
-4. Using gcc a.b.c for all builds
+4. Using gcc 8.5.0 for all builds
 * To ensure all packages are built using the same compiler, do the following steps:
-  * After installation of gcc, you will find a directory in /path/to/spack/Modules/modules, suppose it is called system-arch. You can also find the gcc module in this direcotry, suppose it is called gcc-a.b.c-gcc-a.b.c-somehash Do the following steps:
+  * After installation of gcc, you will find a directory in /path/to/spack/Modules/modules, suppose it is called system-arch. You can also find the gcc module in this direcotry, suppose it is called gcc-8.5.0-original-compiler-somehash Do the following steps:
 ```
-module use /path/to/spack/Modules/modules/system-arch
-module load gcc-a.b.c-gcc-e.f.g-somehash
+module load gcc-8.5.0-original-compiler-somehash
 ```
-  * Tell spack to add gcc a.b.c into available compilers:
+  * Tell spack to add gcc 8.5.0 into available compilers:
 ```
 spack compiler find
 ```
