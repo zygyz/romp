@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.20)
 add_executable(InstrumentMain InstrumentMain.cpp 
                               InstrumentClient.cpp)
-find_path(GFLAGS_PATH "gflags/gflags.h")  
-find_path(GLOG_PATH  "glog/logging.h")
-find_path(BOOST_PATH "boost/atomic.hpp")
-find_path(TBB_PATH "tbb/concurrent_hash_map.h")
-find_path(BPATCH_PATH "BPatch.h")
+find_path(GFLAGS_PATH "gflags/gflags.h" REQUIRED)  
+find_path(GLOG_PATH  "glog/logging.h" REQUIRED)
+find_path(BOOST_PATH "boost/atomic.hpp" REQUIRED)
+find_path(TBB_PATH "tbb/concurrent_hash_map.h" REQUIRED)
+find_path(BPATCH_PATH "BPatch.h" REQUIRED)
 include_directories(${DYNINST_INCLUDE_PATH}
                       ${GFLAGS_PATH}
                       ${BOOST_PATH}
@@ -18,8 +18,9 @@ find_library(INSTRUCTION_LIB instructionAPI)
 find_library(SYMTAB_LIB symtabAPI)
 find_library(PARSE_LIB parseAPI)
 find_library(BOOST_SYSTEM_LIB boost_system)
-find_library(GFLAGS_LIB gflags)
-find_library(GLOG_LIB glog)
+find_library(GFLAGS_LIB gflags REQUIRED)
+find_library(GLOG_LIB glog REQUIRED)
+message(STATUS "GFLAGS_LIB: ${GFLAGS_LIB}")
 target_link_libraries(InstrumentMain "${COMMON}")
 target_link_libraries(InstrumentMain "${DYNINST_LIB}")
 target_link_libraries(InstrumentMain "${INSTRUCTION_LIB}")
