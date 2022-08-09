@@ -28,9 +28,9 @@ bool shouldCheckMemoryAccess(const ThreadInfo& threadInfo,
                              const bool isWrite,
                              void* instructionAddress) {
   dataSharingType = analyzeDataSharingType(threadInfo, taskMemoryInfo, memoryAddress, taskFrame);
-  if (isDuplicateMemoryAccess(memoryAddress, taskInfo, isWrite)) {
-    return false;
-  }
+ // if (isDuplicateMemoryAccess(memoryAddress, taskInfo, isWrite)) {
+ //   return false;
+ // }
   return dataSharingType != eNonWorkerThread && dataSharingType != eInitialThread;
 }
 
