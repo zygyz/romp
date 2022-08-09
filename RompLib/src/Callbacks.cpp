@@ -43,6 +43,7 @@ void on_ompt_callback_implicit_task(
     if (!taskDataPtr) {
       RAW_LOG(FATAL, "task data pointer is null");
     }
+    taskDataPtr->clearDuplicateMap();
     delete taskDataPtr; 
     taskData->ptr = nullptr;
     return;

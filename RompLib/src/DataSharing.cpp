@@ -27,10 +27,10 @@ bool shouldCheckMemoryAccess(const ThreadInfo& threadInfo,
                              DataSharingType& dataSharingType,
                              const bool isWrite,
                              void* instructionAddress) {
-  dataSharingType = analyzeDataSharingType(threadInfo, taskMemoryInfo, memoryAddress, taskFrame);
   if (isDuplicateMemoryAccess(memoryAddress, taskInfo, isWrite)) {
     return false;
   }
+  dataSharingType = analyzeDataSharingType(threadInfo, taskMemoryInfo, memoryAddress, taskFrame);
   return dataSharingType != eNonWorkerThread && dataSharingType != eInitialThread;
 }
 
@@ -42,6 +42,7 @@ bool isDuplicateMemoryAccess(const uint64_t memoryAddress, const TaskInfo& taskI
     taskData->duplicateMap[memoryAddress] = isWrite;
     return false;
   } 
+  RAW_DLOG(INFO, "memaddress: %lx is duplicate memory access", memoryAddress);
   return true;
 }
 
@@ -81,7 +82,7 @@ DataSharingType analyzeDataSharingType(const ThreadInfo& threadInfo,
       }
     }
     const auto taskPrivateMemoryBaseAddress = reinterpret_cast<const uint64_t>(taskMemoryInfo.blockAddress);
-    RAW_DLOG(INFO, "?????? analyze data sharing type: mem: %lx stack top: %lx stack bottom: %lx private base: %lx ", memoryAddress, threadData->stackTopAddress, threadData->stackBaseAddress, taskPrivateMemoryBaseAddress);
+   // RAW_DLOG(INFO, "?????? analyze data sharing type: mem: %lx stack top: %lx stack bottom: %lx private base: %lx ", memoryAddress, threadData->stackTopAddress, threadData->stackBaseAddress, taskPrivateMemoryBaseAddress);
     return eNonThreadPrivate;
   }
   // now the memory access is within current thread's stack range. We want to figure out if the memory access is task private.
