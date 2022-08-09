@@ -10,6 +10,10 @@ TaskData::TaskData() {
   metaData = 0;
 }
 
+void TaskData::clearDuplicateMap() {
+  duplicateMap.clear();
+}
+
 void TaskData::recordExplicitTaskData(TaskData* taskData) {
   childrenExplicitTasks.push_back(static_cast<void*>(taskData));
 }

@@ -62,7 +62,6 @@ void on_ompt_callback_implicit_task(
       auto newTaskDataPtr = new TaskData();
       // cast to rvalue and avoid atomic ref count modification
       newTaskDataPtr->label = std::move(newTaskLabel); 
-      newTaskDataPtr->mutateCount++;
       newTaskDataPtr->parallelRegionDataPtr = parallelData->ptr;
       taskData->ptr = static_cast<void*>(newTaskDataPtr);
       return;
@@ -79,7 +78,8 @@ void on_ompt_callback_implicit_task(
       }
       auto mutatedLabel = mutateParentImpEnd(taskDataPtr->label.get());
       parentTaskData->label = std::move(mutatedLabel);
-      parentTaskData->mutateCount++;
+      RAW_DLOG(INFO, "clear dup map on end of implicit task");
+      parentTaskData->clearDuplicateMap();
       delete taskDataPtr; 
       taskData->ptr = nullptr;
       return;
@@ -203,7 +203,8 @@ void on_ompt_callback_sync_region(
   }
   if (mutatedLabel != nullptr) { // for default case, don't modify
     taskDataPtr->label = std::move(mutatedLabel);
-    taskDataPtr->mutateCount++;
+    RAW_DLOG(INFO, "clear dup map on sync region");
+    taskDataPtr->clearDuplicateMap();
   }
   return;
 }
@@ -236,7 +237,8 @@ void on_ompt_callback_mutex_acquired(
   }
   if (mutatedLabel) {
     taskDataPtr->label = std::move(mutatedLabel);
-    taskDataPtr->mutateCount++;
+    RAW_DLOG(INFO, "clear dup map on mutex acquired");
+    taskDataPtr->clearDuplicateMap();
   }
 }
 
@@ -263,7 +265,8 @@ void on_ompt_callback_mutex_released(
   }
   if (mutatedLabel) {
     taskDataPtr->label = std::move(mutatedLabel);
-    taskDataPtr->mutateCount++;
+    RAW_DLOG(INFO, "clear dup map on mutex release");
+    taskDataPtr->clearDuplicateMap();
   }
 }
 
@@ -365,7 +368,8 @@ void on_ompt_callback_work(
       break;
   }
   taskDataPtr->label = std::move(mutatedLabel);
-  taskDataPtr->mutateCount++;
+  RAW_DLOG(INFO, "clear dup map on callback work");
+  taskDataPtr->clearDuplicateMap();
 }
 
 void on_ompt_callback_parallel_begin(
@@ -427,7 +431,7 @@ void on_ompt_callback_task_create(
   taskData->label = generateExplicitTaskLabel(parentLabel, static_cast<void*>(taskData));
   auto mutatedParentLabel = mutateParentTaskCreate(parentLabel); 
   parentTaskData->label = std::move(mutatedParentLabel);
-  parentTaskData->mutateCount++; 
+  parentTaskData->clearDuplicateMap();
   if (isExplicitTask) {
     parentTaskData->recordExplicitTaskData(taskData); 
   }
@@ -448,7 +452,8 @@ void handleTaskComplete(void* taskPtr) {
   auto label = (taskDataPtr->label).get();
   auto mutatedLabel = mutateTaskComplete(label);
   taskDataPtr->label = std::move(mutatedLabel);
-  taskDataPtr->mutateCount++;
+  RAW_DLOG(INFO, "clear dup map on task complete");
+  taskDataPtr->clearDuplicateMap();
 }
 
 void on_ompt_callback_task_schedule(
@@ -570,8 +575,8 @@ void on_ompt_callback_dispatch(
      RAW_LOG(FATAL, "unexpected case %d", kind);
  }
  taskDataPtr->label = std::move(mutatedLabel);
- taskDataPtr->mutateCount++;
-
+ RAW_DLOG(INFO, "clear dup map on dispatch");
+ taskDataPtr->clearDuplicateMap();
 }
 
 void on_ompt_callback_reduction(
