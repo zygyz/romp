@@ -35,15 +35,14 @@ typedef struct TaskData {
   void* parallelRegionDataPtr;
   std::vector<void*> childrenExplicitTasks;
   std::vector<void*> undeferredTasks; // record the TaskData pointers for undeferred task encountered.
-//  std::unordered_map<uint64_t, bool> duplicateMap; // key is the memory address, value is access type (true if is write), it gets flushed everytime the mutate count changes 
-  //std::unordered_map<uint64_t, std::unordered_map<uint64_t, bool> > duplicateMap; // key is the mutateCount, value is another hashmap, key is the memory address.
+  std::unordered_map<uint64_t, bool> duplicateMap; // key is the memory address, value is access type (true if is write), it gets flushed everytime the mutate count changes 
   uint16_t metaData;
   TaskData();
   ~TaskData() { 
     duplicateMap.clear(); 
   }
 
- // void clearDuplicateMap();
+  void clearDuplicateMap();
   void recordExplicitTaskData(TaskData*);
   void recordUndeferredTaskData(TaskData*);
   void setIsExplicitTask(bool);

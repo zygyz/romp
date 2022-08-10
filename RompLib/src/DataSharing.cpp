@@ -16,7 +16,7 @@
 
 #define USER_SPACE_VIRTUAL_MEMORY_BOUND 0x00007fffffffffff //canonical form x86-64 VM layout 
 #define MINIMUM_STACK_FRAME_SIZE 32
-#define MAXIMUM_REDUNDANT_MAP_SIZE 1024 * 1024 // redundant map stores maximum of 1 mega bytes of footprint
+#define MAXIMUM_REDUNDANT_MAP_SIZE 1024 * 2 // redundant map stores maximum of 1 mega bytes of footprint
 
 extern PerformanceCounters gPerformanceCounters; 
 
