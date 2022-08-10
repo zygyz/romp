@@ -16,6 +16,7 @@
 
 #define USER_SPACE_VIRTUAL_MEMORY_BOUND 0x00007fffffffffff //canonical form x86-64 VM layout 
 #define MINIMUM_STACK_FRAME_SIZE 32
+#define MAXIMUM_REDUNDANT_MAP_SIZE 1024 * 1024 // redundant map stores maximum of 1 mega bytes of footprint
 
 extern PerformanceCounters gPerformanceCounters; 
 
@@ -37,8 +38,15 @@ bool shouldCheckMemoryAccess(const ThreadInfo& threadInfo,
 bool isDuplicateMemoryAccess(const uint64_t memoryAddress, const TaskInfo& taskInfo, bool isWrite) {
   // duplicate map is emptied upon entering each phase 
   const auto taskData = static_cast<TaskData*>(taskInfo.taskData->ptr);  
+#ifdef PERFORMANCE
+  gPerformanceCounters.updateMaximumRedundantAccessFilteringMapSize(taskData->duplicateMap.size());
+#endif
   if (taskData->duplicateMap.find(memoryAddress) == taskData->duplicateMap.end() || 
       taskData->duplicateMap[memoryAddress] == false && isWrite) {
+     if (taskData->duplicateMap.size() > MAXIMUM_REDUNDANT_MAP_SIZE) {
+      RAW_DLOG(INFO, "duplicate map reaches maximum size");   
+      taskData->duplicateMap.erase(taskData->duplicateMap.begin());
+    }
     taskData->duplicateMap[memoryAddress] = isWrite;
     return false;
   } 

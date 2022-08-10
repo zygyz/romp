@@ -59,6 +59,11 @@ void PerformanceCounters::bumpNumSkipAddingCurrentRecord() {
   mNumSkipAddingCurrentRecord.fetch_add(1, std::memory_order_relaxed);
 }
 
+void PerformanceCounters::updateMaximumRedundantAccessFilteringMapSize(uint64_t value_new) {
+  auto previous_value = mMaximumRedundantAccessFilteringMapSize.load(); 
+  while (previous_value < value_new && !mMaximumRedundantAccessFilteringMapSize.compare_exchange_weak(previous_value, value_new));
+}
+
 void PerformanceCounters::printPerformanceCounters() const {
   LOG(INFO) << "# Check Access Function Call: " << mNumCheckAccessFunctionCall.load();      
   LOG(INFO) << "# Access History Record Overflow (threshold=" << mAccessHistoryRecordThreshold << "):  " << mNumAccessHistoryOverflow.load();
@@ -71,6 +76,7 @@ void PerformanceCounters::printPerformanceCounters() const {
   LOG(INFO) << "# Access History Remove Records: " << mNumAccessHistoryRemoveRecords.load();
   LOG(INFO) << "# Maximum Access Records Number: " << mMaximumAccessRecordsNum.load();
   LOG(INFO) << "# Skip Add Current Record: " << mNumSkipAddingCurrentRecord.load();
+  LOG(INFO) << "# Maximum Redundant Access Filtering Map Size: " << mMaximumRedundantAccessFilteringMapSize.load();
   if (mNumCheckAccessFunctionCall.load() > 0) {
     LOG(INFO) << "# Average number access records traversed: " << (double) mNumTotalAccessRecordsTraversed.load() / (double) mNumCheckAccessFunctionCall.load();
   }
