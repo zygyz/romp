@@ -493,6 +493,7 @@ void on_ompt_callback_dependences(ompt_data_t *taskData, const ompt_dependence_t
     return;
   }	  
   // get pointer parallel region data structure
+rollback:
   auto parallelRegionData = static_cast<ParallelRegionData*>(parallelRegionInfo.parallelData->ptr);
   if (!parallelRegionData) {
     RAW_LOG(FATAL, "callback dependences: current parallel data ptr is null");
@@ -504,7 +505,11 @@ void on_ompt_callback_dependences(ompt_data_t *taskData, const ompt_dependence_t
 #else
   ReaderWriterLockGuard guard(&(parallelRegionData->lock), &node, nullptr);
 #endif
-  guard.upgradeFromReaderToWriter();   
+  auto needRollback = false;
+  guard.upgradeFromReaderToWriter(needRollback);   
+  if (needRollback) {
+    goto rollback;
+  }
   // while in mutual exculsion, maintain explicit task dependences
   for (int i = 0; i < ndeps; ++i) {
     RAW_DLOG(INFO, "maintain task dependence: %lx", taskPtr);

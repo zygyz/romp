@@ -48,7 +48,11 @@ rollback: // will refactor to remove the tag. Using goto tag is actually more re
     if (!accessHistory->hasRecords()) {
       return true;
     }
-    guard.upgradeFromReaderToWriter();
+    bool needRollback;
+    guard.upgradeFromReaderToWriter(needRollback);
+    if (needRollback) {
+      goto rollback;
+    }
     if (accessHistory->hasRecords()) {
       accessHistory->clearRecords(); 
     }
@@ -62,7 +66,11 @@ rollback: // will refactor to remove the tag. Using goto tag is actually more re
   auto curRecord = Record(isWrite, curLabel, curLockSet, currentTaskData, checkedAddress, hasHardwareLock,  isInReduction, (int)dataSharingType, instnAddr, isTLSAccess, owner);
   if (!accessHistory->hasRecords()) {
     // no access record, add current access to the record
-    auto hasWriteWriteContention = guard.upgradeFromReaderToWriter();
+    bool needRollback;
+    auto hasWriteWriteContention = guard.upgradeFromReaderToWriter(needRollback);
+    if (needRollback) {
+      goto rollback;
+    }
     if (!hasWriteWriteContention || hasWriteWriteContention && !accessHistory->hasRecords()) {
       //RAW_DLOG(INFO, "add record to access history memory address: %lx in reduction %d is write: %d", curRecord.getCheckedMemoryAddress(), curRecord.isInReduction(), curRecord.isWrite());
       accessHistory->addRecordToAccessHistory(curRecord);

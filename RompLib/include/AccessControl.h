@@ -15,7 +15,7 @@ class ReaderWriterLockGuard {
 public:
   ReaderWriterLockGuard(pfq_rwlock_t* lock, pfq_rwlock_node_t* node, PerformanceCounters* performanceCounters);
   ~ReaderWriterLockGuard();
-  bool upgradeFromReaderToWriter();
+  bool upgradeFromReaderToWriter(bool& needRollback);
 private:
   pfq_rwlock_t* mLock;
   pfq_rwlock_node_t* mNode;

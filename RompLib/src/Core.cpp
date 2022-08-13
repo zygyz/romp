@@ -117,8 +117,13 @@ void  setMemoryOwner(AccessHistory* accessHistory, int dataSharingType, void* ta
   if (dataSharingType == eThreadPrivateAccessCurrentTask || dataSharingType == eExplicitTaskPrivate) {
     pfq_rwlock_node_t me;
     ReaderWriterLockGuard guard(&(accessHistory->getLock()), &me, &gPerformanceCounters);
+rollback:
     if (accessHistory->getOwner() != taskData) {
-      guard.upgradeFromReaderToWriter();
+      auto needRollback = false;
+      guard.upgradeFromReaderToWriter(needRollback);
+      if (needRollback) {
+        goto rollback;
+      }
       accessHistory->setOwner(taskData);
     }
   } 
@@ -593,7 +598,11 @@ bool manageAccessRecords(AccessHistory* accessHistory, const Record& currentReco
     } 
   }
   if (recordRemovalCandidates.size() > 0) {
-    auto hasWriteWriteContention = lockGuard.upgradeFromReaderToWriter();
+      auto needRollback = false;
+      auto hasWriteWriteContention = lockGuard.upgradeFromReaderToWriter(needRollback);
+      if (needRollback) {
+        return true;
+      }
     if (!hasWriteWriteContention) {
       accessHistory->removeRecords(recordRemovalCandidates);
     } else {
@@ -611,7 +620,11 @@ bool manageAccessRecords(AccessHistory* accessHistory, const Record& currentReco
   if (!canSkipAddingCurrentRecord) {
   // if we should not skip adding current record to the access history, we need to add it to the record no matter 
   // if there is write write contention or not. 
-    auto hasWriteWriteContention = lockGuard.upgradeFromReaderToWriter();  
+    auto needRollback = false;
+    auto hasWriteWriteContention = lockGuard.upgradeFromReaderToWriter(needRollback);
+    if (needRollback) {
+      return true;
+    }
     if (!hasWriteWriteContention) {
       accessHistory->addRecordToAccessHistory(currentRecord);
       return false;
