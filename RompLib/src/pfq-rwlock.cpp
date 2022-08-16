@@ -248,12 +248,13 @@ pfq_rwlock_write_unlock(pfq_rwlock_t *l, pfq_rwlock_node_t *me)
   mcs_unlock(&l->wtail, me);
 }
 
-bool  pfq_rwlock_upgrade_from_read_to_write_lock(pfq_rwlock_t *l, pfq_rwlock_node_t *me, PerformanceCounters* performanceCounters) {
-  // this function is called when there rises an intention to write during the read 
-  // first we unlock the read lock. Return true if there exists write-write contention
-  pfq_rwlock_read_unlock(l);
+bool pfq_rwlock_upgrade_from_read_to_write_lock(pfq_rwlock_t *l, pfq_rwlock_node_t *me, PerformanceCounters* performanceCounters) {
+  auto shouldRollback = false;
   auto hasWriteWriteContention = false;
-  if (!mcs_trylock(&l->wtail, me)) {
+  if (mcs_trylock(&l->wtail, me)) {   
+    // upgrade successful
+    pfq_rwlock_read_unlock(l);
+  } else {
 #ifdef PERFORMANCE
     if (performanceCounters) {
       performanceCounters->bumpNumAccessControlContention();
@@ -261,7 +262,9 @@ bool  pfq_rwlock_upgrade_from_read_to_write_lock(pfq_rwlock_t *l, pfq_rwlock_nod
     }
 #endif
     hasWriteWriteContention = true;
+    pfq_rwlock_read_unlock(l);
     mcs_lock(&l->wtail, me); 
+    shouldRollback = true;
   }
   //--------------------------------------------------------------------
   // this may be false when at the head of the mcs queue
