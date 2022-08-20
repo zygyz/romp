@@ -16,8 +16,6 @@ module load intel-tbb-2020.3-gcc-11.2.0-3y22way
 echo "intel-tbb loaded"
 module load hwloc-2.7.1-gcc-11.2.0-betflhl
 echo "hwloc loaded"
-module load llvm-openmp-12.0.1-gcc-11.2.0-a7b7xv6
-echo "llvm-openmp loaded"
 echo "all modules loaded"
 
 
