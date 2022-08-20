@@ -66,10 +66,6 @@ packages:
   ```
   spack install glog 
   ```
-* llvm-openmp
-  ```
-  spack install llvm-openmp
-  ```
 * dyninst
   ```
   spack install dyninst@12.0.0~openmp
