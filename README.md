@@ -86,16 +86,25 @@ packages:
    ./install.sh
   ```
 ### About llvm-openmp library
-* One can build llvm-openmp library from source. The llvm-openmp library is now a part of llvm-project
+* One can build llvm-openmp library from source. The llvm-openmp library is now a part of llvm-project.
+We use clang to build the openmp run time library. So we first build clang from source. 
+
  1. git clone https://github.com/llvm/llvm-project.git
- 2. Suppose llvm-project is located in `/path/to/llvm-project`
+ 2. Build and install clang. We use 14.0.6 release. 
+   ```
+   cd /path/to/llvm-project 
+   cmake -S llvm -B build -G "Unix Makefiles" -DLLVM_ENABLE_PROJECTS="clang" -DCMAKE_INSTALL_PREFIX=/path/to/llvm-project-install -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc 
+   cd build 
+   make install 
+   ```
+ 3. Suppose llvm-project is located in `/path/to/llvm-project`
    ```
       cd /path/to/llvm-project/openmp
       mkdir build && cd build
       cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_INSTALL_PREFIX=/path/to/llvm-project-install -DCMAKE_BUILD_TYPE=RelWithDebInfo -DLIBOMP_OMPT_OPTIONAL=ON ..
       make && make install
    ```
- 3. Now we get the llvm-openmp library installed in `/path/to/llvm-project-install` directory. 
+ 3. Now we get the `libomp.so` library installed in `/path/to/llvm-project-install` directory. 
  4. Set up LD_PRELOAD environment variable `export LD_PRELOAD=/path/to/llvm-project/install/lib/libomp.so`. This makes sure this version on libomp.so is used. 
 ### Running ROMP 
 #### Setup environment variables so that we can run ROMP. 
@@ -108,7 +117,7 @@ It is possible that various verions/variants of dyninst are installed in your sy
 spack spec -l hpctoolkit
 ``` 
 
-2. Export DYNINSTAPI_RT_LIB and ROMP_PATH
+2. Export `DYNINSTAPI_RT_LIB` and `ROMP_PATH`
 * It is required by dyninst to set environment variable DYNINSTAPI_RT_LIB. Make sure one uses the correct version of dyninst using the method described above. 
 
 ```
@@ -118,15 +127,15 @@ ROMP's instrumentation client needs to know where ROMP library is located. This 
 ```
 export ROMP_PATH=/path/to/romp/install/lib/libromp.so
 ```
+3. Export `CMAKE_PREFIX_PATH`
+`CMAKE_PREFIX_PATH` allows cmake to find header files of custom installed OpenMP library 
+```
+export CMAKE_PREFIX_path=/path/to/llvm-project-install/:$CMAKE_PREFIX_PATH
+```
  
 #### Compile and instrument a program
 * suppose an OpenMP program is `test.cpp`
 1. compile the program so that it links against the openmp runtime library
-* one can 
-```
-module unload llvm-openmp 
-```
-to unload the default llvm-openmp library and provide a LD_LIBRARY_PATH to their own installation of llvm-openmp library.
 ```
 clang++ -g -fopenmp -lomp test.cpp -o test
 ```
