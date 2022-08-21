@@ -76,7 +76,6 @@ packages:
   ```
 3. Setup environment varibales for building ROMP 
 * We need environment variables setting for several dependent packages (gflags, intel-tbb, boost etc.). The exact name for each package can be found using `module avail` command. Please take a look at the env_setup.sh file for your reference. Remember to replace each module load commend with your system's settings in env_setup.sh
-* Currently ompt_callback_dispatch is not implemented in llvm openmp library. We need to implement it and use LD_PRELOAD to load our version of the libomp.so
 
 4. Build makefiles using cmake
 * Suppose ROMP is located in `/home/to/romp`
