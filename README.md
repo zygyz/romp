@@ -38,28 +38,28 @@ modules:
 ```
 One can replace `tcl` with `lmod` depending on which interpreter the system uses to manage modulefiles. 
 
-3. Install gcc a.b.c
+3. Install gcc 
 * Before installing using spack, it is important to make sure your system has a clean environment variable setting.
-This can be done by `printenv | grep PATH`. Then:
+This can be done by `printenv | grep PATH`. We use gcc 11.2.0. Intall it by:
 ```
-spack install gcc@a.b.c
+spack install gcc@11.2.0
 ```
-4. Using gcc a.b.c for all builds
+4. Using gcc 11.2.0 for all builds
 * To ensure all packages are built using the same compiler, do the following steps:
-  * After installation of gcc, you will find a directory in /path/to/spack/Modules/modules, suppose it is called system-arch. You can also find the gcc module in this direcotry, suppose it is called gcc-a.b.c-gcc-a.b.c-somehash Do the following steps:
+  * After installation of gcc, you will find a directory in /path/to/spack/Modules/modules, suppose it is called system-arch. If the gcc is compiled by gcc 4.8.5, You can also find the gcc module in this directory, suppose it is called gcc-11.2.0-gcc-4.8.5-somehash Do the following steps:
 ```
 module use /path/to/spack/Modules/modules/system-arch
-module load gcc-a.b.c-gcc-e.f.g-somehash
+module load gcc-11.2.0-gcc-4.8.5-somehash
 ```
-  * Tell spack to add gcc a.b.c into available compilers:
+  * Tell spack to add gcc 11.2.0 into available compilers:
 ```
 spack compiler find
 ```
-  * Tell spack to use gcc a.b.c to build the rest of all software by editing $HOME/.spack/packages.yaml:
+  * Tell spack to use gcc 11.2.0 to build the rest of all software by editing $HOME/.spack/packages.yaml:
 ```
 packages:
   all:
-    compiler: [gcc@a.b.c]
+    compiler: [gcc@11.2.0]
 ```
 5. Install dependent packages
 * glog
