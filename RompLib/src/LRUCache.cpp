@@ -18,7 +18,6 @@ uint64_t LRUCache::size() {
 
 // return -1 if not found. Return 1 if is memory access is write , return 0 if memory access is read
 int LRUCache::get(uint64_t key) {
-  RAW_LOG(INFO, "get %lu", key);
   if (mMap.find(key) == mMap.end()) {
     return -1; 
   } 
@@ -33,7 +32,6 @@ int LRUCache::get(uint64_t key) {
 }
 
 void LRUCache::put(uint64_t key, int value) {
-  RAW_DLOG(INFO, "LRUCache put, key: %lx value: %lx", key, value);
   if (mMap.find(key) != mMap.end()) {
     // update the value 
     auto it = mMap[key];
