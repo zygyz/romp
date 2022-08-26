@@ -4,6 +4,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "LRUCache.h"
+
 class Label;
 class LockSet;
 
@@ -35,7 +37,7 @@ typedef struct TaskData {
   void* parallelRegionDataPtr;
   std::vector<void*> childrenExplicitTasks;
   std::vector<void*> undeferredTasks; // record the TaskData pointers for undeferred task encountered.
-  std::unordered_map<uint64_t, bool> duplicateMap; // key is the memory address, value is access type (true if is write), it gets flushed everytime the mutate count changes 
+  LRUCache duplicateMap;
   uint16_t metaData;
   TaskData();
   ~TaskData() { 

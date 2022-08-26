@@ -8,6 +8,7 @@
 #include "AccessControl.h"
 #include "AccessHistory.h"
 #include "CoreUtil.h"
+#include "LRUCache.h"
 #include "PerformanceCounters.h"
 #include "ShadowMemory.h"
 #include "TaskData.h"
@@ -41,13 +42,11 @@ bool isDuplicateMemoryAccess(const uint64_t memoryAddress, const TaskInfo& taskI
 #ifdef PERFORMANCE
   gPerformanceCounters.updateMaximumRedundantAccessFilteringMapSize(taskData->duplicateMap.size());
 #endif
-  if (taskData->duplicateMap.find(memoryAddress) == taskData->duplicateMap.end() || 
-      taskData->duplicateMap[memoryAddress] == false && isWrite) {
-     if (taskData->duplicateMap.size() > MAXIMUM_REDUNDANT_MAP_SIZE) {
-      RAW_DLOG(INFO, "duplicate map reaches maximum size");   
-      taskData->duplicateMap.erase(taskData->duplicateMap.begin());
-    }
-    taskData->duplicateMap[memoryAddress] = isWrite;
+  auto value = taskData->duplicateMap.get(memoryAddress);
+
+  if (value == -1 || (value == 0 && isWrite)) {
+    RAW_LOG(INFO, "put mem addr: %lx value: %d", memoryAddress, isWrite);
+    taskData->duplicateMap.put(memoryAddress, (int)isWrite); 
     return false;
   } 
   RAW_DLOG(INFO, "memaddress: %lx is duplicate memory access", memoryAddress);
