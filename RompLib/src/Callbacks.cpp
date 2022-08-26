@@ -563,14 +563,15 @@ void on_ompt_callback_dispatch(
   switch(kind) {
     case ompt_dispatch_ws_loop_chunk:
       dispatchChunk = (ompt_dispatch_chunk_t *)instance.ptr;    
-      RAW_DLOG(INFO, "workshare loop dispatch, start: %lu, iterations: %lu", dispatchChunk->start, dispatchChunk->iterations);
+      mutatedLabel = mutateWorkShareIterationDispatch(parentLabel, dispatchChunk->start);
       break;
     case ompt_dispatch_taskloop_chunk:
       dispatchChunk = (ompt_dispatch_chunk_t *)instance.ptr;    
-      RAW_DLOG(INFO, "taskloop dispatch, start: %lu, iterations: %lu", dispatchChunk->start, dispatchChunk->iterations);
+      RAW_LOG(FATAL, "not implemented yet. task loop dispatch"); 
       break;
     case ompt_dispatch_distribute_chunk:
       dispatchChunk = (ompt_dispatch_chunk_t *)instance.ptr;    
+      RAW_LOG(FATAL, "not implemented yet, distributed dispatch");
       break;
     case ompt_dispatch_iteration:
       mutatedLabel = mutateWorkShareIterationDispatch(parentLabel, instance.value);
