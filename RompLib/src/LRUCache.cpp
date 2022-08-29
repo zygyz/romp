@@ -3,8 +3,10 @@
 #include <glog/logging.h>
 #include <glog/raw_logging.h>
 
+extern uint64_t gLRUCapacity;
+
 LRUCache::LRUCache() {
-  mCapacity = 1024;
+  mCapacity = gLRUCapacity;
 }
 
 void LRUCache::clear() {

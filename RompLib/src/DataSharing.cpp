@@ -45,7 +45,6 @@ bool isDuplicateMemoryAccess(const uint64_t memoryAddress, const TaskInfo& taskI
   auto value = taskData->duplicateMap.get(memoryAddress);
 
   if (value == -1 || (value == 0 && isWrite)) {
-    RAW_LOG(INFO, "put mem addr: %lx value: %d", memoryAddress, isWrite);
     taskData->duplicateMap.put(memoryAddress, (int)isWrite); 
     return false;
   } 

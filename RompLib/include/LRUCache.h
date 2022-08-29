@@ -16,6 +16,7 @@ int get(uint64_t key);
 void put(uint64_t key, int value);
 void clear();
 uint64_t size();
+void setCapacity(uint64_t capacity);
 private:
 uint64_t mCapacity;
 std::list<ListElement> mList;

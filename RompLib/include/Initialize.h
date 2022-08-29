@@ -23,6 +23,7 @@ bool gOmptInitialized = false;
 bool gReportLineInfo = false;
 bool gReportAtRuntime = false;
 bool gUseWordLevelCheck = false;
+uint64_t gLRUCapacity = 16384;
 Dyninst::SymtabAPI::Symtab* gSymtabHandle = nullptr;
 
 mcs_lock_t gDataRaceLock;
@@ -61,7 +62,11 @@ int omptInitialize(ompt_function_lookup_t lookup,
   if (word_level_flag != nullptr && std::string(word_level_flag) == "on") {
     gUseWordLevelCheck = true;
   }
-
+  auto lruCapacity = getenv("LRU_CAPACITY");
+  if (lruCapacity != nullptr) {
+    LOG(INFO) << "LRU capacity: " << lruCapacity;
+    gLRUCapacity = atoi(lruCapacity);
+  }
   auto ompt_set_callback = 
       (ompt_set_callback_t)lookup("ompt_set_callback");
 
